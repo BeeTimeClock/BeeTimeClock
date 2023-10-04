@@ -1,0 +1,71 @@
+# -*- restclient -*-
+
+:address = http://localhost:8080
+
+:headers = <<
+Content-Type: application/json
+Authorization: Bearer :token
+#	 
+
+# Login
+POST :address/api/v1/login
+-> jq-set-var :token .Data.Token
+Content-Type: application/json
+{
+	"Username": "administrator",
+	"Password": "lol123"
+}
+
+
+# Administration
+# Get all users
+GET :address/api/v1/administration/user
+:headers
+
+# Create user
+POST :address/api/v1/administration/user
+:headers
+
+{
+	"Username": "test",
+	"Password": "lol123"
+}
+
+# Delete user
+DELETE :address/api/v1/administration/user/1
+
+
+# Logged in
+# Get timestamps
+GET :address/api/v1/timestamp
+:headers
+
+# Checkin timestamp
+POST :address/api/v1/timestamp/action/checkin
+:headers
+
+{
+	"IsHomeoffice": true
+}
+
+# Checkin timestamp
+POST :address/api/v1/timestamp/action/checkout
+:headers
+
+{}
+
+# Get Timestamps from Current Month
+GET :address/api/v1/timestamp/query/current_month/grouped
+:headers
+
+# Get Fuel
+GET :address/api/v1/fuel
+
+# Create Fuel
+POST :address/api/v1/fuel
+
+
+# Prepare Fuel
+POST :address/api/v1/fuel/action/prepare
+Content-Type: multipart/form-data
+< fuel_receipt_test.jpg

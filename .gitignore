@@ -1,0 +1,4 @@
+tmp/
+*.db
+ui/dist
+beetimeclock

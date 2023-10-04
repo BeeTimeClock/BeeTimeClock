@@ -1,0 +1,87 @@
+import {AuthRequest, AuthResponse, User} from 'src/models/Authentication';
+import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings} from 'src/models/Base';
+import {api} from 'boot/axios';
+import {AxiosResponse} from 'axios';
+import {Timestamp, TimestampCreateRequest, TimestampGroup} from 'src/models/Timestamp';
+import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
+
+class BeeTimeClock {
+  login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
+    const authRequest = {
+      Username: username,
+      Password: password,
+    } as AuthRequest;
+
+    return api.get('/api/v1/auth', { params: authRequest });
+  }
+
+  timestampQueryCurrentMonthGrouped() : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get('/api/v1/timestamp/query/current_month/grouped');
+  }
+
+  timestampActionCheckin(isHomeoffice = false) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    const timestampCreateRequest = {
+      IsHomeoffice: isHomeoffice,
+    } as TimestampCreateRequest;
+
+    return api.post('/api/v1/timestamp/action/checkin',  timestampCreateRequest);
+  }
+
+  timestampActionCheckout() : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.post('/api/v1/timestamp/action/checkout', {});
+  }
+
+  absenceReasons() : Promise<AxiosResponse<BaseResponse<AbsenceReason[]>>> {
+    return api.get('/api/v1/absence/reasons');
+  }
+
+  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<any>>> {
+
+    absenceCreateRequest.AbsenceFrom = new Date(absenceCreateRequest.AbsenceFrom)
+    absenceCreateRequest.AbsenceTill = new Date(absenceCreateRequest.AbsenceTill)
+
+    return api.post('/api/v1/absence', absenceCreateRequest);
+  }
+
+  getAbsences() : Promise<AxiosResponse<BaseResponse<Absence[]>>> {
+    return api.get('/api/v1/absence')
+  }
+
+  getMeUser() : Promise<AxiosResponse<BaseResponse<User>>> {
+    return api.get('/api/v1/user/me');
+  }
+
+  queryAbsenceSummary() : Promise<AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>> {
+    return api.get('/api/v1/absence/query/users/summary')
+  }
+
+  queryMyAbsenceSummary() : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
+    return api.get('/api/v1/absence/query/me/summary')
+  }
+
+  administrationGetUsers() : Promise<AxiosResponse<BaseResponse<User[]>>> {
+    return api.get('/api/v1/administration/user');
+  }
+
+  administrationGetUserById(userId: string) : Promise<AxiosResponse<BaseResponse<User>>> {
+    return api.get(`/api/v1/administration/user/${userId}`);
+  }
+
+  administrationUpdateUser(user: User) : Promise<AxiosResponse<BaseResponse<User>>> {
+    return api.put(`/api/v1/administration/user/${user.ID}`, user);
+  }
+
+  getStatus() : Promise<AxiosResponse<BaseResponse<BackendStatus>>> {
+    return api.get(`/api/v1/status`);
+  }
+
+  getAuthProviders() : Promise<AxiosResponse<BaseResponse<AuthProviders>>> {
+    return api.get('/api/v1/auth/providers');
+  }
+
+  getMicrosoftAuthSettings() : Promise<AxiosResponse<BaseResponse<MicrosoftAuthSettings>>> {
+    return api.get('/api/v1/auth/microsoft');
+  }
+}
+
+export default new BeeTimeClock();
