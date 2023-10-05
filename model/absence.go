@@ -14,8 +14,8 @@ type Absence struct {
 	AbsenceTill     time.Time
 	AbsenceReasonID *uint `gorm:"not null"`
 	AbsenceReason   AbsenceReason
-	SignedUserID    uint
-	SignedUser      User
+	SignedUserID    *uint
+	SignedUser      *User
 }
 
 type AbsenceReason struct {
