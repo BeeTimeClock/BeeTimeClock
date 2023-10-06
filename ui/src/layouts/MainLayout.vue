@@ -74,8 +74,7 @@
         <q-list>
           <q-item-label header>
             <div>
-              UI Version: {{ commit }}<br/>
-              Backend Version: {{ backendCommit }}
+              Version: {{ commit }}<br/>
             </div>
           </q-item-label>
         </q-list>
@@ -128,30 +127,27 @@ export default defineComponent({
     commit() {
       return process.env.VUE_APP_COMMIT;
     },
-    backendCommit() {
-      return this.status?.Commit ?? 'no status';
-    }
   },
   async mounted() {
     await this.refresh();
   },
-  setup() {
-    const leftDrawerOpen = ref(false)
-    const {locale} = useI18n({useScope: 'global'})
-    const isAdministrator = ref(false);
+    setup() {
+      const leftDrawerOpen = ref(false)
+      const {locale} = useI18n({useScope: 'global'})
+      const isAdministrator = ref(false);
 
-    return {
-      leftDrawerOpen,
-      locale,
-      localeOptions: [
-        {value: 'en-US', label: 'English'},
-        {value: 'de', label: 'Deutsch'}
-      ],
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      },
-      isAdministrator,
+      return {
+        leftDrawerOpen,
+        locale,
+        localeOptions: [
+          {value: 'en-US', label: 'English'},
+          {value: 'de', label: 'Deutsch'}
+        ],
+        toggleLeftDrawer() {
+          leftDrawerOpen.value = !leftDrawerOpen.value
+        },
+        isAdministrator,
+      }
     }
-  }
-});
+  });
 </script>

@@ -17,6 +17,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "short_sha=${calculatedSha}" >> $GITHUB_OUTPUT
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
@@ -34,6 +39,6 @@ jobs:
           context: .
           push: true
           build-args: |
-            "VUE_APP_COMMIT=${GITHUB_SHA}"
+            "VUE_APP_COMMIT=${{ steps.vars.outputs.short_sha }}"
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
