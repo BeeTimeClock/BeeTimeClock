@@ -38,4 +38,5 @@ export default {
   LABEL_PASSWORD: 'Password',
   MSG_UPDATE_SUCCESS: 'updated successfully',
   LABEL_MENU: 'Menu',
+  LABEL_ADMINISTRATION: 'Administration',
 };

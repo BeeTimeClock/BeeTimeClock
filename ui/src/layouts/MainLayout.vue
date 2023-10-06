@@ -55,6 +55,9 @@
             {{ $t('MENU_ABSENCE') }}
           </q-item>
           <div v-if="isAdministrator">
+            <q-item-label header>
+              {{ $t('LABEL_ADMINISTRATION') }}
+            </q-item-label>
             <q-item clickable v-ripple :to="{name: 'AdministrationUserOverview'}">
               {{ $t('MENU_USERS') }}
             </q-item>
