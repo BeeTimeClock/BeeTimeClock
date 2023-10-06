@@ -63,6 +63,7 @@ module.exports = configure(function (/* ctx */) {
       },
       env: {
         VUE_APP_COMMIT: process.env.VUE_APP_COMMIT || 'dirty',
+        VUE_APP_BACKEND_ADDRESS: process.env.VUE_APP_BACKEND_ADDRESS,
       },
       // vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
