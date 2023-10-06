@@ -129,7 +129,7 @@ export default defineComponent({
     loadTimestampCurrentMonthGrouped() {
       BeeTimeClock.timestampQueryCurrentMonthGrouped().then((result) => {
         if (result.status === 200) {
-          this.timestampCurrentMonthGrouped = result.data.Data as TimestampGroup[];
+          this.timestampCurrentMonthGrouped = result.data.Data.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
         }
       });
     }
