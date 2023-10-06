@@ -15,6 +15,7 @@ const routes: RouteRecordRaw[] = [
         name: 'Dashboard',
         path: 'dashboard',
         component: () => import('pages/DashboardPage.vue'),
+        alias: '/code',
       },
       {
         name: 'WorktimeOverview',
