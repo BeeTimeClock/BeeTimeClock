@@ -113,6 +113,7 @@ func main() {
 				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampQueryCurrentMonthGrouped)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
+				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
 			}
 
 			fuel := v1.Group("fuel")

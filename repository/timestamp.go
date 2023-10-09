@@ -1,16 +1,19 @@
 package repository
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
+	"gorm.io/gorm/clause"
 )
 
 type Timestamp struct {
 	env *core.Environment
 }
+
+var ErrTimestampNotFound = errors.New("timestamp not found")
 
 func NewTimestamp(env *core.Environment) *Timestamp {
 	return &Timestamp{
@@ -26,6 +29,11 @@ func (r *Timestamp) Migrate() error {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	err = db.AutoMigrate(&model.Timestamp{})
+	if err != nil {
+		return err
+	}
+
+	err = db.AutoMigrate(&model.TimestampCorrection{})
 	if err != nil {
 		return err
 	}
@@ -57,7 +65,7 @@ func (r *Timestamp) FindByID(id uint) (model.Timestamp, error) {
 	result := db.Find(&item, "id = ?", id)
 
 	if result.RowsAffected == 0 {
-		return model.Timestamp{}, fmt.Errorf("no timestamp with id %d found", id)
+		return model.Timestamp{}, ErrTimestampNotFound
 	}
 
 	return item, result.Error
@@ -97,7 +105,7 @@ func (r *Timestamp) FindByUserIDAndDate(userID uint, from, till time.Time) ([]mo
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var items []model.Timestamp
-	result := db.Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
+	result := db.Debug().Preload(clause.Associations).Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
 
 	return items, result.Error
 }
@@ -145,4 +153,28 @@ func (r *Timestamp) Delete(timestamp *model.Timestamp) error {
 
 	result := db.Unscoped().Delete(&timestamp)
 	return result.Error
+}
+
+func (r *Timestamp) TimestampCorrectionInsert(timestampCorrection *model.TimestampCorrection) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Create(&timestampCorrection)
+	return result.Error
+}
+
+func (r *Timestamp) TimestampCorrectionFindByTimestampID(timestampID uint) ([]model.TimestampCorrection, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.TimestampCorrection
+	result := db.Find(&items, "timestamp_id = ?", timestampID)
+
+	return items, result.Error
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
@@ -222,4 +223,67 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	timestampIdParam := c.Param("timestampID")
+	timestampId, err := strconv.ParseUint(timestampIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	var timestampCorrectionCreateRequest model.TimestampCorrectionCreateRequest
+	err = c.BindJSON(&timestampCorrectionCreateRequest)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp, err := h.timestamp.FindByID(uint(timestampId))
+	if err != nil {
+		if err == repository.ErrTimestampNotFound {
+			c.AbortWithStatusJSON(http.StatusNotFound, model.NewErrorResponse(err))
+		} else {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		}
+
+		return
+	}
+
+	if timestamp.UserID != user.ID {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
+	timestampCorrection := model.TimestampCorrection{
+		Timestamp:          timestamp,
+		ChangeReason:       timestampCorrectionCreateRequest.ChangeReason,
+		OldComingTimestamp: timestamp.ComingTimestamp,
+		OldGoingTimestamp:  timestamp.GoingTimestamp,
+	}
+
+	err = h.timestamp.TimestampCorrectionInsert(&timestampCorrection)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp.ComingTimestamp = timestampCorrectionCreateRequest.NewComingTimestamp
+	timestamp.GoingTimestamp = timestampCorrectionCreateRequest.NewGoingTimestamp
+
+	err = h.timestamp.Update(&timestamp)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamp))
 }

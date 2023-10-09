@@ -4,6 +4,7 @@ export interface Timestamp {
   ComingTimestamp: Date;
   GoingTimestamp: Date;
   IsHomeoffice: boolean;
+  Corrections: TimestampCorrection[];
 }
 
 export interface TimestampGroup {
@@ -16,4 +17,18 @@ export interface TimestampGroup {
 
 export interface TimestampCreateRequest {
   IsHomeoffice: boolean;
+}
+
+export interface TimestampCorrection {
+  ID: number;
+  ChangeReason: string;
+  OldComingTimestamp: Date;
+  OldGoingTimestamp: Date;
+  CreatedAt: Date;
+}
+
+export interface TimestampCorrectionCreateRequest {
+  NewComingTimestamp: Date;
+  NewGoingTimestamp: Date;
+  ChangeReason: string;
 }

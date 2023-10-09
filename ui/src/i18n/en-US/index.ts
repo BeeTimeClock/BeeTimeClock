@@ -37,6 +37,12 @@ export default {
   BTN_LOG_OUT: 'Logout',
   LABEL_PASSWORD: 'Password',
   MSG_UPDATE_SUCCESS: 'updated successfully',
+  MSG_CREATE_SUCCESS: 'created successfully',
   LABEL_MENU: 'Menu',
   LABEL_ADMINISTRATION: 'Administration',
+  BTN_CLOSE: 'Close',
+  LABEL_TIMESTAMP_CORRECTION_CREATE: 'create timestamp correction',
+  LABEL_TIMESTAMP_CORRECTION_VIEW: 'timestamp corrections',
+  LABEL_OLD_COMING: 'old coming',
+  LABEL_OLD_GOING: 'old going',
 };

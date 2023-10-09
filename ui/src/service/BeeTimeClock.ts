@@ -2,7 +2,7 @@ import {AuthRequest, AuthResponse, User} from 'src/models/Authentication';
 import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings} from 'src/models/Base';
 import {api} from 'boot/axios';
 import {AxiosResponse} from 'axios';
-import {Timestamp, TimestampCreateRequest, TimestampGroup} from 'src/models/Timestamp';
+import {Timestamp, TimestampCorrectionCreateRequest, TimestampCreateRequest, TimestampGroup} from 'src/models/Timestamp';
 import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
 
 class BeeTimeClock {
@@ -25,6 +25,10 @@ class BeeTimeClock {
     } as TimestampCreateRequest;
 
     return api.post('/api/v1/timestamp/action/checkin',  timestampCreateRequest);
+  }
+
+  timestampCorrectionCreate(timestamp: Timestamp, timestampCorrectionCreateRequest: TimestampCorrectionCreateRequest) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.post(`/api/v1/timestamp/${timestamp.ID}/correction`, timestampCorrectionCreateRequest)
   }
 
   timestampActionCheckout() : Promise<AxiosResponse<BaseResponse<Timestamp>>> {

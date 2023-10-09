@@ -8,18 +8,21 @@ import (
 
 type Timestamp struct {
 	gorm.Model
-	UserID          *uint `gorm:"not null"`
+	UserID          uint  `gorm:"not null"`
 	User            *User `json:"-"`
 	ComingTimestamp time.Time
 	GoingTimestamp  time.Time
 	IsHomeoffice    bool
+	Corrections     []TimestampCorrection
 }
 
 type TimestampCorrection struct {
 	gorm.Model
-	TimestampID  *uint `gorm:"not null"`
-	Timestamp    *Timestamp
-	ChangeReason string
+	TimestampID        uint `gorm:"not null"`
+	Timestamp          Timestamp
+	ChangeReason       string
+	OldComingTimestamp time.Time
+	OldGoingTimestamp  time.Time
 }
 
 type TimestampCreateRequest struct {
@@ -30,6 +33,12 @@ type TimestampCreateRequest struct {
 
 type TimestampActionCheckInRequest struct {
 	IsHomeoffice bool
+}
+
+type TimestampCorrectionCreateRequest struct {
+	ChangeReason       string    `binding:"required"`
+	NewComingTimestamp time.Time `binding:"required"`
+	NewGoingTimestamp  time.Time `binding:"required"`
 }
 
 func (t *Timestamp) IsComplete() bool {

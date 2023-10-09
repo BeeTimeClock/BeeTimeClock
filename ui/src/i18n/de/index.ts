@@ -34,6 +34,12 @@ export default {
   BTN_LOG_OUT: 'Abmelden',
   LABEL_PASSWORD: 'Passwort',
   MSG_UPDATE_SUCCESS: 'erfolgreich aktualisiert',
+  MSG_CREATE_SUCCESS: 'erfolgreich erstellt',
   LABEL_MENU: 'Menü',
   LABEL_ADMINISTRATION: 'Administration',
+  BTN_CLOSE: 'Schließen',
+  LABEL_TIMESTAMP_CORRECTION_CREATE: 'Stempelung korrigieren',
+  LABEL_TIMESTAMP_CORRECTION_VIEW: 'Stempelung Korrekturen',
+  LABEL_OLD_COMING: 'alte kommen Stempelung',
+  LABEL_OLD_GOING: 'alte gehen Stempelung',
 };

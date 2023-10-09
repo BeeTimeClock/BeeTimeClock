@@ -47,12 +47,17 @@
                 <q-tr>
                   <q-th class="text-left">{{ $t('LABEL_COMING_TIMESTAMP') }}</q-th>
                   <q-th class="text-left">{{ $t('LABEL_GOING_TIMESTAMP') }}</q-th>
+                  <q-th></q-th>
                 </q-tr>
                 </thead>
                 <tbody>
                 <tr v-for="timestamp in props.row.Timestamps" :key="timestamp.ID">
                   <td>{{ formatDateTemplate(timestamp.ComingTimestamp, 'HH:mm') }}</td>
                   <td>{{ formatDateTemplate(timestamp.GoingTimestamp, 'HH:mm') }}</td>
+                  <td>
+                    <q-btn color="primary" class="q-mr-md" :disable="timestamp.Corrections.length == 0"  icon="pending_actions" @click="promptTimestampCorrectionView(timestamp)"/>
+                    <q-btn color="primary" icon="edit" @click="promptTimestampCorrectionCreate(timestamp)"/>
+                  </td>
                 </tr>
                 </tbody>
               </q-markup-table>
@@ -63,79 +68,163 @@
       </q-table>
     </div>
   </q-page>
+  <q-dialog v-model="prompt.timestampCorrectionCreate" persistent>
+    <q-card class="q-dialog-plugin full-width">
+      <q-card-section>
+        <div class="text-h6">{{ $t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
+      </q-card-section>
+      <q-card-section>
+        <DateTimePickerComponent v-model="timestampCorrection.ComingTimestamp" :label="$t('LABEL_COMING_TIMESTAMP')"/>
+        <DateTimePickerComponent class="q-mt-md" v-model="timestampCorrection.GoingTimestamp" :label="$t('LABEL_GOING_TIMESTAMP')"/>
+        <q-input v-model="timestampCorrection.Reason" type="textarea" :label="$t('LABEL_REASON')"/>
+      </q-card-section>
+      <q-card-actions>
+        <q-btn v-close-popup :label="$t('BTN_CANCEL')" color="negative"/>
+        <q-btn v-close-popup :label="$t('BTN_CREATE')" color="positive" @click="timestampCorrectionCreate"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+  <q-dialog v-model="prompt.timestampCorrectionView" persistent>
+    <q-card class="q-dialog-plugin full-width">
+      <q-card-section>
+        <div class="text-h6">{{ $t('LABEL_TIMESTAMP_CORRECTION_VIEW') }}</div>
+      </q-card-section>
+      <q-card-section>
+        <q-markup-table flat>
+          <thead>
+            <tr>
+              <th>{{ $t('LABEL_REASON') }}</th>
+              <th>{{ $t('LABEL_OLD_COMING') }}</th>
+              <th>{{ $t('LABEL_OLD_GOING') }}</th>
+              <th>{{ $t('LABEL_CREATED_AT') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="correction in selectedTimestamp.Corrections" :key="correction.ID">
+              <td>{{ correction.ChangeReason  }}</td>
+              <td>{{ date.formatDate(correction.OldComingTimestamp, 'DD.MM.YYYY HH:mm')  }}</td>
+              <td>{{ date.formatDate(correction.OldGoingTimestamp, 'DD.MM.YYYY HH:mm')  }}</td>
+              <td>{{ date.formatDate(correction.CreatedAt, 'DD.MM.YYYY HH:mm')  }}</td>
+            </tr>
+          </tbody>
+        </q-markup-table>
+      </q-card-section>
+      <q-card-actions>
+        <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue'
+import { date } from 'quasar';
+import DateTimePickerComponent from 'src/components/DateTimePickerComponent.vue';
+import { showInfoMessage } from 'src/helper/message';
+import { Timestamp, TimestampCorrectionCreateRequest, TimestampGroup } from 'src/models/Timestamp';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import {TimestampGroup} from 'src/models/Timestamp';
-import {date} from 'quasar';
+import { defineComponent, ref } from 'vue';
 import formatDate = date.formatDate;
-import {showInfoMessage} from 'src/helper/message';
 
 export default defineComponent({
-  computed: {
-    date() {
-      return date
-    }
-  },
-  data() {
-    const columns = [
-      {
-        name: 'Date',
-        required: true,
-        label: this.$t('LABEL_DATE'),
-        align: 'left',
-        field: 'Date',
-        format: (val: Date) => `${formatDate(val, 'DD.MM.YYYY')}`,
-        sortable: true
-      },
-      {name: 'WorkingHours', align: 'left', label: this.$t('LABEL_WORKING_HOURS'), field: 'WorkingHours', format: (val: number) => val.toFixed(2)},
-      {name: 'SubtractedHours', align: 'left', label: this.$t('LABEL_SUBTRACTED_HOURS'), field: 'SubtractedHours', format: (val: number) => val.toFixed(2)},
-      {name: 'IsHomeoffice', align: 'left', label: this.$t('LABEL_HOMEOFFICE'), field: 'IsHomeoffice'},
-    ]
+    computed: {
+        date() {
+            return date;
+        }
+    },
+    data() {
+        const columns = [
+          {
+            name: 'Date',
+            required: true,
+            label: this.$t('LABEL_DATE'),
+            align: 'left',
+            field: 'Date',
+            format: (val: Date) => `${formatDate(val, 'DD.MM.YYYY')}`,
+            sortable: true
+          },
+          { name: 'WorkingHours', align: 'left', label: this.$t('LABEL_WORKING_HOURS'), field: 'WorkingHours', format: (val: number) => val.toFixed(2) },
+          { name: 'SubtractedHours', align: 'left', label: this.$t('LABEL_SUBTRACTED_HOURS'), field: 'SubtractedHours', format: (val: number) => val.toFixed(2) },
+          { name: 'IsHomeoffice', align: 'left', label: this.$t('LABEL_HOMEOFFICE'), field: 'IsHomeoffice' },
+        ];
+        return {
+          columns: columns,
+          timestampCurrentMonthGrouped: ref([] as TimestampGroup[]),
+          prompt: {
+            timestampCorrectionCreate: false,
+            timestampCorrectionView: false,
+          },
+          timestampCorrection: {
+            ComingTimestamp: ref(''),
+            GoingTimestamp: ref(''),
+            Reason: ref(''),
+          },
+          selectedTimestamp: {} as Timestamp
+        };
+    },
+    methods: {
+      formatDate,
+      promptTimestampCorrectionCreate(timestamp: Timestamp) {
+        this.timestampCorrection = {
+          ComingTimestamp: formatDate(new Date(timestamp.ComingTimestamp), 'DD.MM.YYYY HH:mm'),
+          GoingTimestamp: formatDate(new Date(timestamp.GoingTimestamp), 'DD.MM.YYYY HH:mm'),
+          Reason: '',
+        }
 
-    return {
-      columns: columns,
-      timestampCurrentMonthGrouped: ref([] as TimestampGroup[]),
-    }
-  },
-  methods: {
-    formatDate,
-    formatDateTemplate(date: Date, format: string) : string {
-      return formatDate(date, format);
+        this.selectedTimestamp = timestamp;
+        this.prompt.timestampCorrectionCreate = true;
+      },
+      promptTimestampCorrectionView(timestamp: Timestamp) {
+        this.selectedTimestamp = timestamp;
+        this.prompt.timestampCorrectionView = true;
+      },
+        formatDateTemplate(date: Date, format: string): string {
+            return formatDate(date, format);
+        },
+        actionCheckInHomeoffice() {
+            this.actionCheckIn(true);
+        },
+        actionCheckInOffice() {
+            this.actionCheckIn(false);
+        },
+        actionCheckIn(isHomeoffice = false) {
+            BeeTimeClock.timestampActionCheckin(isHomeoffice).then((result) => {
+                if (result.status === 200) {
+                    this.loadTimestampCurrentMonthGrouped();
+                    showInfoMessage(this.$t('CHECK_IN_SUCCESS'));
+                }
+            });
+        },
+        actionCheckOut() {
+            BeeTimeClock.timestampActionCheckout().then((result) => {
+                if (result.status === 200) {
+                    this.loadTimestampCurrentMonthGrouped();
+                }
+            });
+        },
+        loadTimestampCurrentMonthGrouped() {
+            BeeTimeClock.timestampQueryCurrentMonthGrouped().then((result) => {
+                if (result.status === 200) {
+                    this.timestampCurrentMonthGrouped = result.data.Data.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+                }
+            });
+        },
+      timestampCorrectionCreate() {
+        const timestampCorrectionRequest = {
+          NewComingTimestamp: date.extractDate(this.timestampCorrection.ComingTimestamp, 'DD.MM.YYYY HH:mm'),
+          NewGoingTimestamp: date.extractDate(this.timestampCorrection.GoingTimestamp, 'DD.MM.YYYY HH:mm'),
+          ChangeReason: this.timestampCorrection.Reason,
+        } as TimestampCorrectionCreateRequest;
+
+        BeeTimeClock.timestampCorrectionCreate(this.selectedTimestamp, timestampCorrectionRequest).then((result) => {
+          if (result.status === 200) {
+            showInfoMessage(this.$t('MSG_CREATE_SUCCESS'));
+          }
+        })
+      }
     },
-    actionCheckInHomeoffice() {
-      this.actionCheckIn(true);
+    mounted() {
+        this.loadTimestampCurrentMonthGrouped();
     },
-    actionCheckInOffice() {
-      this.actionCheckIn(false);
-    },
-    actionCheckIn(isHomeoffice = false) {
-      BeeTimeClock.timestampActionCheckin(isHomeoffice).then((result) => {
-        if (result.status === 200) {
-          this.loadTimestampCurrentMonthGrouped();
-          showInfoMessage(this.$t('CHECK_IN_SUCCESS'));
-        }
-      })
-    },
-    actionCheckOut() {
-      BeeTimeClock.timestampActionCheckout().then((result) => {
-        if (result.status === 200) {
-          this.loadTimestampCurrentMonthGrouped();
-        }
-      })
-    },
-    loadTimestampCurrentMonthGrouped() {
-      BeeTimeClock.timestampQueryCurrentMonthGrouped().then((result) => {
-        if (result.status === 200) {
-          this.timestampCurrentMonthGrouped = result.data.Data.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
-        }
-      });
-    }
-  },
-  mounted() {
-    this.loadTimestampCurrentMonthGrouped();
-  }
+    components: { DateTimePickerComponent }
 })
 </script>
