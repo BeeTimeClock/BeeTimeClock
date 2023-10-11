@@ -29,6 +29,7 @@ type TimestampCreateRequest struct {
 	ComingTimestamp time.Time `binding:"required"`
 	GoingTimestamp  time.Time
 	IsHomeoffice    bool
+	ChangeReason    string `binding:"required"`
 }
 
 type TimestampActionCheckInRequest struct {

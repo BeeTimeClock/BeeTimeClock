@@ -16,7 +16,10 @@ export interface TimestampGroup {
 }
 
 export interface TimestampCreateRequest {
+  ComingTimestamp: Date;
+  GoingTimestamp: Date;
   IsHomeoffice: boolean;
+	ChangeReason: string;
 }
 
 export interface TimestampCorrection {

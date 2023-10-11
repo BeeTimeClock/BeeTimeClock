@@ -105,7 +105,7 @@ func (r *Timestamp) FindByUserIDAndDate(userID uint, from, till time.Time) ([]mo
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var items []model.Timestamp
-	result := db.Debug().Preload(clause.Associations).Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
+	result := db.Preload(clause.Associations).Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
 
 	return items, result.Error
 }

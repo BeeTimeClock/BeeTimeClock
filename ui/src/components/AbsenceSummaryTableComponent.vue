@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {date} from 'quasar';
-import {computed, PropType} from 'vue';
-import {AbsenceSummaryItem} from 'src/models/Absence';
-import {useI18n} from 'vue-i18n';
-import {User} from "src/models/Authentication";
+import { date } from 'quasar';
+import { AbsenceSummaryItem } from 'src/models/Absence';
+import { User } from "src/models/Authentication";
+import { computed, PropType } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const {t} = useI18n();
 

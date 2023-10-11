@@ -31,6 +31,10 @@ class BeeTimeClock {
     return api.post(`/api/v1/timestamp/${timestamp.ID}/correction`, timestampCorrectionCreateRequest)
   }
 
+  timestampCreate(timestampCreateRequest: TimestampCreateRequest) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.post('/api/v1/timestamp', timestampCreateRequest);
+  }
+
   timestampActionCheckout() : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     return api.post('/api/v1/timestamp/action/checkout', {});
   }
@@ -39,8 +43,7 @@ class BeeTimeClock {
     return api.get('/api/v1/absence/reasons');
   }
 
-  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<any>>> {
-
+  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<Absence>>> {
     absenceCreateRequest.AbsenceFrom = new Date(absenceCreateRequest.AbsenceFrom)
     absenceCreateRequest.AbsenceTill = new Date(absenceCreateRequest.AbsenceTill)
 
@@ -76,7 +79,7 @@ class BeeTimeClock {
   }
 
   getStatus() : Promise<AxiosResponse<BaseResponse<BackendStatus>>> {
-    return api.get(`/api/v1/status`);
+    return api.get('/api/v1/status');
   }
 
   getAuthProviders() : Promise<AxiosResponse<BaseResponse<AuthProviders>>> {

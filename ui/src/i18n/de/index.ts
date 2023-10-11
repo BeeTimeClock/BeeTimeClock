@@ -42,4 +42,7 @@ export default {
   LABEL_TIMESTAMP_CORRECTION_VIEW: 'Stempelung Korrekturen',
   LABEL_OLD_COMING: 'alte kommen Stempelung',
   LABEL_OLD_GOING: 'alte gehen Stempelung',
+  MSG_CHECK_OUT_SUCCESS: 'erfolgreich ausgestempelt',
+  MSG_CHECK_IN_SUCCESS: 'erfolgreich eingestempelt',
+  BTN_TIMESTAMP_ADD: 'Stempelung nachtragen',
 };

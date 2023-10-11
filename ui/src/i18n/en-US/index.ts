@@ -45,4 +45,7 @@ export default {
   LABEL_TIMESTAMP_CORRECTION_VIEW: 'timestamp corrections',
   LABEL_OLD_COMING: 'old coming',
   LABEL_OLD_GOING: 'old going',
+  MSG_CHECK_OUT_SUCCESS: 'checkin success',
+  MSG_CHECK_IN_SUCCESS: 'checkout success',
+  BTN_TIMESTAMP_ADD: 'add timestamp',
 };

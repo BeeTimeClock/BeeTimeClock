@@ -4,6 +4,7 @@
       <q-btn color="positive" :label="$t('BTN_CHECK_IN')" @click="actionCheckInOffice"/>
       <q-btn class="q-ml-lg" color="positive" :label="$t('BTN_CHECK_IN') + ' (Homeoffice)'" @click="actionCheckInHomeoffice"/>
       <q-btn class="q-ml-lg" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut"/>
+      <q-btn class="q-ml-lg" color="primary" :label="$t('BTN_TIMESTAMP_ADD')" @click="promptTimestampCorrectionCreate(null)"/>
     </div>
     <div class="q-pt-lg">
       <q-table
@@ -124,6 +125,7 @@ import { Timestamp, TimestampCorrectionCreateRequest, TimestampGroup } from 'src
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { defineComponent, ref } from 'vue';
 import formatDate = date.formatDate;
+import { TimestampCreateRequest } from 'src/models/Timestamp';
 
 export default defineComponent({
     computed: {
@@ -158,16 +160,21 @@ export default defineComponent({
             GoingTimestamp: ref(''),
             Reason: ref(''),
           },
-          selectedTimestamp: {} as Timestamp
+          selectedTimestamp: null as Timestamp|null
         };
     },
     methods: {
       formatDate,
-      promptTimestampCorrectionCreate(timestamp: Timestamp) {
+      promptTimestampCorrectionCreate(timestamp: Timestamp|null) {
         this.timestampCorrection = {
-          ComingTimestamp: formatDate(new Date(timestamp.ComingTimestamp), 'DD.MM.YYYY HH:mm'),
-          GoingTimestamp: formatDate(new Date(timestamp.GoingTimestamp), 'DD.MM.YYYY HH:mm'),
+          ComingTimestamp: formatDate(new Date(), 'DD.MM.YYYY HH:mm'),
+          GoingTimestamp: formatDate(new Date(), 'DD.MM.YYYY HH:mm'),
           Reason: '',
+        }
+
+        if (timestamp != null) {
+          this.timestampCorrection.ComingTimestamp = formatDate(new Date(timestamp.ComingTimestamp), 'DD.MM.YYYY HH:mm');
+          this.timestampCorrection.GoingTimestamp = formatDate(new Date(timestamp.GoingTimestamp), 'DD.MM.YYYY HH:mm');
         }
 
         this.selectedTimestamp = timestamp;
@@ -189,16 +196,17 @@ export default defineComponent({
         actionCheckIn(isHomeoffice = false) {
             BeeTimeClock.timestampActionCheckin(isHomeoffice).then((result) => {
                 if (result.status === 200) {
-                    this.loadTimestampCurrentMonthGrouped();
-                    showInfoMessage(this.$t('CHECK_IN_SUCCESS'));
+                  showInfoMessage(this.$t('MSG_CHECK_IN_SUCCESS'));
+                  this.loadTimestampCurrentMonthGrouped();
                 }
             });
         },
         actionCheckOut() {
             BeeTimeClock.timestampActionCheckout().then((result) => {
-                if (result.status === 200) {
-                    this.loadTimestampCurrentMonthGrouped();
-                }
+              if (result.status === 200) {
+                showInfoMessage(this.$t('MSG_CHECK_OUT_SUCCESS'));
+                this.loadTimestampCurrentMonthGrouped();
+              }
             });
         },
         loadTimestampCurrentMonthGrouped() {
@@ -209,17 +217,36 @@ export default defineComponent({
             });
         },
       timestampCorrectionCreate() {
-        const timestampCorrectionRequest = {
-          NewComingTimestamp: date.extractDate(this.timestampCorrection.ComingTimestamp, 'DD.MM.YYYY HH:mm'),
-          NewGoingTimestamp: date.extractDate(this.timestampCorrection.GoingTimestamp, 'DD.MM.YYYY HH:mm'),
-          ChangeReason: this.timestampCorrection.Reason,
-        } as TimestampCorrectionCreateRequest;
+        const comingTimestamp = date.extractDate(this.timestampCorrection.ComingTimestamp, 'DD.MM.YYYY HH:mm');
+        const goingTimestamp = date.extractDate(this.timestampCorrection.GoingTimestamp, 'DD.MM.YYYY HH:mm');
 
-        BeeTimeClock.timestampCorrectionCreate(this.selectedTimestamp, timestampCorrectionRequest).then((result) => {
-          if (result.status === 200) {
-            showInfoMessage(this.$t('MSG_CREATE_SUCCESS'));
-          }
-        })
+        if (this.selectedTimestamp != null) {
+          const timestampCorrectionRequest = {
+            NewComingTimestamp: comingTimestamp,
+            NewGoingTimestamp: goingTimestamp,
+            ChangeReason: this.timestampCorrection.Reason,
+          } as TimestampCorrectionCreateRequest;
+
+          BeeTimeClock.timestampCorrectionCreate(this.selectedTimestamp, timestampCorrectionRequest).then((result) => {
+            if (result.status === 200) {
+              showInfoMessage(this.$t('MSG_CREATE_SUCCESS'));
+              this.loadTimestampCurrentMonthGrouped();
+            }
+          })
+        } else {
+          const timestampCreateRequest = {
+            ComingTimestamp: comingTimestamp,
+            GoingTimestamp: goingTimestamp,
+            ChangeReason: this.timestampCorrection.Reason,
+          } as TimestampCreateRequest;
+
+          BeeTimeClock.timestampCreate(timestampCreateRequest).then((result) => {
+            if (result.status === 200) {
+              showInfoMessage(this.$t('MSG_CREATE_SUCCESS'));
+              this.loadTimestampCurrentMonthGrouped();
+            }
+          });
+        }
       }
     },
     mounted() {
