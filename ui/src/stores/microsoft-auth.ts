@@ -72,10 +72,17 @@ export const useAuthStore = defineStore('auth', {
     setMicrosoftClientId(clientId: string) {
       this.$state.msalConfig.auth.clientId = clientId;
     },
-    async loadSession() {
-      console.log('load session');
-      const result = await BeeTimeClock.getMeUser();
-      localStorage.setItem(SESSION_STORE_KEY, JSON.stringify(result.data.Data));
+    async loadSession(): boolean {
+      try {
+        const result = await BeeTimeClock.getMeUser();
+
+        localStorage.setItem(SESSION_STORE_KEY, JSON.stringify(result.data.Data));
+        return true;
+
+      } catch (err) {
+        console.log(err);
+        return false;
+      }
     },
   }
 });

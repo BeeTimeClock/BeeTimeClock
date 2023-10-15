@@ -8,6 +8,7 @@ import (
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/helper"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
@@ -153,7 +154,59 @@ func (h *User) CurrentUserGet(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(user.GetUserResponse()))
+}
+
+func (h *User) CurrentUserApikeyGet(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	apikeys, err := h.user.UserApikeyFindAllByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := []model.UserApikeyResponse{}
+	for _, apikey := range apikeys {
+		result = append(result, apikey.GetUserApikeyResponse())
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *User) CurrentUserApikeyCreate(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	var userApikeyCreateRequest model.UserApikeyCreateRequest
+	err = c.BindJSON(&userApikeyCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	userApikey := model.UserApikey{
+		Description: userApikeyCreateRequest.Description,
+		User:        user,
+		Apikey:      helper.RandomString(64),
+		ValidTill:   userApikeyCreateRequest.ValidTill,
+	}
+
+	err = h.user.UserApikeyInsert(&userApikey)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.NewSuccessResponse(userApikey))
 }

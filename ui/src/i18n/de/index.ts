@@ -45,4 +45,11 @@ export default {
   MSG_CHECK_OUT_SUCCESS: 'erfolgreich ausgestempelt',
   MSG_CHECK_IN_SUCCESS: 'erfolgreich eingestempelt',
   BTN_TIMESTAMP_ADD: 'Stempelung nachtragen',
+  LABEL_VALID_TILL: 'gültig bis',
+  LABEL_DESCRIPTION: 'Beschreibung',
+  LABEL_APIKEY_SUCCESS: 'Apikey erstellt',
+  LABEL_APIKEY_CREATE: 'Apikey erstellen',
+  MSG_APIKEY_SHOW_WARNING: 'Neuer Apikey, dies ist das einzige mal, dass dieser angezeigt wird',
+  LABEL_ME: 'Profil',
+  MENU_APIKEY: 'Apikey',
 };

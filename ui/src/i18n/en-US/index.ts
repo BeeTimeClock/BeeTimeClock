@@ -48,4 +48,11 @@ export default {
   MSG_CHECK_OUT_SUCCESS: 'checkin success',
   MSG_CHECK_IN_SUCCESS: 'checkout success',
   BTN_TIMESTAMP_ADD: 'add timestamp',
+  LABEL_VALID_TILL: 'valid till',
+  LABEL_DESCRIPTION: 'description',
+  LABEL_APIKEY_SUCCESS: 'apikey created',
+  LABEL_APIKEY_CREATE: 'create  apikey',
+  MSG_APIKEY_SHOW_WARNING: 'new apikey, it will be showed only this time',
+  LABEL_ME: 'Profile',
+  MENU_APIKEY: 'Apikey',
 };

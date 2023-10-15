@@ -54,6 +54,12 @@
           <q-item clickable v-ripple :to="{name: 'AbsenceOverview'}">
             {{ $t('MENU_ABSENCE') }}
           </q-item>
+          <q-item-label
+            header>
+            {{ $t('LABEL_ME') }}</q-item-label>
+          <q-item clickable v-ripple :to="{name: 'UserApikeyOverview'}">
+            {{ $t('MENU_APIKEY') }}
+          </q-item>
           <div v-if="isAdministrator">
             <q-item-label header>
               {{ $t('LABEL_ADMINISTRATION') }}
@@ -113,7 +119,13 @@ export default defineComponent({
       if (useAuthStore().getAuthProvider === 'microsoft') {
         this.$msalProvider.refresh();
       }
-      await useAuthStore().loadSession();
+      const isLoggedIn = await useAuthStore().loadSession();
+      if (!isLoggedIn) {
+        console.log('unauth');
+        this.logout();
+        return
+      }
+
       this.session = useAuthStore().getSession();
       BeeTimeClock.getStatus().then(result => {
         if (result.status === 200) {

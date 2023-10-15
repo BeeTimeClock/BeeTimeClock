@@ -32,17 +32,38 @@ func NewAuthProvider(env *core.Environment, user *repository.User) AuthProvider 
 func (a *AuthProvider) AuthRequired(c *gin.Context) {
 	authProvider := c.GetHeader("X-Auth-Provider")
 	authorizationHeader := c.GetHeader("Authorization")
-	tokenString := strings.Replace(authorizationHeader, "Bearer ", "", 1)
 
-	switch strings.ToLower(authProvider) {
-	case "local", "":
-		a.localAuthRequired(c, tokenString)
-	case "microsoft":
-		a.microsoftAuthRequired(c, tokenString)
+	switch {
+	case strings.HasPrefix(authorizationHeader, "Bearer "):
+		tokenString := strings.Replace(authorizationHeader, "Bearer ", "", 1)
+
+		switch strings.ToLower(authProvider) {
+		case "local", "":
+			a.localAuthRequired(c, tokenString)
+		case "microsoft":
+			a.microsoftAuthRequired(c, tokenString)
+		default:
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("auth provider %s not supported", authProvider)))
+			return
+		}
+		return
+	case strings.HasPrefix(authorizationHeader, "Apikey "):
+		apikey := strings.Replace(authorizationHeader, "Apikey ", "", 1)
+
+		user, err := a.user.FindUserByApikey(apikey)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("no access rights")))
+			return
+		}
+
+		c.Set(sessionVarUser, user)
+		c.Next()
+		return
 	default:
-		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("auth provider %s not supported", authProvider)))
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("no supported header")))
 		return
 	}
+
 }
 
 func AdministratorAccessRequired(c *gin.Context) {

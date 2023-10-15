@@ -139,6 +139,8 @@ func main() {
 			user := v1.Group("user")
 			{
 				user.GET("me", userHandler.CurrentUserGet)
+				user.GET("me/apikey", userHandler.CurrentUserApikeyGet)
+				user.POST("me/apikey", userHandler.CurrentUserApikeyCreate)
 			}
 		}
 	}

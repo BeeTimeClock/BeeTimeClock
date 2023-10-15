@@ -19,3 +19,15 @@ export interface AuthProviders {
   Local: boolean;
   Microsoft: boolean;
 }
+
+export interface UserApikey {
+  ID: number;
+  Description: string;
+  Apikey: string
+  ValidTill: Date;
+}
+
+export interface UserApikeyCreateRequest {
+  Description: string;
+  ValidTill: Date;
+}

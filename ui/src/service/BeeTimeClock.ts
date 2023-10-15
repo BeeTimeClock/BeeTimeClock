@@ -1,5 +1,5 @@
 import {AuthRequest, AuthResponse, User} from 'src/models/Authentication';
-import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings} from 'src/models/Base';
+import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings, UserApikey, UserApikeyCreateRequest} from 'src/models/Base';
 import {api} from 'boot/axios';
 import {AxiosResponse} from 'axios';
 import {Timestamp, TimestampCorrectionCreateRequest, TimestampCreateRequest, TimestampGroup} from 'src/models/Timestamp';
@@ -88,6 +88,14 @@ class BeeTimeClock {
 
   getMicrosoftAuthSettings() : Promise<AxiosResponse<BaseResponse<MicrosoftAuthSettings>>> {
     return api.get('/api/v1/auth/microsoft');
+  }
+
+  getUserApikey() : Promise<AxiosResponse<BaseResponse<UserApikey[]>>> {
+    return api.get('/api/v1/user/me/apikey');
+  }
+
+  createUserApikey(userApikeyCreateRequest: UserApikeyCreateRequest) : Promise<AxiosResponse<BaseResponse<UserApikey>>> {
+    return api.post('/api/v1/user/me/apikey', userApikeyCreateRequest);
   }
 }
 

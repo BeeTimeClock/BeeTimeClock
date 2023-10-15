@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -62,6 +64,26 @@ type UserResponse struct {
 	AccessLevel string
 }
 
+type UserApikey struct {
+	gorm.Model
+	UserID      uint
+	Description string
+	User        User
+	Apikey      string `gorm:"unique"`
+	ValidTill   time.Time
+}
+
+type UserApikeyCreateRequest struct {
+	Description string `binding:"required"`
+	ValidTill   time.Time
+}
+
+type UserApikeyResponse struct {
+	gorm.Model
+	Description string
+	ValidTill   time.Time
+}
+
 func (u *User) GetUserResponse() UserResponse {
 	return UserResponse{
 		Model:       u.Model,
@@ -69,6 +91,14 @@ func (u *User) GetUserResponse() UserResponse {
 		FirstName:   u.FirstName,
 		LastName:    u.LastName,
 		AccessLevel: string(u.AccessLevel),
+	}
+}
+
+func (ua *UserApikey) GetUserApikeyResponse() UserApikeyResponse {
+	return UserApikeyResponse{
+		Model:       ua.Model,
+		Description: ua.Description,
+		ValidTill:   ua.ValidTill,
 	}
 }
 

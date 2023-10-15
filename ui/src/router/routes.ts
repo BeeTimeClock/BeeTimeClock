@@ -33,6 +33,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/fuel/FuelOverviewPage.vue')
       },
       {
+        path: 'me',
+        children: [
+          {
+            name: 'UserApikeyOverview',
+            path: 'apikey',
+            component: () => import('pages/user/UserApikeyPage.vue')
+          }
+        ]
+      },
+      {
         path: 'administration',
         children: [
           {
