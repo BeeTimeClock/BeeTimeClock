@@ -2,6 +2,7 @@ import {defineStore} from 'pinia';
 import {Configuration} from "@azure/msal-browser";
 import BeeTimeClock from "src/service/BeeTimeClock";
 import {User} from "src/models/Authentication";
+import { Cookies } from 'quasar';
 
 
 export const ACCESS_TOKEN_STORE_KEY = 'accessToken';
@@ -59,6 +60,7 @@ export const useAuthStore = defineStore('auth', {
       this.setAccessToken('');
       this.setAuthProvider('');
       localStorage.clear();
+      sessionStorage.clear();
     },
     setAccessToken(token: string) {
       localStorage.setItem(ACCESS_TOKEN_STORE_KEY, token);
