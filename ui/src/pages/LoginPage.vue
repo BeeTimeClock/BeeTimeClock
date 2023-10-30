@@ -70,10 +70,11 @@ export default defineComponent({
         useAuthStore().setAccessToken(result.idToken);
         useAuthStore().setAuthProvider('microsoft');
         this.$msalProvider.msalInstance.setActiveAccount(this.$msalProvider.msalInstance.getAllAccounts()[0])
-        this.$router.push({name: 'Dashboard'})
       }).catch((error) => {
         showErrorMessage(error)
         useAuthStore().logout();
+      }).finally(() => {
+        this.$router.push({name: 'Dashboard'})
       })
     }
   },
