@@ -184,32 +184,91 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 		return
 	}
 
+	result, err := h.groupCurrentMonth(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampQueryCurrentMonthOvertime(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	overtimeHours, err := h.overtimeCurrentMonth(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+	}
+
+	result := model.SumResult{
+		Total: overtimeHours,
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampOvertime(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	overtimeHoursCurrentMonth, err := h.overtimeCurrentMonth(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+	}
+
+	overtimeTotal, err := h.timestamp.TimestampMonthQuotaSumByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+	}
+
+	result := model.SumResult{
+		Total: overtimeTotal + overtimeHoursCurrentMonth,
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) overtimeCurrentMonth(userID uint) (float64, error) {
+	result, err := h.groupCurrentMonth(userID)
+	if err != nil {
+		return 0.0, err
+	}
+
+	overtimeHours := 0.0
+	for _, group := range result {
+		overtimeHours += group.OvertimeHours
+	}
+
+	return overtimeHours, nil
+}
+
+func (h *Timestamp) groupCurrentMonth(userID uint) ([]model.TimestampGroup, error) {
 	currentYear, currentMonth, _ := time.Now().Date()
 	currentLocation := time.Now().Location()
 
 	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
 	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
-	timestamps, err := h.timestamp.FindByUserIDAndDate(user.ID, firstOfMonth, lastOfMonth)
+	timestamps, err := h.timestamp.FindByUserIDAndDate(userID, firstOfMonth, lastOfMonth)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return nil, err
 	}
 
-	type TimestampGroup struct {
-		Date            time.Time
-		IsHomeoffice    bool
-		Timestamps      []model.Timestamp
-		WorkingHours    float64
-		SubtractedHours float64
-	}
-	grouped := make(map[time.Time]TimestampGroup)
+	grouped := make(map[time.Time]model.TimestampGroup)
 
 	for _, timestamp := range timestamps {
 		year, month, day := timestamp.ComingTimestamp.Date()
 		timestamp_date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
 		if _, exists := grouped[timestamp_date]; !exists {
-			grouped[timestamp_date] = TimestampGroup{
+			grouped[timestamp_date] = model.TimestampGroup{
 				IsHomeoffice: true,
 				Date:         timestamp_date,
 			}
@@ -225,15 +284,24 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 		group.WorkingHours += workingHours
 		group.SubtractedHours += subtractedHours
 
+		workTimeModel := model.DefaultWorkTimeModel()
+		neededHours := workTimeModel.DefaultHoursPerWeekday
+
+		if hours, exists := workTimeModel.HoursPerWeekdayException[timestamp_date.Weekday()]; exists {
+			neededHours = hours
+		}
+
+		group.OvertimeHours = group.WorkingHours - neededHours
+
 		grouped[timestamp_date] = group
 	}
 
-	result := []TimestampGroup{}
+	result := []model.TimestampGroup{}
 	for _, value := range grouped {
 		result = append(result, value)
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+	return result, nil
 }
 
 func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {

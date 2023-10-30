@@ -111,15 +111,16 @@ func main() {
 				timestamp.GET("", timestampHandler.TimestampGetAll)
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
 				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampQueryCurrentMonthGrouped)
+				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampQueryCurrentMonthOvertime)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
 				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
 				timestamp.POST("", timestampHandler.TimestampCreate)
+				timestamp.GET("overtime", timestampHandler.TimestampOvertime)
 			}
 
 			fuel := v1.Group("fuel")
 			{
-
 				fuel.GET("", fuelHandler.FuelGetAll)
 				fuel.GET(":fuelID", fuelHandler.FuelGet)
 				fuel.PUT(":fuelID", fuelHandler.FuelUpdate)
@@ -128,7 +129,6 @@ func main() {
 
 			absence := v1.Group("absence")
 			{
-
 				absence.GET("", absenceHandler.AbsenceGetAll)
 				absence.POST("", absenceHandler.AbsenceCreate)
 				absence.GET("query/me/summary", absenceHandler.AbsenceQueryCurrentUserSummary)

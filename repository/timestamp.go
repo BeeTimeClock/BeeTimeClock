@@ -38,6 +38,11 @@ func (r *Timestamp) Migrate() error {
 		return err
 	}
 
+	err = db.AutoMigrate(&model.TimestampMonthQuota{})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -177,4 +182,20 @@ func (r *Timestamp) TimestampCorrectionFindByTimestampID(timestampID uint) ([]mo
 	result := db.Find(&items, "timestamp_id = ?", timestampID)
 
 	return items, result.Error
+}
+
+func (r *Timestamp) TimestampMonthQuotaSumByUserID(userID uint) (float64, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return 0.0, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var item model.SumResult
+	result := db.Model(&model.TimestampMonthQuota{}).
+		Select("SUM(hours) as total").
+		Where("user_id = ?", userID).
+		First(&item)
+
+	return item.Total, result.Error
 }

@@ -2,7 +2,13 @@ import {AuthRequest, AuthResponse, User} from 'src/models/Authentication';
 import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings, UserApikey, UserApikeyCreateRequest} from 'src/models/Base';
 import {api} from 'boot/axios';
 import {AxiosResponse} from 'axios';
-import {Timestamp, TimestampCorrectionCreateRequest, TimestampCreateRequest, TimestampGroup} from 'src/models/Timestamp';
+import {
+  SumResponse,
+  Timestamp,
+  TimestampCorrectionCreateRequest,
+  TimestampCreateRequest,
+  TimestampGroup
+} from 'src/models/Timestamp';
 import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
 
 class BeeTimeClock {
@@ -17,6 +23,15 @@ class BeeTimeClock {
 
   timestampQueryCurrentMonthGrouped() : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
     return api.get('/api/v1/timestamp/query/current_month/grouped');
+  }
+
+  timestampOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get('/api/v1/timestamp/overtime');
+
+  }
+
+  timestampQueryCurrentMonthOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get('/api/v1/timestamp/query/current_month/overtime');
   }
 
   timestampActionCheckin(isHomeoffice = false) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {

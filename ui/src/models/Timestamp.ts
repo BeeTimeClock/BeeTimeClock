@@ -13,6 +13,7 @@ export interface TimestampGroup {
   Timestamps: Timestamp[],
   WorkingHours: number,
   SubtractedHours: number,
+  OvertimeHours: number,
 }
 
 export interface TimestampCreateRequest {
@@ -35,4 +36,8 @@ export interface TimestampCorrectionCreateRequest {
   NewGoingTimestamp: Date;
   ChangeReason: string;
   IsHomeoffice: boolean;
+}
+
+export interface SumResponse {
+  Total: number;
 }

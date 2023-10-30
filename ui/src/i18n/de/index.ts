@@ -52,4 +52,6 @@ export default {
   MSG_APIKEY_SHOW_WARNING: 'Neuer Apikey, dies ist das einzige mal, dass dieser angezeigt wird',
   LABEL_ME: 'Profil',
   MENU_APIKEY: 'Apikey',
+  LABEL_OVERTIME_CURRENT_MONTH: 'Überstunden (aktueller Monat)',
+  LABEL_OVERTIME_TOTAL: 'Überstunden (gesamt)',
 };

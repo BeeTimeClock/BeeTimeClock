@@ -55,4 +55,6 @@ export default {
   MSG_APIKEY_SHOW_WARNING: 'new apikey, it will be showed only this time',
   LABEL_ME: 'Profile',
   MENU_APIKEY: 'Apikey',
+  LABEL_OVERTIME_CURRENT_MONTH: 'overtime (current month)',
+  LABEL_OVERTIME_TOTAL: 'overtime (total)',
 };

@@ -4,6 +4,8 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import {User} from 'src/models/Authentication';
 import {AbsenceSummaryItem} from "src/models/Absence";
 import AbsenceSummaryTableComponent from "components/AbsenceSummaryTableComponent.vue";
+import OvertimeTotal from "components/OvertimeTotal.vue";
+import OvertimeCurrentMonth from "components/OvertimeCurrentMonth.vue";
 
 const user = ref(null as User | null);
 const absenceSummaryItems = ref([] as AbsenceSummaryItem[])
@@ -37,7 +39,9 @@ onMounted(() => {
       <h2>Hallo {{ user.FirstName }} {{ user.LastName }}</h2>
     </div>
     <div>
-      <AbsenceSummaryTableComponent v-model="absenceSummaryItems"/>
+      <OvertimeCurrentMonth class="q-mt-sm"/>
+      <OvertimeTotal class="q-mt-sm"/>
+      <AbsenceSummaryTableComponent v-model="absenceSummaryItems" class="q-mt-sm"/>
     </div>
   </q-page>
 </template>

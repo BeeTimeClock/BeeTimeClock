@@ -52,3 +52,7 @@ func NewMessageResponse(format string, a ...any) SuccessResponse {
 		Message: fmt.Sprintf(format, a...),
 	})
 }
+
+type SumResult struct {
+	Total float64
+}

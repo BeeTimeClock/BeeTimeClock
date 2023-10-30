@@ -1,41 +1,27 @@
 <template>
   <q-page padding>
-    <div v-if="$q.platform.is.mobile">
-      <div class="row">
-        <div class="col-6 q-pa-md">
-          <q-btn class="full-width full-height" style="min-height: 64px" color="positive" :label="$t('BTN_CHECK_IN')"
-                 @click="actionCheckInOffice"/>
-        </div>
-        <div class="col-6 q-pa-md">
-          <q-btn class="full-width full-height" style="min-height: 64px" color="positive" :label="$t('BTN_CHECK_IN') + ' (Homeoffice)'"
-                 @click="actionCheckInHomeoffice"/>
-        </div>
+    <div class="row">
+      <div class="col-6 q-pa-sm">
+        <OvertimeCurrentMonth class="full-height"/>
       </div>
-      <div class="row">
-        <div class="col-6 q-pa-md">
-          <q-btn class="full-height full-width" style="min-height: 64px" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut"/>
-        </div>
-        <div class="col-6 q-pa-md">
-          <q-btn class="full-height full-width" style="min-height: 64px" color="primary" :label="$t('BTN_TIMESTAMP_ADD')"
-                 @click="promptTimestampCorrectionCreate(null)"/>
-        </div>
+      <div class="col-6 q-pa-sm">
+       <OvertimeTotal class="full-height"/>
       </div>
     </div>
-    <div class="row" v-else>
-      <div class="col-3 q-pa-md">
-        <q-btn class="full-width" color="positive" :label="$t('BTN_CHECK_IN')" @click="actionCheckInOffice"/>
-      </div>
-      <div class="col-3 q-pa-md">
-        <q-btn class="full-width" color="positive" :label="$t('BTN_CHECK_IN') + ' (Homeoffice)'"
-               @click="actionCheckInHomeoffice"/>
-      </div>
-      <div class="col-3 q-pa-md">
-        <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut"/>
-      </div>
-      <div class="col-3 q-pa-md">
-        <q-btn class="full-width" color="primary" :label="$t('BTN_TIMESTAMP_ADD')"
-               @click="promptTimestampCorrectionCreate(null)"/>
-      </div>
+    <div class="row">
+      <q-card flat>
+        <q-card-section>
+          <q-card-actions>
+            <q-btn class="q-ma-sm" color="positive" :label="$t('BTN_CHECK_IN')"
+                   @click="actionCheckInOffice"/>
+            <q-btn class="q-ma-sm" color="positive" :label="$t('BTN_CHECK_IN') + ' (Homeoffice)'"
+                   @click="actionCheckInHomeoffice"/>
+            <q-btn class="q-ma-sm" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut"/>
+            <q-btn class="q-ma-sm" color="primary" :label="$t('BTN_TIMESTAMP_ADD')"
+                   @click="promptTimestampCorrectionCreate(null)"/>
+          </q-card-actions>
+        </q-card-section>
+      </q-card>
     </div>
     <div class="q-pt-lg">
       <q-table
@@ -172,6 +158,8 @@ import {defineComponent, ref} from 'vue';
 import formatDate = date.formatDate;
 import {TimestampCreateRequest} from 'src/models/Timestamp';
 import {ErrorResponse} from 'src/models/Base';
+import OvertimeCurrentMonth from "components/OvertimeCurrentMonth.vue";
+import OvertimeTotal from "components/OvertimeTotal.vue";
 
 export default defineComponent({
   computed: {
@@ -202,6 +190,13 @@ export default defineComponent({
         align: 'left',
         label: this.$t('LABEL_SUBTRACTED_HOURS'),
         field: 'SubtractedHours',
+        format: (val: number) => val.toFixed(2)
+      },
+      {
+        name: 'OvertimeHours',
+        align: 'left',
+        label: this.$t('LABEL_OVERTIME_HOURS'),
+        field: 'OvertimeHours',
         format: (val: number) => val.toFixed(2)
       },
       {
@@ -337,6 +332,6 @@ export default defineComponent({
   mounted() {
     this.loadTimestampCurrentMonthGrouped();
   },
-  components: {DateTimePickerComponent}
+  components: {OvertimeTotal, OvertimeCurrentMonth, DateTimePickerComponent}
 })
 </script>
