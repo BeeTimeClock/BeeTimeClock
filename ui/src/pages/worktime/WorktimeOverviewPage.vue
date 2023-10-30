@@ -326,7 +326,7 @@ export default defineComponent({
         } as TimestampCreateRequest;
 
         BeeTimeClock.timestampCreate(timestampCreateRequest).then((result) => {
-          if (result.status === 200) {
+          if (result.status === 201) {
             showInfoMessage(this.$t('MSG_CREATE_SUCCESS'));
             this.loadTimestampCurrentMonthGrouped();
           }
