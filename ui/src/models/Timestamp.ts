@@ -2,7 +2,7 @@ export interface Timestamp {
   ID: number;
   UserID: number;
   ComingTimestamp: Date;
-  GoingTimestamp: Date;
+  GoingTimestamp: Date|null;
   IsHomeoffice: boolean;
   Corrections: TimestampCorrection[];
 }
@@ -34,4 +34,5 @@ export interface TimestampCorrectionCreateRequest {
   NewComingTimestamp: Date;
   NewGoingTimestamp: Date;
   ChangeReason: string;
+  IsHomeoffice: boolean;
 }

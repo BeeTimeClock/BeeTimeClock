@@ -92,7 +92,7 @@ func (r *Timestamp) FindLastByUserID(userID uint) (model.Timestamp, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.Timestamp
-	result := db.Last(&item, "user_id = ?", userID)
+	result := db.Order("coming_timestamp DESC").Last(&item, "user_id = ?", userID)
 
 	return item, result.Error
 }
@@ -105,7 +105,7 @@ func (r *Timestamp) FindByUserIDAndDate(userID uint, from, till time.Time) ([]mo
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var items []model.Timestamp
-	result := db.Preload(clause.Associations).Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
+	result := db.Preload(clause.Associations).Order("coming_timestamp DESC").Find(&items, "user_id = ? AND coming_timestamp BETWEEN ? AND ?", userID, from, till)
 
 	return items, result.Error
 }

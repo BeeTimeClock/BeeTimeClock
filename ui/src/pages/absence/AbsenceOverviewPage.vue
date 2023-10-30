@@ -7,13 +7,11 @@ import {
   AbsenceReason,
   AbsenceSummaryItem,
   AbsenceUserSummary, AbsenceUserSummaryYear,
-  AbsenceUserSummaryYearMap
 } from 'src/models/Absence';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {date} from 'quasar';
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
-import {useI18n} from "vue-i18n";
-
+import {useI18n} from 'vue-i18n';
 
 const {t} = useI18n();
 
@@ -153,7 +151,7 @@ onMounted(async () => {
       <template v-slot:top>
         <div class="col-2 q-table__title">{{ $t('LABEL_MY_ABSENCES') }}</div>
         <q-space/>
-        <q-btn color="positive" icon="add" :label="$t('BTN_ABSENCE_CREATE')" @click="promptCreateAbsence = true"/>
+        <q-btn color="positive" icon="add" @click="promptCreateAbsence = true"/>
       </template>
       <template v-slot:body-cell-absenceReason="props">
         <q-td :props="props">

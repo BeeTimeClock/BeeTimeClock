@@ -8,3 +8,11 @@ export function showInfoMessage(message: string) {
     closeBtn: true,
   })
 }
+
+export function showErrorMessage(message: string | undefined) {
+  Notify.create({
+    message: message ?? 'no message',
+    type: 'error',
+    closeBtn: true,
+  })
+}

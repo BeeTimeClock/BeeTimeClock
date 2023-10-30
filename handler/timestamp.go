@@ -121,7 +121,7 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 	}
 
 	if lastTimestamp.IsComplete() {
-		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Errorf("there is no open timestamp"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("there is no open timestamp")))
 		return
 	}
 
@@ -289,6 +289,7 @@ func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 
 	timestamp.ComingTimestamp = timestampCorrectionCreateRequest.NewComingTimestamp
 	timestamp.GoingTimestamp = timestampCorrectionCreateRequest.NewGoingTimestamp
+	timestamp.IsHomeoffice = timestampCorrectionCreateRequest.IsHomeoffice
 
 	err = h.timestamp.Update(&timestamp)
 	if err != nil {

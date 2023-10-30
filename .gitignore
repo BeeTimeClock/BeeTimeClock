@@ -2,3 +2,4 @@ tmp/
 *.db
 ui/dist
 beetimeclock
+.idea/

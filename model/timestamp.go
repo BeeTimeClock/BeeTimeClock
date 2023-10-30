@@ -40,6 +40,7 @@ type TimestampCorrectionCreateRequest struct {
 	ChangeReason       string    `binding:"required"`
 	NewComingTimestamp time.Time `binding:"required"`
 	NewGoingTimestamp  time.Time `binding:"required"`
+	IsHomeoffice       bool
 }
 
 func (t *Timestamp) IsComplete() bool {
