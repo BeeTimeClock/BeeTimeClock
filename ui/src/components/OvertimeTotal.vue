@@ -18,7 +18,7 @@ BeeTimeClock.timestampOvertime().then(result => {
       {{ $t('LABEL_OVERTIME_TOTAL') }}
     </q-card-section>
     <q-card-section class="text-h6 text-center">
-      {{ value }}
+      {{ value.toFixed(2) }}
     </q-card-section>
   </q-card>
 </template>
