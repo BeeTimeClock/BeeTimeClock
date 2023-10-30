@@ -187,6 +187,7 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 	result, err := h.groupCurrentMonth(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
@@ -202,6 +203,7 @@ func (h *Timestamp) TimestampQueryCurrentMonthOvertime(c *gin.Context) {
 	overtimeHours, err := h.overtimeCurrentMonth(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
 	}
 
 	result := model.SumResult{
@@ -221,11 +223,13 @@ func (h *Timestamp) TimestampOvertime(c *gin.Context) {
 	overtimeHoursCurrentMonth, err := h.overtimeCurrentMonth(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
 	}
 
 	overtimeTotal, err := h.timestamp.TimestampMonthQuotaSumByUserID(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
 	}
 
 	result := model.SumResult{
