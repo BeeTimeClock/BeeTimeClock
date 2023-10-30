@@ -40,6 +40,8 @@ func (r *Absence) Migrate() error {
 		"Krank (ohne AU)",
 		"Sonderurlaub",
 		"Urlaub",
+		"Berufsschule",
+		"Aussendienst",
 	}
 
 	existingReasons, err := r.FindAllAbsenceReasons()
