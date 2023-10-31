@@ -195,7 +195,7 @@ func (r *Timestamp) TimestampMonthQuotaSumByUserID(userID uint) (float64, error)
 	result := db.Model(&model.TimestampMonthQuota{}).
 		Select("SUM(hours) as total").
 		Where("user_id = ?", userID).
-		First(&item)
+		Scan(&item)
 
 	return item.Total, result.Error
 }
