@@ -57,4 +57,6 @@ export default {
   MENU_APIKEY: 'Apikey',
   LABEL_OVERTIME_CURRENT_MONTH: 'overtime (current month)',
   LABEL_OVERTIME_TOTAL: 'overtime (total)',
+  LABEL_LOCAL_SIGN_IN: 'local sign in',
+  LABEL_SSO_SIGN_IN: 'or via SSO',
 };

@@ -8,14 +8,16 @@
           <div class="text-grey-9 text-h5 text-weight-bold">{{ $t('LABEL_SIGN_IN') }}</div>
         </q-card-section>
         <q-card-section>
+          <div class="text-center text-weight-thin q-mb-sm">{{ $t('LABEL_LOCAL_SIGN_IN') }}</div>
           <q-input dense outlined v-model="email" :label="$t('LABEL_USERNAME')"></q-input>
           <q-input dense outlined class="q-mt-md" v-model="password" type="password"
                    :label="$t('LABEL_PASSWORD')"></q-input>
-        </q-card-section>
-        <q-card-section>
-          <q-btn color="primary" size="md" :label="$t('LABEL_SIGN_IN')" no-caps class="full-width q-mb-lg"
+            <q-btn color="primary" size="md" :label="$t('LABEL_SIGN_IN')" no-caps class="full-width q-mt-lg"
                  @click="loginLocal">
           </q-btn>
+        </q-card-section>
+        <q-separator/>
+        <q-card-section><div class="text-center text-weight-thin q-mb-sm">{{ $t('LABEL_SSO_SIGN_IN') }}</div>
           <q-btn v-if="authProviders?.Microsoft" color="primary" size="md" :label="$t('LABEL_SIGN_IN_MICROSOFT')"
                  no-caps class="full-width"
                  @click="loginWithMicrosoft">
@@ -26,7 +28,7 @@
         </q-card-section>
       </q-card>
     </q-page>
-  </q-page>
+  </q-page>o
 </template>
 
 <script lang="ts">
