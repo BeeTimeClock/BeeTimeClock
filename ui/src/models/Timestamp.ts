@@ -33,7 +33,7 @@ export interface TimestampCorrection {
 
 export interface TimestampCorrectionCreateRequest {
   NewComingTimestamp: Date;
-  NewGoingTimestamp: Date;
+  NewGoingTimestamp: Date|null;
   ChangeReason: string;
   IsHomeoffice: boolean;
 }

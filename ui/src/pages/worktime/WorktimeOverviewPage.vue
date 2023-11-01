@@ -239,7 +239,8 @@ export default defineComponent({
 
       if (timestamp != null) {
         this.timestampCorrection.ComingTimestamp = formatDate(new Date(timestamp.ComingTimestamp), 'DD.MM.YYYY HH:mm');
-        if (timestamp.GoingTimestamp) {
+
+        if (timestamp.GoingTimestamp != null && new Date(timestamp.GoingTimestamp).getFullYear() != 1) {
           this.timestampCorrection.GoingTimestamp = formatDate(new Date(timestamp.GoingTimestamp), 'DD.MM.YYYY HH:mm');
         }
       }
