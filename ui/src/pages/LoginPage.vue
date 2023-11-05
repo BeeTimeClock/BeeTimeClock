@@ -40,12 +40,13 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import {useAuthStore} from 'stores/microsoft-auth';
 import {onMounted, ref} from 'vue';
 import {showErrorMessage} from 'src/helper/message';
-import {useRouter} from "vue-router";
+import {useRouter} from 'vue-router';
 import {useMicrosoftAuth} from 'boot/microsoft-msal';
 
 
 const router = useRouter();
 const msal = useMicrosoftAuth();
+const auth = useAuthStore();
 
 const email = ref('');
 const password = ref('');
@@ -65,8 +66,8 @@ async function loadAuthProviders() {
 async function loginLocal() {
   BeeTimeClock.login(email.value, password.value).then((result) => {
     if (result.status === 200) {
-      useAuthStore().setAccessToken(result.data.Data.Token);
-      useAuthStore().setAuthProvider('local');
+      auth.setAccessToken(result.data.Data.Token);
+      auth.setAuthProvider('local');
 
       gotoDashboard();
     }
@@ -85,18 +86,18 @@ async function loginWithMicrosoft() {
   await msal.msalInstance.loginPopup().then((result) => {
     try {
 
-      useAuthStore().setAccessToken(result.idToken);
-      useAuthStore().setAuthProvider('microsoft');
+      auth.setAccessToken(result.idToken);
+      auth.setAuthProvider('microsoft');
 
       msal.msalInstance.setActiveAccount(msal.msalInstance.getAllAccounts()[0])
     } catch (e) {
-      showErrorMessage(e);
+      showErrorMessage('Cant set active account: ' + e);
     } finally {
       gotoDashboard();
     }
   }).catch((error) => {
-    showErrorMessage(error)
-    useAuthStore().logout();
+    showErrorMessage('Something went wrong with microsoft popup: ' + error)
+    auth.logout();
   })
 }
 
