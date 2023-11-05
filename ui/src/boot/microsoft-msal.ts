@@ -2,6 +2,7 @@ import {boot} from 'quasar/wrappers'
 import {InteractionRequiredAuthError, IPublicClientApplication, PublicClientApplication} from '@azure/msal-browser';
 import {useAuthStore} from 'stores/microsoft-auth';
 import BeeTimeClock from 'src/service/BeeTimeClock';
+import {getCurrentInstance} from "vue";
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -46,3 +47,8 @@ export default boot(async ({app}) => {
 
   app.config.globalProperties.$msalProvider = new MsalProvider(await PublicClientApplication.createPublicClientApplication(useAuthStore().getMsalConfig));
 })
+
+export function useMicrosoftAuth() {
+  const app = getCurrentInstance();
+  return app?.appContext.config.globalProperties.$msalProvider;
+}
