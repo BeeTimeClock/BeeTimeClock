@@ -1,5 +1,5 @@
 .PHONY: ui server
-ui:
+ui: ui-modules
 	cd ui; yarn quasar build
 
 ui-modules:
@@ -12,7 +12,7 @@ develop-frontend:
 	cd ui; \
 	VUE_APP_BACKEND_ADDRESS=http://localhost:8080 yarn quasar dev
 
-develop-backend:
+develop-backend: ui
 	air
 
 all: ui-modules ui server
