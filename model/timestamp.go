@@ -76,12 +76,18 @@ func (t *Timestamp) CalculateWorkingHours() (float64, float64) {
 	completeTime := goingTimestamp.Sub(t.ComingTimestamp).Hours()
 	calculatedTime := completeTime
 
-	if completeTime > 6 {
+	if completeTime > 6.0 {
 		calculatedTime = calculatedTime - 0.5
+		if calculatedTime < 6.0 {
+			calculatedTime = calculatedTime + (6.0 - calculatedTime)
+		}
 	}
 
-	if completeTime > 9 {
+	if completeTime > 9.0 {
 		calculatedTime = calculatedTime - 0.25
+		if calculatedTime < 9.0 {
+			calculatedTime = calculatedTime + (9.0 - calculatedTime)
+		}
 	}
 	return calculatedTime, completeTime - calculatedTime
 }
