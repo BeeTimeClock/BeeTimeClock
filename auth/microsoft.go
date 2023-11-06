@@ -56,6 +56,7 @@ func (a *AuthProvider) microsoftAuthRequired(c *gin.Context, tokenString string)
 	}
 
 	c.Set(sessionVarUser, user)
+	c.Set(sessionVarIsAdministrator, user.AccessLevel == model.USER_ACCESS_LEVEL_ADMIN)
 	c.Next()
 }
 

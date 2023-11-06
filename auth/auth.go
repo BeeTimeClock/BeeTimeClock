@@ -12,6 +12,7 @@ import (
 )
 
 const sessionVarUser = "user"
+const sessionVarIsAdministrator = "is_administrator"
 
 type AuthHeader struct {
 	Authorization string `header:"Authorization" binding:"required"`
@@ -57,6 +58,7 @@ func (a *AuthProvider) AuthRequired(c *gin.Context) {
 		}
 
 		c.Set(sessionVarUser, user)
+		c.Set(sessionVarIsAdministrator, user.AccessLevel == model.USER_ACCESS_LEVEL_ADMIN)
 		c.Next()
 		return
 	default:
@@ -88,6 +90,10 @@ func GetUserFromSession(c *gin.Context) (model.User, error) {
 	}
 
 	return user.(model.User), nil
+}
+
+func IsAdministrator(c *gin.Context) bool {
+	return c.GetBool(sessionVarIsAdministrator)
 }
 
 func (a *AuthProvider) AuthProviders(c *gin.Context) {

@@ -100,17 +100,26 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 		User        model.UserResponse
 		AbsenceFrom time.Time
 		AbsenceTill time.Time
+		Reason      string
 	}
 
 	result := []AbsenceReturn{}
 
 	for _, absence := range absences {
-		result = append(result, AbsenceReturn{
+		absenceReturn := AbsenceReturn{
 			ID:          absence.ID,
 			User:        absence.User.GetUserResponse(),
 			AbsenceFrom: absence.AbsenceFrom,
 			AbsenceTill: absence.AbsenceTill,
-		})
+		}
+
+		if auth.IsAdministrator(c) {
+			absenceReturn.Reason = absence.AbsenceReason.Description
+		} else {
+			absenceReturn.Reason = "Abwesend"
+		}
+
+		result = append(result, absenceReturn)
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))

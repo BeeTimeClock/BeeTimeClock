@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { date } from 'quasar';
-import { AbsenceSummaryItem } from 'src/models/Absence';
-import { User } from "src/models/Authentication";
-import { computed, PropType } from 'vue';
-import { useI18n } from 'vue-i18n';
+import {date} from 'quasar';
+import {AbsenceReason, AbsenceSummaryItem} from 'src/models/Absence';
+import {User} from "src/models/Authentication";
+import {computed, PropType} from 'vue';
+import {useI18n} from 'vue-i18n';
+import {useAuthStore} from "stores/microsoft-auth";
 
 const {t} = useI18n();
+const auth = useAuthStore();
 
 const props = defineProps({
   modelValue: {
@@ -48,6 +50,15 @@ const columns = [
     format: (val: User) => `${val.FirstName} ${val.LastName}`
   },
 ]
+
+if (auth.isAdministrator()) {
+  columns.push({
+    name: 'absenceReason',
+    label: t('LABEL_REASON'),
+    field: 'Reason',
+    format: (val: string) => val,
+  })
+}
 </script>
 
 <template>
