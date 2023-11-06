@@ -5,7 +5,7 @@
         <OvertimeCurrentMonth class="full-height"/>
       </div>
       <div class="col-6 q-pa-sm">
-       <OvertimeTotal class="full-height"/>
+        <OvertimeTotal class="full-height"/>
       </div>
     </div>
     <div class="row">
@@ -99,22 +99,27 @@
     </div>
   </q-page>
   <q-dialog v-model="prompt.timestampCorrectionCreate" persistent>
+
     <q-card class="q-dialog-plugin full-width">
       <q-card-section>
         <div class="text-h6">{{ $t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
       </q-card-section>
-      <q-card-section>
-        <DateTimePickerComponent v-model="timestampCorrection.ComingTimestamp" :label="$t('LABEL_COMING_TIMESTAMP')"/>
-        <DateTimePickerComponent class="q-mt-md" v-model="timestampCorrection.GoingTimestamp"
-                                 :label="$t('LABEL_GOING_TIMESTAMP')"/>
-        <q-checkbox v-model="timestampCorrection.IsHomeoffice" :label="$t('LABEL_HOMEOFFICE')"/>
-        <q-input v-model="timestampCorrection.Reason" type="textarea" :label="$t('LABEL_REASON')"/>
-      </q-card-section>
-      <q-card-actions>
-        <q-btn v-close-popup :label="$t('BTN_CANCEL')" color="negative"/>
-        <q-btn v-close-popup :label="$t('BTN_CREATE')" color="positive" @click="timestampCorrectionCreate"/>
-      </q-card-actions>
+      <q-form @submit.prevent.stop="timestampCorrectionCreate">
+        <q-card-section>
+          <DateTimePickerComponent v-model="timestampCorrection.ComingTimestamp" :label="$t('LABEL_COMING_TIMESTAMP')"/>
+          <DateTimePickerComponent class="q-mt-md" v-model="timestampCorrection.GoingTimestamp"
+                                   :label="$t('LABEL_GOING_TIMESTAMP')"/>
+          <q-checkbox v-model="timestampCorrection.IsHomeoffice" :label="$t('LABEL_HOMEOFFICE')"/>
+          <q-input lazy-rules :rules="[val => !!val || $t('LABEL_FIELD_REQUIRED')]" v-model="timestampCorrection.Reason"
+                   type="textarea" :label="$t('LABEL_REASON')"/>
+        </q-card-section>
+        <q-card-actions>
+          <q-btn v-close-popup :label="$t('BTN_CANCEL')" color="negative" type="reset"/>
+          <q-btn :label="$t('BTN_CREATE')" color="positive" type="submit"/>
+        </q-card-actions>
+      </q-form>
     </q-card>
+
   </q-dialog>
   <q-dialog v-model="prompt.timestampCorrectionView" persistent>
     <q-card class="q-dialog-plugin full-width">
@@ -298,6 +303,8 @@ export default defineComponent({
       if (this.timestampCorrection.GoingTimestamp) {
         goingTimestamp = date.extractDate(this.timestampCorrection.GoingTimestamp, 'DD.MM.YYYY HH:mm');
       }
+
+      this.prompt.timestampCorrectionCreate = false;
 
       if (this.selectedTimestamp != null) {
         const timestampCorrectionRequest = {

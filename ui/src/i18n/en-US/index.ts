@@ -59,4 +59,5 @@ export default {
   LABEL_OVERTIME_TOTAL: 'overtime (total)',
   LABEL_LOCAL_SIGN_IN: 'local sign in',
   LABEL_SSO_SIGN_IN: 'or via SSO',
+  LABEL_FIELD_REQUIRED: 'field is required',
 };

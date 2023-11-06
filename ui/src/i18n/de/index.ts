@@ -56,4 +56,5 @@ export default {
   LABEL_OVERTIME_TOTAL: 'Überstunden (gesamt)',
   LABEL_LOCAL_SIGN_IN: 'Anmeldung lokal',
   LABEL_SSO_SIGN_IN: 'oder per SSO',
+  LABEL_FIELD_REQUIRED: 'Pflichtfeld',
 };
