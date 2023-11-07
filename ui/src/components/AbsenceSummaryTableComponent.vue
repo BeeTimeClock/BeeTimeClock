@@ -30,6 +30,13 @@ const getTitle = computed(() => {
   return t('LABEL_EMPLOYEE_ABSENCES')
 })
 
+const rows = computed(() => {
+  if (!props.modelValue) return [];
+
+  const data = props.modelValue;
+  return data.sort((a, b) => new Date(a.AbsenceFrom).getTime() - new Date(b.AbsenceFrom).getTime());
+})
+
 const columns = [
   {
     name: 'absenceFrom',
@@ -62,7 +69,7 @@ if (auth.isAdministrator()) {
 </script>
 
 <template>
-  <q-table :title="getTitle" :rows="modelValue" :columns="columns" hide-pagination :flat="flat"/>
+  <q-table :title="getTitle" :rows="rows" :columns="columns" hide-pagination :flat="flat"/>
 </template>
 
 <style scoped>
