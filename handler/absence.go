@@ -89,7 +89,7 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 }
 
 func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
-	absences, err := h.absence.FindByQuery(true, "absence_till >= ?", time.Now())
+	absences, err := h.absence.FindByQuery(true, "absence_till >= ?", time.Now().Format("2006-01-02"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
