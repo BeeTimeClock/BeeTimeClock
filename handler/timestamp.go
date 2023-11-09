@@ -295,7 +295,7 @@ func (h *Timestamp) groupCurrentMonth(userID uint) ([]model.TimestampGroup, erro
 			neededHours = hours
 		}
 
-		group.OvertimeHours = group.WorkingHours - group.SubtractedHours - neededHours
+		group.OvertimeHours = group.WorkingHours - neededHours
 
 		grouped[timestamp_date] = group
 	}
