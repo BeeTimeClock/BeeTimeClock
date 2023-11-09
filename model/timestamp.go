@@ -83,7 +83,7 @@ func (t *Timestamp) CalculateWorkingHours() (float64, float64) {
 		}
 	}
 
-	if completeTime > 9.0 {
+	if calculatedTime > 9.0 {
 		calculatedTime = calculatedTime - 0.25
 		if calculatedTime < 9.0 {
 			calculatedTime = calculatedTime + (9.0 - calculatedTime)
