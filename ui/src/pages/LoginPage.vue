@@ -77,13 +77,13 @@ async function loginLocal() {
   })
 }
 
-async function loginWithMicrosoft() {
+function loginWithMicrosoft() {
   if (!msal) {
     showErrorMessage('hier ist was faul, meldet euch bei sebastian')
     return
   }
 
-  await msal.msalInstance.loginPopup().then((result) => {
+  msal.msalInstance.loginPopup().then((result) => {
     try {
 
       auth.setAccessToken(result.idToken);
@@ -101,8 +101,9 @@ async function loginWithMicrosoft() {
   })
 }
 
-function gotoDashboard() {
-  router.push({name: 'Dashboard'})
+  function gotoDashboard() {
+    console.log('route to dashboard');
+    router.push({name: 'Dashboard'})
 }
 
 onMounted(async () => {
