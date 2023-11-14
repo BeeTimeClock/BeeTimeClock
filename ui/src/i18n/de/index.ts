@@ -57,4 +57,5 @@ export default {
   LABEL_LOCAL_SIGN_IN: 'Anmeldung lokal',
   LABEL_SSO_SIGN_IN: 'oder per SSO',
   LABEL_FIELD_REQUIRED: 'Pflichtfeld',
+  LABEL_OVERTIME_HOURS: 'Überstunden',
 };
