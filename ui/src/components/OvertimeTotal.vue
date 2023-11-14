@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
+import { formatIndustryHourMinutes } from 'src/helper/formatter';
 
 const value = ref(0);
 
@@ -18,7 +19,7 @@ BeeTimeClock.timestampOvertime().then(result => {
       {{ $t('LABEL_OVERTIME_TOTAL') }}
     </q-card-section>
     <q-card-section class="text-h6 text-center">
-      {{ value.toFixed(2) }}
+      {{ formatIndustryHourMinutes(value) }}
     </q-card-section>
   </q-card>
 </template>

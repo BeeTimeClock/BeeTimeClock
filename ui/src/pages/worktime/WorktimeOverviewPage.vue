@@ -160,7 +160,8 @@ import {showErrorMessage, showInfoMessage} from 'src/helper/message';
 import {Timestamp, TimestampCorrectionCreateRequest, TimestampGroup} from 'src/models/Timestamp';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {defineComponent, ref} from 'vue';
-import formatDate = date.formatDate;
+  import formatDate = date.formatDate;
+  import { formatIndustryHourMinutes } from 'src/helper/formatter';
 import {TimestampCreateRequest} from 'src/models/Timestamp';
 import {ErrorResponse} from 'src/models/Base';
 import OvertimeCurrentMonth from "components/OvertimeCurrentMonth.vue";
@@ -188,21 +189,21 @@ export default defineComponent({
         align: 'left',
         label: this.$t('LABEL_WORKING_HOURS'),
         field: 'WorkingHours',
-        format: (val: number) => val.toFixed(2)
+        format: (val: number) => formatIndustryHourMinutes(val)
       },
       {
         name: 'SubtractedHours',
         align: 'left',
         label: this.$t('LABEL_SUBTRACTED_HOURS'),
         field: 'SubtractedHours',
-        format: (val: number) => val.toFixed(2)
+        format: (val: number) => formatIndustryHourMinutes(val)
       },
       {
         name: 'OvertimeHours',
         align: 'left',
         label: this.$t('LABEL_OVERTIME_HOURS'),
         field: 'OvertimeHours',
-        format: (val: number) => val.toFixed(2)
+        format: (val: number) => formatIndustryHourMinutes(val)
       },
       {
         name: 'IsHomeoffice',
