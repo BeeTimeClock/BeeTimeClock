@@ -56,7 +56,11 @@ const columns = [
     field: 'User',
     format: (val: User) => `${val.FirstName} ${val.LastName}`
   },
-]
+  ]
+
+  const pagination = {
+    rowsPerPage: 10,
+  }
 
 if (auth.isAdministrator()) {
   columns.push({
@@ -69,7 +73,7 @@ if (auth.isAdministrator()) {
 </script>
 
 <template>
-  <q-table :title="getTitle" :rows="rows" :columns="columns" hide-pagination :flat="flat"/>
+  <q-table :title="getTitle" :rows="rows" :columns="columns" :flat="flat" :pagination="pagination"/>
 </template>
 
 <style scoped>

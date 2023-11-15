@@ -46,7 +46,11 @@ const myAbsencesColumns = [
     field: 'CreatedAt',
     format: (val: Date) => date.formatDate(val, 'DD.MM.YYYY HH:mm')
   },
-]
+  ]
+
+  const pagination = {
+    rowsPerPage: 10,
+  }
 
 let absenceReasons = [] as AbsenceReason[];
 
@@ -55,7 +59,14 @@ const conflictingAbsences = computed(() => {
     (s.AbsenceFrom > absenceCreateRequest.value.AbsenceFrom && s.AbsenceFrom < absenceCreateRequest.value.AbsenceTill) ||
     (s.AbsenceTill < absenceCreateRequest.value.AbsenceTill && s.AbsenceTill > absenceCreateRequest.value.AbsenceFrom)
   )
-})
+  })
+
+  const myAbsences = computed(() => {
+    if (!absences.value) return [];
+
+    const data = absences.value;
+    return data.sort((a, b) => new Date(a.AbsenceFrom).getTime() - new Date(b.AbsenceFrom).getTime());
+  })
 
 function loadAbsenceReasons() {
   BeeTimeClock.absenceReasons().then(result => {
@@ -146,8 +157,8 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <q-table :title="$t('LABEL_MY_ABSENCES')" :rows="absences"
-             :columns="myAbsencesColumns" hide-pagination>
+    <q-table :title="$t('LABEL_MY_ABSENCES')" :rows="myAbsences"
+             :columns="myAbsencesColumns" :pagination="pagination">
       <template v-slot:top>
         <div class="col-2 q-table__title">{{ $t('LABEL_MY_ABSENCES') }}</div>
         <q-space/>
