@@ -42,3 +42,20 @@ type AbsenceUserSummary struct {
 	ByYear             map[int]AbsenceUserSummaryYear
 	HolidayDaysPerYear uint
 }
+
+func (a *Absence) GetAbsenceWorkDays() int {
+	days := 0
+
+	currentDay := a.AbsenceFrom
+
+	for !currentDay.After(a.AbsenceTill) {
+		if currentDay.Weekday() != time.Saturday && currentDay.Weekday() != time.Sunday {
+			days++
+		}
+
+		currentDay = currentDay.Add(24 * time.Hour)
+	}
+
+	return days
+}
+
