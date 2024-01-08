@@ -102,6 +102,8 @@ func DefaultWorkTimeModel() WorkTimeModel {
 		DefaultHoursPerWeekday: 8.0,
 		HoursPerWeekdayException: map[time.Weekday]float64{
 			time.Friday: 6.0,
+			time.Saturday: 0.0,
+			time.Sunday: 0.0,
 		},
 	}
 }
