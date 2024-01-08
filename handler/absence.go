@@ -156,13 +156,7 @@ func (h *Absence) AbsenceQueryCurrentUserSummary(c *gin.Context) {
 		}
 
 		yearReasonSummary := result.ByYear[absenceYear].ByAbsenceReason[*absence.AbsenceReasonID]
-		days := absence.AbsenceTill.Sub(absence.AbsenceFrom).Hours()
-
-		if days == 0 {
-			days = 1
-		} else {
-			days = days / 24
-		}
+		days := absence.GetAbsenceWorkDays()
 
 		if absence.AbsenceFrom.Before(time.Now()) {
 			yearReasonSummary.Past += int(days)
