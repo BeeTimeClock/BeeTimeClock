@@ -29,6 +29,11 @@ func TestAbsenceDaysCalculation(t *testing.T) {
 			Till: time.Date(2024, 1, 12, 0, 0, 0, 0, time.UTC),
 			Wanted: 5,
 		},
+		{
+			From: time.Date(2024, 07, 15, 0, 0, 0, 0, time.UTC),
+			Till: time.Date(2024, 07, 30, 0, 0, 0, 0, time.UTC),
+			Wanted: 12,
+		},
 	}
 
 	
