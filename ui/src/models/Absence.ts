@@ -1,4 +1,4 @@
-import {User} from "src/models/Authentication";
+import {User} from 'src/models/Authentication';
 
 export interface AbsenceCreateRequest {
   AbsenceFrom: Date;
@@ -18,12 +18,14 @@ export interface Absence {
   AbsenceReasonID: number;
   CreatedAt: Date;
   UpdatedAt: Date;
+  NettoDays: number;
 }
 
 export interface AbsenceSummaryItem {
   ID: number;
   AbsenceFrom: Date;
   AbsenceTill: Date;
+  NettoDays: number;
   User: User;
 }
 

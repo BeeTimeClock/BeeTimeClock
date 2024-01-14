@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {date} from 'quasar';
 import {AbsenceReason, AbsenceSummaryItem} from 'src/models/Absence';
-import {User} from "src/models/Authentication";
+import {User} from 'src/models/Authentication';
 import {computed, PropType} from 'vue';
 import {useI18n} from 'vue-i18n';
-import {useAuthStore} from "stores/microsoft-auth";
+import {useAuthStore} from 'stores/microsoft-auth';
 
 const {t} = useI18n();
 const auth = useAuthStore();
@@ -49,6 +49,11 @@ const columns = [
     label: t('LABEL_TILL'),
     field: 'AbsenceTill',
     format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY')
+  },
+  {
+    name: 'absenceNettoDays',
+    label: t('LABEL_NETTO_DAYS'),
+    field: 'NettoDays',
   },
   {
     name: 'user',

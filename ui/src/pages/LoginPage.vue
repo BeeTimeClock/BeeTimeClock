@@ -101,9 +101,9 @@ function loginWithMicrosoft() {
   })
 }
 
-  function gotoDashboard() {
-    console.log('route to dashboard');
-    router.push({name: 'Dashboard'})
+function gotoDashboard() {
+  console.log('route to dashboard');
+  router.push({name: 'Dashboard'})
 }
 
 onMounted(async () => {

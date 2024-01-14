@@ -41,6 +41,11 @@ const myAbsencesColumns = [
     field: 'AbsenceReasonID',
   },
   {
+    name: 'absenceNettoDays',
+    label: t('LABEL_NETTO_DAYS'),
+    field: 'NettoDays',
+  },
+  {
     name: 'absenceCreatedAt',
     label: t('LABEL_CREATED_AT'),
     field: 'CreatedAt',

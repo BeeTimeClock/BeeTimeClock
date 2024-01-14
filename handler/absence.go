@@ -38,7 +38,29 @@ func (h *Absence) AbsenceGetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(absences))
+	type AbsenceReturn struct {
+		ID              uint
+		User            model.UserResponse
+		AbsenceFrom     time.Time
+		AbsenceTill     time.Time
+		AbsenceReasonID uint
+		NettoDays       int
+		CreatedAt       time.Time
+	}
+	result := []AbsenceReturn{}
+	for _, absence := range absences {
+		result = append(result, AbsenceReturn{
+			ID:              absence.ID,
+			User:            user.GetUserResponse(),
+			AbsenceFrom:     absence.AbsenceFrom,
+			AbsenceTill:     absence.AbsenceTill,
+			AbsenceReasonID: *absence.AbsenceReasonID,
+			NettoDays:       absence.GetAbsenceWorkDays(),
+			CreatedAt:       absence.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
 func (h *Absence) AbsenceReasonsGetAll(c *gin.Context) {
@@ -101,6 +123,7 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 		AbsenceFrom time.Time
 		AbsenceTill time.Time
 		Reason      string
+		NettoDays   int
 	}
 
 	result := []AbsenceReturn{}
@@ -111,6 +134,7 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 			User:        absence.User.GetUserResponse(),
 			AbsenceFrom: absence.AbsenceFrom,
 			AbsenceTill: absence.AbsenceTill,
+			NettoDays:   absence.GetAbsenceWorkDays(),
 		}
 
 		if auth.IsAdministrator(c) {
