@@ -27,11 +27,16 @@ func NewUser(env *core.Environment, user *repository.User) *User {
 }
 
 func (h *User) AdministrationUserGetAll(c *gin.Context) {
+	withDataQueryParam := c.Query("with_data")
+	withData := withDataQueryParam == "true"
+
 	users, err := h.user.FindAll()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
+
+	fmt.Println(withData)
 
 	var result []model.UserResponse
 	for _, user := range users {

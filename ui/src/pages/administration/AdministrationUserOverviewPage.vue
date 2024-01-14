@@ -6,7 +6,7 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 const users = ref([] as User[]);
 
 function loadUsers() {
-  BeeTimeClock.administrationGetUsers().then(result => {
+  BeeTimeClock.administrationGetUsers(true).then(result => {
     if (result.status === 200) {
       users.value = result.data.Data;
     }

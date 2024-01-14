@@ -81,8 +81,12 @@ class BeeTimeClock {
     return api.get('/api/v1/absence/query/me/summary')
   }
 
-  administrationGetUsers() : Promise<AxiosResponse<BaseResponse<User[]>>> {
-    return api.get('/api/v1/administration/user');
+  administrationGetUsers(withData?: boolean) : Promise<AxiosResponse<BaseResponse<User[]>>> {
+    const params = {
+      with_data: withData,
+    } ;
+    
+    return api.get('/api/v1/administration/user', { params: params });
   }
 
   administrationGetUserById(userId: string) : Promise<AxiosResponse<BaseResponse<User>>> {
