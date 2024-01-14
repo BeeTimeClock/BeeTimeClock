@@ -97,6 +97,10 @@ class BeeTimeClock {
     return api.put(`/api/v1/administration/user/${user.ID}`, user);
   }
 
+  administrationSummaryUserCurrentYear(userId: number) : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
+    return api.get(`/api/v1/administration/user/${userId}/summary/year/current`)
+  }
+
   getStatus() : Promise<AxiosResponse<BaseResponse<BackendStatus>>> {
     return api.get('/api/v1/status');
   }

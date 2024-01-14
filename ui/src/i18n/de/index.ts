@@ -59,4 +59,5 @@ export default {
   LABEL_FIELD_REQUIRED: 'Pflichtfeld',
   LABEL_OVERTIME_HOURS: 'Überstunden',
   LABEL_NETTO_DAYS: 'Netto Tage',
+  LABEL_ABSENCES: 'Abwesenheiten',
 };

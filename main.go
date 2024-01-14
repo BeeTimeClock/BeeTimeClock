@@ -103,6 +103,7 @@ func main() {
 					administrationUser.PUT(":userID", userHandler.AdministrationUserUpdate)
 					administrationUser.GET(":userID", userHandler.AdministrationUserGetByUserID)
 					administrationUser.DELETE(":userID", userHandler.AdministrationUserDelete)
+					administrationUser.GET(":userID/summary/year/current", absenceHandler.AbsenceQueryUserSummaryCurrentYear)
 				}
 			}
 

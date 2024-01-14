@@ -61,5 +61,6 @@ export default {
   LABEL_SSO_SIGN_IN: 'or via SSO',
   LABEL_FIELD_REQUIRED: 'field is required',
   LABEL_OVERTIME_HOURS: 'Overtime Hours',
-  LABEL_NETTO_DAYS: 'netto days'
+  LABEL_NETTO_DAYS: 'netto days',
+  LABEL_ABSENCES: 'Absences',
 };

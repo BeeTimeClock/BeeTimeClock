@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
@@ -132,6 +133,21 @@ func (r *Absence) FindByUserID(userID uint) ([]model.Absence, error) {
 
 	var items []model.Absence
 	result := db.Find(&items, "user_id = ?", userID)
+
+	return items, result.Error
+}
+
+func (r *Absence) FindByUserIDAndYear(userID uint, year int) ([]model.Absence, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.Absence
+	result := db.Find(&items, "user_id = ? and absence_from between ? and ?", userID,
+		time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(year, 12, 31, 23, 59, 0, 0, time.UTC))
 
 	return items, result.Error
 }
