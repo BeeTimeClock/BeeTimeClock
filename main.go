@@ -112,6 +112,8 @@ func main() {
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
 				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampQueryCurrentMonthGrouped)
 				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampQueryCurrentMonthOvertime)
+				timestamp.GET("query/year/:year/month/:month/grouped", timestampHandler.TimestampQueryMonthGrouped)
+				timestamp.GET("query/year/:year/month/:month/overtime", timestampHandler.TimestampQueryMonthOvertime)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
 				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
