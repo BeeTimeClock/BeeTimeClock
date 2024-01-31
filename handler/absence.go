@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
@@ -149,6 +150,31 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
+func (h *Absence) AbsenceQueryUserSummaryCurrentYear(c *gin.Context) {
+	userIdParam := c.Param("userID")
+	userId, err := strconv.Atoi(userIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	user, err := h.user.FindByID(uint(userId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	absences, err := h.absence.FindByUserIDAndYear(user.ID, time.Now().Year())
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	summary := h.summaryAbsences(&user, absences)
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(summary))
+}
+
 func (h *Absence) AbsenceQueryCurrentUserSummary(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
@@ -162,6 +188,12 @@ func (h *Absence) AbsenceQueryCurrentUserSummary(c *gin.Context) {
 		return
 	}
 
+	summary := h.summaryAbsences(&user, absences)
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(summary))
+}
+
+func (h *Absence) summaryAbsences(user *model.User, absences []model.Absence) model.AbsenceUserSummary {
 	result := model.AbsenceUserSummary{
 		ByYear:             make(map[int]model.AbsenceUserSummaryYear),
 		HolidayDaysPerYear: user.HolidayDaysPerYear,
@@ -191,5 +223,5 @@ func (h *Absence) AbsenceQueryCurrentUserSummary(c *gin.Context) {
 		result.ByYear[absenceYear].ByAbsenceReason[*absence.AbsenceReasonID] = yearReasonSummary
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+	return result
 }
