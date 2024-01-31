@@ -184,7 +184,8 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 		return
 	}
 
-	result, err := h.groupCurrentMonth(user.ID)
+	currentYear, currentMonth, _ := time.Now().Date()
+	result, err := h.groupMonth(user.ID, currentYear, int(currentMonth))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -201,6 +202,70 @@ func (h *Timestamp) TimestampQueryCurrentMonthOvertime(c *gin.Context) {
 	}
 
 	overtimeHours, err := h.overtimeCurrentMonth(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := model.SumResult{
+		Total: overtimeHours,
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampQueryMonthGrouped(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	monthParam := c.Param("month")
+	month, err := strconv.Atoi(monthParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	result, err := h.groupMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	monthParam := c.Param("month")
+	month, err := strconv.Atoi(monthParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	overtimeHours, err := h.overtimeMonth(user.ID, year, month)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -240,7 +305,12 @@ func (h *Timestamp) TimestampOvertime(c *gin.Context) {
 }
 
 func (h *Timestamp) overtimeCurrentMonth(userID uint) (float64, error) {
-	result, err := h.groupCurrentMonth(userID)
+	currentYear, currentMonth, _ := time.Now().Date()
+	return h.overtimeMonth(userID, currentYear, int(currentMonth))
+}
+
+func (h *Timestamp) overtimeMonth(userID uint, year int, month int) (float64, error) {
+	result, err := h.groupMonth(userID, year, month)
 	if err != nil {
 		return 0.0, err
 	}
@@ -253,11 +323,10 @@ func (h *Timestamp) overtimeCurrentMonth(userID uint) (float64, error) {
 	return overtimeHours, nil
 }
 
-func (h *Timestamp) groupCurrentMonth(userID uint) ([]model.TimestampGroup, error) {
-	currentYear, currentMonth, _ := time.Now().Date()
+func (h *Timestamp) groupMonth(userID uint, year int, month int) ([]model.TimestampGroup, error) {
 	currentLocation := time.Now().Location()
 
-	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, currentLocation)
 	lastOfMonth := firstOfMonth.AddDate(0, 1, 0).Add(-1 * time.Second)
 
 	timestamps, err := h.timestamp.FindByUserIDAndDate(userID, firstOfMonth, lastOfMonth)
