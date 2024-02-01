@@ -103,7 +103,12 @@ func main() {
 					administrationUser.PUT(":userID", userHandler.AdministrationUserUpdate)
 					administrationUser.GET(":userID", userHandler.AdministrationUserGetByUserID)
 					administrationUser.DELETE(":userID", userHandler.AdministrationUserDelete)
-					administrationUser.GET(":userID/summary/year/current", absenceHandler.AbsenceQueryUserSummaryCurrentYear)
+
+					administrationUser.GET(":userID/absence/year/:year/summary", absenceHandler.AbsenceQueryUserSummaryYear)
+					administrationUser.GET(":userID/absence/year/:year", absenceHandler.AbsenceQueryUserYear)
+
+					administrationUser.GET(":userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
+					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
 				}
 			}
 
@@ -111,8 +116,8 @@ func main() {
 			{
 				timestamp.GET("", timestampHandler.TimestampGetAll)
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
-				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampQueryCurrentMonthGrouped)
-				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampQueryCurrentMonthOvertime)
+				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampCurrentUserQueryCurrentMonthGrouped)
+				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampCurrentUserQueryCurrentMonthOvertime)
 				timestamp.GET("query/year/:year/month/:month/grouped", timestampHandler.TimestampQueryMonthGrouped)
 				timestamp.GET("query/year/:year/month/:month/overtime", timestampHandler.TimestampQueryMonthOvertime)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)

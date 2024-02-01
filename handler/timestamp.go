@@ -177,7 +177,47 @@ func (h *Timestamp) TimestampCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(timestamp))
 }
 
-func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
+func (h *Timestamp) TimestampUserQueryMonthGrouped(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	result, err := h.groupMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	result, err := h.overtimeMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampCurrentUserQueryCurrentMonthGrouped(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
@@ -194,7 +234,7 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
-func (h *Timestamp) TimestampQueryCurrentMonthOvertime(c *gin.Context) {
+func (h *Timestamp) TimestampCurrentUserQueryCurrentMonthOvertime(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))

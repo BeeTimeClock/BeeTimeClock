@@ -43,6 +43,17 @@ type AbsenceUserSummary struct {
 	HolidayDaysPerYear uint
 }
 
+type AbsenceReturn struct {
+	ID              uint
+	User            UserResponse
+	AbsenceFrom     time.Time
+	AbsenceTill     time.Time
+	AbsenceReasonID uint `json:",omitempty"`
+	NettoDays       int
+	CreatedAt       time.Time
+	Reason          string `json:",omitempty"`
+}
+
 func (a *Absence) GetAbsenceWorkDays() int {
 	days := 0
 
@@ -59,3 +70,36 @@ func (a *Absence) GetAbsenceWorkDays() int {
 	return days
 }
 
+func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealReason bool) []AbsenceReturn {
+	result := []AbsenceReturn{}
+	for _, absence := range absences {
+		returnObj := AbsenceReturn{
+			ID:          absence.ID,
+			AbsenceFrom: absence.AbsenceFrom,
+			AbsenceTill: absence.AbsenceTill,
+			NettoDays:   absence.GetAbsenceWorkDays(),
+			CreatedAt:   absence.CreatedAt,
+		}
+
+		if user != nil {
+			returnObj.User = user.GetUserResponse()
+		} else {
+			returnObj.User = absence.User.GetUserResponse()
+		}
+
+		if withReason {
+			if showRealReason {
+				returnObj.Reason = absence.AbsenceReason.Description
+			} else {
+				returnObj.Reason = "Abwesend"
+			}
+		} else {
+
+			returnObj.AbsenceReasonID = *absence.AbsenceReasonID
+		}
+
+		result = append(result, returnObj)
+	}
+
+	return result
+}
