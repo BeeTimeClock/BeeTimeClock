@@ -1,33 +1,41 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { date } from 'quasar';
 
-  const props = defineProps({
-    modelValue: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-    }
-  });
-  const emit = defineEmits(['update:modelValue']);
+const props = defineProps({
+  modelValue: {
+    type: Date,
+    required: true
+  },
+  label: {
+    type: String
+  }
+});
+const emit = defineEmits(['update:modelValue']);
 
-  const value = computed({
-    get() : string {
-      return props.modelValue;
-    },
-    set(value: string) {
-      emit('update:modelValue', value);
-    }
-  })
+const dateFormat = 'DD.MM.YYYY HH:mm';
+const value = computed({
+  get(): Date {
+    return props.modelValue;
+  },
+  set(value: Date) {
+    emit('update:modelValue', value);
+  }
+});
+
+const formattedDate = ref(date.formatDate(value.value, dateFormat));
+
+watch(formattedDate, (newDateValue) => {
+  value.value = date.extractDate(newDateValue, dateFormat);
+})
 </script>
 
 <template>
-  <q-input filled v-model="value" :label="label">
+  <q-input filled v-model="formattedDate" :label="label" mask="">
     <template v-slot:prepend>
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="value" mask="DD.MM.YYYY HH:mm">
+          <q-date v-model="formattedDate" :mask="dateFormat">
             <div class="row items-center justify-end">
               <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
             </div>
@@ -39,7 +47,7 @@ import { computed } from 'vue';
     <template v-slot:append>
       <q-icon name="access_time" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-time v-model="value" mask="DD.MM.YYYY HH:mm" format24h>
+          <q-time v-model="formattedDate" :mask="dateFormat" format24h>
             <div class="row items-center justify-end">
               <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
             </div>

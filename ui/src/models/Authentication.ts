@@ -13,4 +13,7 @@ export interface User {
   FirstName: string;
   LastName: string;
   AccessLevel: string;
+  OvertimeSubtractionModel: string;
+  OvertimeSubtractionAmount: number;
 }
+

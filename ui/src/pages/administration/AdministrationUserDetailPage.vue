@@ -23,6 +23,17 @@ const accessLevelOptions = [
   }
 ]
 
+const overtimeSubtractions = [
+  {
+    value: 'percentage',
+    label: t('LABEL_PERCENTAGE'),
+  },
+  {
+    value: 'hours',
+    label: t('LABEL_HOURS'),
+  }
+]
+
 function loadUser() {
   BeeTimeClock.administrationGetUserById(userId).then(result => {
     if (result.status === 200) {
@@ -55,6 +66,8 @@ onMounted(() => {
           <q-input :label="$t('LABEL_FIRST_NAME')" v-model="user.FirstName"/>
           <q-input :label="$t('LABEL_LAST_NAME')" v-model="user.LastName"/>
           <q-select :label="$t('LABEL_ACCESS_LEVEL')" :options="accessLevelOptions" v-model="user.AccessLevel" map-options emit-value/>
+          <q-select :label="$t('LABEL_OVERTIME_SUBTRACTION_MODEL')" :options="overtimeSubtractions" v-model="user.OvertimeSubtractionModel" map-options emit-value/>
+          <q-input :label="$t('LABEL_OVERTIME_SUBTRACTION_AMOUNT')" v-model.number="user.OvertimeSubtractionAmount" type="number"/>
         </q-card-section>
         <q-card-actions>
           <q-btn :label="$t('BTN_SAVE')" color="primary" @click="saveUser"/>

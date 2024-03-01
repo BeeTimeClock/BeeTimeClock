@@ -39,27 +39,7 @@ func (h *Absence) AbsenceGetAll(c *gin.Context) {
 		return
 	}
 
-	type AbsenceReturn struct {
-		ID              uint
-		User            model.UserResponse
-		AbsenceFrom     time.Time
-		AbsenceTill     time.Time
-		AbsenceReasonID uint
-		NettoDays       int
-		CreatedAt       time.Time
-	}
-	result := []AbsenceReturn{}
-	for _, absence := range absences {
-		result = append(result, AbsenceReturn{
-			ID:              absence.ID,
-			User:            user.GetUserResponse(),
-			AbsenceFrom:     absence.AbsenceFrom,
-			AbsenceTill:     absence.AbsenceTill,
-			AbsenceReasonID: *absence.AbsenceReasonID,
-			NettoDays:       absence.GetAbsenceWorkDays(),
-			CreatedAt:       absence.CreatedAt,
-		})
-	}
+	result := model.AbsenceReturns(absences, &user, false, false)
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
@@ -111,6 +91,26 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(absence))
 }
 
+func (h *Absence) AbsenceQueryUserYear(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	year, success := getYearFromParam(c)
+	if !success {
+		return
+	}
+
+	absences, err := h.absence.FindByUserIDAndYear(user.ID, year)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(model.AbsenceReturns(absences, &user, false, false)))
+}
+
 func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 	absences, err := h.absence.FindByQuery(true, "absence_till >= ?", time.Now().Format("2006-01-02"))
 	if err != nil {
@@ -118,41 +118,20 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 		return
 	}
 
-	type AbsenceReturn struct {
-		ID          uint
-		User        model.UserResponse
-		AbsenceFrom time.Time
-		AbsenceTill time.Time
-		Reason      string
-		NettoDays   int
-	}
-
-	result := []AbsenceReturn{}
-
-	for _, absence := range absences {
-		absenceReturn := AbsenceReturn{
-			ID:          absence.ID,
-			User:        absence.User.GetUserResponse(),
-			AbsenceFrom: absence.AbsenceFrom,
-			AbsenceTill: absence.AbsenceTill,
-			NettoDays:   absence.GetAbsenceWorkDays(),
-		}
-
-		if auth.IsAdministrator(c) {
-			absenceReturn.Reason = absence.AbsenceReason.Description
-		} else {
-			absenceReturn.Reason = "Abwesend"
-		}
-
-		result = append(result, absenceReturn)
-	}
-
+	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c))
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
-func (h *Absence) AbsenceQueryUserSummaryCurrentYear(c *gin.Context) {
+func (h *Absence) AbsenceQueryUserSummaryYear(c *gin.Context) {
 	userIdParam := c.Param("userID")
 	userId, err := strconv.Atoi(userIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
 		return
@@ -164,7 +143,7 @@ func (h *Absence) AbsenceQueryUserSummaryCurrentYear(c *gin.Context) {
 		return
 	}
 
-	absences, err := h.absence.FindByUserIDAndYear(user.ID, time.Now().Year())
+	absences, err := h.absence.FindByUserIDAndYear(user.ID, year)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
 		return

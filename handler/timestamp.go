@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -17,13 +18,15 @@ type Timestamp struct {
 	env       *core.Environment
 	user      *repository.User
 	timestamp *repository.Timestamp
+	absence   *repository.Absence
 }
 
-func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp) *Timestamp {
+func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence) *Timestamp {
 	return &Timestamp{
 		env:       env,
 		user:      user,
 		timestamp: timestamp,
+		absence:   absence,
 	}
 }
 
@@ -177,7 +180,47 @@ func (h *Timestamp) TimestampCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(timestamp))
 }
 
-func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
+func (h *Timestamp) TimestampUserQueryMonthGrouped(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	result, err := h.groupMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	result, err := h.overtimeMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampCurrentUserQueryCurrentMonthGrouped(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
@@ -194,7 +237,7 @@ func (h *Timestamp) TimestampQueryCurrentMonthGrouped(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
-func (h *Timestamp) TimestampQueryCurrentMonthOvertime(c *gin.Context) {
+func (h *Timestamp) TimestampCurrentUserQueryCurrentMonthOvertime(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
@@ -271,8 +314,36 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	result := model.SumResult{
-		Total: overtimeHours,
+	holidays, err := h.absence.HolidayFindByYear(year)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+
+	subtractedHours := 0.0
+	switch user.OvertimeSubtractionModel {
+	case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
+		subtractedHours = user.OvertimeSubtractionAmount
+
+		if subtractedHours > overtimeHours {
+			subtractedHours = overtimeHours
+		}
+
+		break
+	case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
+		subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+		if subtractedHours > overtimeHours {
+			subtractedHours = overtimeHours
+		}
+		break
+	}
+
+	result := model.OvertimeResult{
+		Total:      overtimeHours,
+		Needed:     neededHours,
+		Subtracted: subtractedHours,
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
@@ -439,4 +510,65 @@ func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamp))
+}
+
+func (h *Timestamp) queryMonths(c *gin.Context, userID uint) (map[int][]int, bool) {
+	yearMonths, err := h.timestamp.FindYearMonthsWithTimestampsByUserId(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return nil, false
+	}
+
+	result := make(map[int][]int)
+
+	for _, group := range yearMonths {
+		if _, exists := result[group.Year]; !exists {
+			result[group.Year] = []int{}
+		}
+
+		result[group.Year] = append(result[group.Year], group.Month)
+	}
+
+	currentYear := time.Now().Year()
+
+	if _, exists := result[currentYear]; !exists {
+		result[currentYear] = []int{}
+	}
+
+	currentMonth := int(time.Now().Month())
+
+	if !slices.Contains(result[currentYear], currentMonth) {
+		result[currentYear] = append(result[currentYear], currentMonth)
+	}
+
+	return result, true
+}
+
+func (h *Timestamp) TimestampQueryMonths(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	result, success := h.queryMonths(c, user.ID)
+	if !success {
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampUserQueryMonths(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	result, success := h.queryMonths(c, user.ID)
+	if !success {
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }

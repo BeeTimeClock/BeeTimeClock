@@ -62,6 +62,11 @@ type TimestampGroup struct {
 	OvertimeHours   float64
 }
 
+type TimestampYearMonthGrouped struct {
+	Year  int
+	Month int
+}
+
 func (t *Timestamp) IsComplete() bool {
 	return !t.GoingTimestamp.IsZero()
 }
@@ -101,9 +106,9 @@ func DefaultWorkTimeModel() WorkTimeModel {
 	return WorkTimeModel{
 		DefaultHoursPerWeekday: 8.0,
 		HoursPerWeekdayException: map[time.Weekday]float64{
-			time.Friday: 6.0,
+			time.Friday:   6.0,
 			time.Saturday: 0.0,
-			time.Sunday: 0.0,
+			time.Sunday:   0.0,
 		},
 	}
 }

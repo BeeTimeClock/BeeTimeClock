@@ -3,11 +3,12 @@ import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings, UserA
 import {api} from 'boot/axios';
 import {AxiosResponse} from 'axios';
 import {
+  OvertimeResponse,
   SumResponse,
   Timestamp,
   TimestampCorrectionCreateRequest,
   TimestampCreateRequest,
-  TimestampGroup
+  TimestampGroup, TimestampYearMonthGrouped
 } from 'src/models/Timestamp';
 import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
 
@@ -23,6 +24,10 @@ class BeeTimeClock {
 
   timestampQueryCurrentMonthGrouped() : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
     return api.get('/api/v1/timestamp/query/current_month/grouped');
+  }
+
+  timestampQueryMonthGrouped(year: number, month: number) : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/grouped`)
   }
 
   timestampOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
@@ -85,7 +90,7 @@ class BeeTimeClock {
     const params = {
       with_data: withData,
     } ;
-    
+
     return api.get('/api/v1/administration/user', { params: params });
   }
 
@@ -119,6 +124,18 @@ class BeeTimeClock {
 
   createUserApikey(userApikeyCreateRequest: UserApikeyCreateRequest) : Promise<AxiosResponse<BaseResponse<UserApikey>>> {
     return api.post('/api/v1/user/me/apikey', userApikeyCreateRequest);
+  }
+
+  timestampQueryMonths() : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+    return api.get('/api/v1/timestamp/query/timestamp/months');
+  }
+
+  administrationTimestampUserMonths(userId: number) : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+    return api.get(`/api/v1/administration/user/${userId}/timestamp/months`);
+  }
+
+  timestampQueryMonthOvertime(year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
+    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/overtime`)
   }
 }
 

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -50,7 +53,7 @@ func main() {
 	}
 
 	userHandler := handler.NewUser(env, userRepo)
-	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo)
+	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
 
@@ -103,7 +106,13 @@ func main() {
 					administrationUser.PUT(":userID", userHandler.AdministrationUserUpdate)
 					administrationUser.GET(":userID", userHandler.AdministrationUserGetByUserID)
 					administrationUser.DELETE(":userID", userHandler.AdministrationUserDelete)
-					administrationUser.GET(":userID/summary/year/current", absenceHandler.AbsenceQueryUserSummaryCurrentYear)
+
+					administrationUser.GET(":userID/absence/year/:year/summary", absenceHandler.AbsenceQueryUserSummaryYear)
+					administrationUser.GET(":userID/absence/year/:year", absenceHandler.AbsenceQueryUserYear)
+
+					administrationUser.GET(":userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
+					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
+					administrationUser.GET(":userID/timestamp/months", timestampHandler.TimestampUserQueryMonths)
 				}
 			}
 
@@ -111,10 +120,11 @@ func main() {
 			{
 				timestamp.GET("", timestampHandler.TimestampGetAll)
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
-				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampQueryCurrentMonthGrouped)
-				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampQueryCurrentMonthOvertime)
+				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampCurrentUserQueryCurrentMonthGrouped)
+				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampCurrentUserQueryCurrentMonthOvertime)
 				timestamp.GET("query/year/:year/month/:month/grouped", timestampHandler.TimestampQueryMonthGrouped)
 				timestamp.GET("query/year/:year/month/:month/overtime", timestampHandler.TimestampQueryMonthOvertime)
+				timestamp.GET("query/timestamp/months", timestampHandler.TimestampQueryMonths)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
 				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
@@ -149,4 +159,53 @@ func main() {
 	}
 
 	r.Run()
+}
+
+func importHolidays(env *core.Environment, absenceRepo *repository.Absence, year int) error {
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://feiertage-api.de/api/?jahr=%d&nur_land=NI", year), nil)
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	result := make(map[string]model.HolidayImport)
+
+	body, _ := io.ReadAll(response.Body)
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return err
+	}
+
+	for name, info := range result {
+		date, err := info.GetDate()
+		if err != nil {
+			return err
+		}
+
+		exists, err := absenceRepo.HolidayIsByDate(date)
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+			err = absenceRepo.HolidayInsert(&model.Holiday{
+				Name: name,
+				Date: date,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

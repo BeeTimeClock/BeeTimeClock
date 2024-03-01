@@ -88,6 +88,8 @@ func (h *User) AdministrationUserUpdate(c *gin.Context) {
 	user.FirstName = userUpdateRequest.FirstName
 	user.LastName = userUpdateRequest.LastName
 	user.AccessLevel = userUpdateRequest.AccessLevel
+	user.OvertimeSubtractionAmount = userUpdateRequest.OvertimeSubtractionAmount
+	user.OvertimeSubtractionModel = userUpdateRequest.OvertimeSubtractionModel
 
 	err = h.user.Update(&user)
 	if err != nil {
