@@ -60,4 +60,11 @@ export default {
   LABEL_OVERTIME_HOURS: 'Überstunden',
   LABEL_NETTO_DAYS: 'Netto Tage',
   LABEL_ABSENCES: 'Abwesenheiten',
+  LABEL_OVERTIME_MONTH: 'Überstunden - {month} {year}',
+  LABEL_YEAR: 'Jahr',
+  LABEL_MONTH: 'Monat',
+  LABEL_OVERTIME_SUBTRACTION_MODEL: 'Überstunden Abzugs Model',
+  LABEL_OVERTIME_SUBTRACTION_AMOUNT: 'Überstunden Abzug',
+  LABEL_PERCENTAGE: 'Prozent',
+  LABEL_HOURS: 'Stunden',
 };

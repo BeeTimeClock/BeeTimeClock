@@ -56,3 +56,9 @@ func NewMessageResponse(format string, a ...any) SuccessResponse {
 type SumResult struct {
 	Total float64
 }
+
+type OvertimeResult struct {
+	Total      float64
+	Subtracted float64
+	Needed     float64
+}

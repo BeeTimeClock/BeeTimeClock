@@ -60,6 +60,7 @@ func (a *Absence) GetAbsenceWorkDays() int {
 	currentDay := a.AbsenceFrom
 
 	for !currentDay.After(a.AbsenceTill) {
+		// TODO: add holidays
 		if currentDay.Weekday() != time.Saturday && currentDay.Weekday() != time.Sunday {
 			days++
 		}

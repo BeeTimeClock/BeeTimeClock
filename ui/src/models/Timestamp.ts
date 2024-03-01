@@ -41,3 +41,13 @@ export interface TimestampCorrectionCreateRequest {
 export interface SumResponse {
   Total: number;
 }
+
+export interface OvertimeResponse {
+  Total: number;
+  Subtracted: number;
+  Needed: number;
+}
+
+export interface TimestampYearMonthGrouped {
+  [details: number]: number[];
+}

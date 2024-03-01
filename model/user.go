@@ -8,29 +8,36 @@ import (
 )
 
 type UserAccessLevel string
+type OvertimeSubtractionModel string
 
 const (
-	USER_ACCESS_LEVEL_ADMIN UserAccessLevel = "admin"
-	USER_ACCESS_LEVEL_USER  UserAccessLevel = "user"
+	USER_ACCESS_LEVEL_ADMIN               UserAccessLevel          = "admin"
+	USER_ACCESS_LEVEL_USER                UserAccessLevel          = "user"
+	OVERTIME_SUBTRACTION_MODEL_HOURS      OvertimeSubtractionModel = "hours"
+	OVERTIME_SUBTRACTION_MODEL_PERCENTAGE OvertimeSubtractionModel = "percentage"
 )
 
 type User struct {
 	gorm.Model
-	Username            string `gorm:"unique"`
-	Password            string
-	FirstName           string
-	LastName            string
-	AccessLevel         UserAccessLevel
-	HolidayDaysPerYear  uint
-	WorkingHoursPerWeek float64
+	Username                  string `gorm:"unique"`
+	Password                  string
+	FirstName                 string
+	LastName                  string
+	AccessLevel               UserAccessLevel
+	HolidayDaysPerYear        uint
+	WorkingHoursPerWeek       float64
+	OvertimeSubtractionModel  OvertimeSubtractionModel
+	OvertimeSubtractionAmount float64
 }
 
 func NewUser(username string) User {
 	return User{
-		Username:            username,
-		HolidayDaysPerYear:  30,
-		WorkingHoursPerWeek: 38.0,
-		AccessLevel:         USER_ACCESS_LEVEL_USER,
+		Username:                  username,
+		HolidayDaysPerYear:        30,
+		WorkingHoursPerWeek:       38.0,
+		AccessLevel:               USER_ACCESS_LEVEL_USER,
+		OvertimeSubtractionModel:  OVERTIME_SUBTRACTION_MODEL_PERCENTAGE,
+		OvertimeSubtractionAmount: 10,
 	}
 }
 
@@ -49,19 +56,23 @@ type UserCreateRequest struct {
 }
 
 type UserUpdateRequest struct {
-	AccessLevel         UserAccessLevel
-	FirstName           string
-	LastName            string
-	HolidayDaysPerYear  uint
-	WorkingHoursPerWeek float64
+	AccessLevel               UserAccessLevel
+	FirstName                 string
+	LastName                  string
+	HolidayDaysPerYear        uint
+	WorkingHoursPerWeek       float64
+	OvertimeSubtractionAmount float64
+	OvertimeSubtractionModel  OvertimeSubtractionModel
 }
 
 type UserResponse struct {
 	gorm.Model
-	Username    string
-	FirstName   string
-	LastName    string
-	AccessLevel string
+	Username                  string
+	FirstName                 string
+	LastName                  string
+	AccessLevel               string
+	OvertimeSubtractionModel  OvertimeSubtractionModel
+	OvertimeSubtractionAmount float64
 }
 
 type UserApikey struct {
@@ -86,11 +97,13 @@ type UserApikeyResponse struct {
 
 func (u *User) GetUserResponse() UserResponse {
 	return UserResponse{
-		Model:       u.Model,
-		Username:    u.Username,
-		FirstName:   u.FirstName,
-		LastName:    u.LastName,
-		AccessLevel: string(u.AccessLevel),
+		Model:                     u.Model,
+		Username:                  u.Username,
+		FirstName:                 u.FirstName,
+		LastName:                  u.LastName,
+		AccessLevel:               string(u.AccessLevel),
+		OvertimeSubtractionModel:  u.OvertimeSubtractionModel,
+		OvertimeSubtractionAmount: u.OvertimeSubtractionAmount,
 	}
 }
 

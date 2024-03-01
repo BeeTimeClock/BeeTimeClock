@@ -199,3 +199,20 @@ func (r *Timestamp) TimestampMonthQuotaSumByUserID(userID uint) (float64, error)
 
 	return item.Total, result.Error
 }
+
+func (r *Timestamp) FindYearMonthsWithTimestampsByUserId(userID uint) ([]model.TimestampYearMonthGrouped, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.TimestampYearMonthGrouped
+
+	result := db.Model(&model.Timestamp{}).
+		Select("distinct extract(year from coming_timestamp) as year, extract(month from coming_timestamp) as month").
+		Where("user_id = ?", userID).
+		Scan(&items)
+
+	return items, result.Error
+}

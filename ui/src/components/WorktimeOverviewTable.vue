@@ -5,21 +5,22 @@ import { Timestamp, TimestampGroup } from 'src/models/Timestamp';
 import formatDate = date.formatDate;
 import { date } from 'quasar';
 import { useI18n } from 'vue-i18n';
+import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
 
 const { t } = useI18n();
 
 const props = defineProps({
- modelValue: {
-   type: Array as PropType<TimestampGroup[]>,
-    required: true,
- },
- showActions: {
-   type: Boolean,
-   default: false,
- }
-})
+  modelValue: {
+    type: Array as PropType<TimestampGroup[]>,
+    required: true
+  },
+  showActions: {
+    type: Boolean,
+    default: false
+  }
+});
 
-const emits = defineEmits(['create'])
+const emits = defineEmits(['create']);
 
 const value = computed(() => props.modelValue);
 
@@ -64,15 +65,17 @@ const columns = [
 
 const pagination = {
   page: 1,
-  rowsPerPage: 0,
+  rowsPerPage: 0
 };
 
 function formatDateTemplate(date: Date, format: string): string {
   return formatDate(date, format);
 }
 
-const selectedTimestamp = ref<Timestamp|null>(null);
+const selectedTimestamp = ref<Timestamp | null>(null);
 const isTimestampCorrentViewVisible = ref(false);
+const promptNewTimestampCorrection = ref(false);
+
 function promptTimestampCorrectionView(timestamp: Timestamp) {
   selectedTimestamp.value = timestamp;
   isTimestampCorrentViewVisible.value = true;
@@ -142,7 +145,8 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
               <td>
                 <q-btn color="primary" class="q-mr-md" :disable="timestamp.Corrections.length == 0"
                        icon="pending_actions" @click="promptTimestampCorrectionView(timestamp)" />
-                <q-btn color="primary" icon="edit" @click="emits('create', timestamp)" />
+                <q-btn color="primary" icon="edit"
+                       @click="selectedTimestamp = timestamp; promptNewTimestampCorrection = true" />
               </td>
             </tr>
             </tbody>
@@ -151,6 +155,8 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
       </q-tr>
     </template>
   </q-table>
+  <TimestampCorrectionDialog v-model:model-show="promptNewTimestampCorrection" v-model="selectedTimestamp"
+                             @refresh="emits('create')"/>
   <q-dialog v-model="isTimestampCorrentViewVisible" persistent>
     <q-card class="q-dialog-plugin full-width">
       <q-card-section>
@@ -177,10 +183,11 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
         </q-markup-table>
       </q-card-section>
       <q-card-actions>
-        <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary"/>
+        <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" />
       </q-card-actions>
     </q-card>
   </q-dialog>
+
 </template>
 
 <style scoped>
