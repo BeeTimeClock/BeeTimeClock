@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"slices"
 	"strconv"
 	"time"
 
@@ -537,7 +536,14 @@ func (h *Timestamp) queryMonths(c *gin.Context, userID uint) (map[int][]int, boo
 
 	currentMonth := int(time.Now().Month())
 
-	if !slices.Contains(result[currentYear], currentMonth) {
+	contains := false
+	for _, month := range result[currentYear] {
+		if month == currentMonth {
+			contains = true
+			break
+		}
+	}
+	if !contains {
 		result[currentYear] = append(result[currentYear], currentMonth)
 	}
 
