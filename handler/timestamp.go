@@ -323,21 +323,24 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
 
 	subtractedHours := 0.0
-	switch user.OvertimeSubtractionModel {
-	case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-		subtractedHours = user.OvertimeSubtractionAmount
 
-		if subtractedHours > overtimeHours {
-			subtractedHours = overtimeHours
-		}
+	if overtimeHours > 0 {
+		switch user.OvertimeSubtractionModel {
+		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
+			subtractedHours = user.OvertimeSubtractionAmount
 
-		break
-	case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-		subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
-		if subtractedHours > overtimeHours {
-			subtractedHours = overtimeHours
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+
+			break
+		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
+			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+			break
 		}
-		break
 	}
 
 	result := model.OvertimeResult{
