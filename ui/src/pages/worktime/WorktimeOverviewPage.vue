@@ -20,6 +20,9 @@
           <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut" />
         </div>
         <div class="col q-pa-md">
+          <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT') + ' (Homeoffice)'" @click="actionCheckOut(true)" />
+        </div>
+        <div class="col q-pa-md">
           <q-btn class="full-width" color="primary" :label="$t('BTN_TIMESTAMP_ADD')" @click="promptTimestampCorrectionCreate = true"/>
         </div>
       </div>
@@ -58,6 +61,9 @@ import OvertimeTotal from 'components/OvertimeTotal.vue';
 import WorktimeOverviewTable from 'components/WorktimeOverviewTable.vue';
 import OvertimeMonth from 'components/OvertimeMonth.vue';
 import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const promptTimestampCorrectionCreate = ref(false);
 const timestampCurrentMonthGrouped = ref<TimestampGroup[]>([]);
@@ -90,8 +96,8 @@ function actionCheckIn(isHomeoffice?: boolean) {
   });
 }
 
-function actionCheckOut() {
-  BeeTimeClock.timestampActionCheckout().then((result) => {
+function actionCheckOut(isHomeoffice?: boolean) {
+  BeeTimeClock.timestampActionCheckout(isHomeoffice).then((result) => {
     if (result.status === 200) {
       showInfoMessage(t('MSG_CHECK_OUT_SUCCESS'));
       loadTimestampGrouped();
@@ -144,5 +150,6 @@ watch(selectedMonth, () => {
   console.log('month changed');
   loadTimestampGrouped();
 });
+
 
 </script>

@@ -70,4 +70,8 @@ export default {
   LABEL_OVERTIME_SUBTRACTION_AMOUNT: 'overtime subtraction amount',
   LABEL_PERCENTAGE: 'percentage',
   LABEL_HOURS: 'hours',
+  MSG_DELETE: 'delete {item} {identifier}?',
+  MSG_DELETE_SUCCESS: 'successfully deleted {item} {identifier}',
+  LABEL_WORKTIME: 'Worktime',
+  LABEL_COMMON: 'Common',
 };

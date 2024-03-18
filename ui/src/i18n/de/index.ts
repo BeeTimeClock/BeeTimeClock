@@ -67,4 +67,8 @@ export default {
   LABEL_OVERTIME_SUBTRACTION_AMOUNT: 'Überstunden Abzug',
   LABEL_PERCENTAGE: 'Prozent',
   LABEL_HOURS: 'Stunden',
+  MSG_DELETE: '{item} löschen?',
+  MSG_DELETE_SUCCESS: '{item} {identifier} wurde erfolgreich gelöscht',
+  LABEL_WORKTIME: 'Arbeitszeit',
+  LABEL_COMMON: 'Allgemein',
 };

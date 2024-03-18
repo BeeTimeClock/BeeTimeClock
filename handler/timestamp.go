@@ -116,6 +116,13 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 		return
 	}
 
+	var timestampCheckoutActionRequest model.TimestampActionCheckoutRequest
+	err = c.BindJSON(&timestampCheckoutActionRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
 	lastTimestamp, err := h.timestamp.FindLastByUserID(user.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -128,6 +135,7 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 	}
 
 	lastTimestamp.GoingTimestamp = time.Now()
+	lastTimestamp.IsHomeofficeGoing = timestampCheckoutActionRequest.IsHomeoffice
 
 	err = h.timestamp.Update(&lastTimestamp)
 	if err != nil {

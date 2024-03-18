@@ -111,6 +111,21 @@ func (h *Absence) AbsenceQueryUserYear(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(model.AbsenceReturns(absences, &user, false, false)))
 }
 
+func (h *Absence) AbsenceQueryUserYears(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	years, err := h.absence.FindYearsWithAbsencesByUserId(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(years))
+}
+
 func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 	absences, err := h.absence.FindByQuery(true, "absence_till >= ?", time.Now().Format("2006-01-02"))
 	if err != nil {

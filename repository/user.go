@@ -156,7 +156,7 @@ func (r *User) Delete(user *model.User) error {
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	result := db.Unscoped().Delete(&user)
+	result := db.Delete(&user)
 	return result.Error
 }
 

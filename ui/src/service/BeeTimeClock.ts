@@ -55,8 +55,13 @@ class BeeTimeClock {
     return api.post('/api/v1/timestamp', timestampCreateRequest);
   }
 
-  timestampActionCheckout() : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
-    return api.post('/api/v1/timestamp/action/checkout', {});
+  timestampActionCheckout(isHomeoffice: false) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    const timestampCheckoutRequest = {
+      IsHomeoffice: isHomeoffice,
+    } as TimestampCreateRequest;
+
+
+    return api.post('/api/v1/timestamp/action/checkout', {timestampCheckoutRequest});
   }
 
   absenceReasons() : Promise<AxiosResponse<BaseResponse<AbsenceReason[]>>> {
@@ -102,6 +107,10 @@ class BeeTimeClock {
     return api.put(`/api/v1/administration/user/${user.ID}`, user);
   }
 
+  administrationDeleteUser(user: User) : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(`/api/v1/administration/user/${user.ID}`);
+  }
+
   administrationSummaryUserCurrentYear(userId: number) : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
     return api.get(`/api/v1/administration/user/${userId}/summary/year/current`)
   }
@@ -130,8 +139,20 @@ class BeeTimeClock {
     return api.get('/api/v1/timestamp/query/timestamp/months');
   }
 
-  administrationTimestampUserMonths(userId: number) : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+  administrationTimestampUserMonths(userId: string) : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
     return api.get(`/api/v1/administration/user/${userId}/timestamp/months`);
+  }
+
+  administrationTimestampQueryMonthGrouped(userId: string, year: number, month: number) : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`)
+  }
+
+  administrationAbsenceYears(userId: string) : Promise<AxiosResponse<BaseResponse<number[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/absence/years`)
+  }
+
+  administrationAbsencesByYear(userId: string, year: number) : Promise<AxiosResponse<BaseResponse<Absence[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/absence/year/${year}`)
   }
 
   timestampQueryMonthOvertime(year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {

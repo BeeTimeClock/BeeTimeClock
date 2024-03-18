@@ -9,12 +9,13 @@ import (
 type Timestamp struct {
 	gorm.Model
 
-	UserID          uint  `gorm:"not null"`
-	User            *User `json:"-"`
-	ComingTimestamp time.Time
-	GoingTimestamp  time.Time
-	IsHomeoffice    bool
-	Corrections     []TimestampCorrection
+	UserID            uint  `gorm:"not null"`
+	User              *User `json:"-"`
+	ComingTimestamp   time.Time
+	GoingTimestamp    time.Time
+	IsHomeoffice      bool
+	IsHomeofficeGoing bool
+	Corrections       []TimestampCorrection
 }
 
 type TimestampMonthQuota struct {
@@ -30,7 +31,7 @@ type TimestampCorrection struct {
 	gorm.Model
 	TimestampID        uint `gorm:"not null"`
 	Timestamp          Timestamp
-	ChangeReason       string
+	ChangeReason       string `binding:"required,min=20"`
 	OldComingTimestamp time.Time
 	OldGoingTimestamp  time.Time
 }
@@ -43,6 +44,10 @@ type TimestampCreateRequest struct {
 }
 
 type TimestampActionCheckInRequest struct {
+	IsHomeoffice bool
+}
+
+type TimestampActionCheckoutRequest struct {
 	IsHomeoffice bool
 }
 

@@ -116,7 +116,8 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
           :props="props"
         >
           <div v-if="col.name == 'IsHomeoffice'">
-            <q-icon size="large" v-if="col.value" name="done" />
+            <q-icon size="large" :name="props.row.IsHomeoffice ? 'check_circle' : 'cancel'"
+                    :color="props.row.IsHomeoffice ? 'positive' : ''" />
           </div>
           <div v-else>
             {{ col.value }}
@@ -135,11 +136,19 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
             </thead>
             <tbody>
             <tr v-for="timestamp in props.row.Timestamps" :key="timestamp.ID">
-              <td>{{ formatDateTemplate(timestamp.ComingTimestamp, 'HH:mm') }}</td>
+              <td>{{ formatDateTemplate(timestamp.ComingTimestamp, 'HH:mm') }}
+                <q-icon size="large" :name="timestamp.IsHomeoffice ? 'check_circle' : 'cancel'"
+                        :color="timestamp.IsHomeoffice ? 'positive' : ''" >
+                  <q-tooltip>Homeoffice</q-tooltip>
+                </q-icon>
+              </td>
               <td>
-                <div v-if="timestamp.GoingTimestamp && new Date(timestamp.GoingTimestamp).getFullYear() != 1">{{
-                    formatDateTemplate(timestamp.GoingTimestamp, 'HH:mm')
-                  }}
+                <div v-if="timestamp.GoingTimestamp && new Date(timestamp.GoingTimestamp).getFullYear() != 1">
+                  {{ formatDateTemplate(timestamp.GoingTimestamp, 'HH:mm') }}
+                  <q-icon size="large" :name="timestamp.IsHomeofficeGoing ? 'check_circle' : 'cancel'"
+                          :color="timestamp.IsHomeofficeGoing ? 'positive' : ''" >
+                    <q-tooltip>Homeoffice</q-tooltip>
+                  </q-icon>
                 </div>
               </td>
               <td>
@@ -156,7 +165,7 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
     </template>
   </q-table>
   <TimestampCorrectionDialog v-model:model-show="promptNewTimestampCorrection" v-model="selectedTimestamp"
-                             @refresh="emits('create')"/>
+                             @refresh="emits('create')" />
   <q-dialog v-model="isTimestampCorrentViewVisible" persistent>
     <q-card class="q-dialog-plugin full-width">
       <q-card-section>

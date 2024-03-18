@@ -4,6 +4,7 @@ export interface Timestamp {
   ComingTimestamp: Date;
   GoingTimestamp: Date|null;
   IsHomeoffice: boolean;
+  IsHomeofficeGoing: boolean;x
   Corrections: TimestampCorrection[];
 }
 

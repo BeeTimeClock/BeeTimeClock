@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
@@ -21,6 +23,8 @@ import (
 var (
 	GitCommit string
 )
+
+const MIGRATION_HOMEOFFICE_GOING = "HOMEOFFICE_GOING"
 
 func main() {
 	env := core.NewEnvironment()
@@ -52,14 +56,67 @@ func main() {
 		panic(err)
 	}
 
+	migrationRepo := repository.NewMigration(env)
+	err = migrationRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	userHandler := handler.NewUser(env, userRepo)
 	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
+	migrationHandler := handler.NewMigration(env, migrationRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 	if err != nil {
 		panic(err)
+	}
+
+	_, err = migrationRepo.MigrationFindByTitle(MIGRATION_HOMEOFFICE_GOING)
+	homeofficeGoingMigrationExists := true
+	if err != nil {
+		if err == repository.ErrMigrationNotFound {
+			homeofficeGoingMigrationExists = false
+		} else {
+			panic(err)
+		}
+	}
+
+	if !homeofficeGoingMigrationExists {
+		log.Println("Migration: HOMEOFFICE_GOING started")
+		timestamps, err := timestampRepo.FindAll()
+		if err != nil {
+			panic(err)
+		}
+
+		for _, timestamp := range timestamps {
+			timestamp.IsHomeofficeGoing = timestamp.IsHomeoffice
+			err = timestampRepo.Update(&timestamp)
+
+			if err != nil {
+				homeofficeGoingMigration := model.Migration{
+					Title:      MIGRATION_HOMEOFFICE_GOING,
+					Result:     err.Error(),
+					FinishedAt: time.Now(),
+					Success:    true,
+				}
+				migrationRepo.MigrationInsert(&homeofficeGoingMigration)
+
+				panic(err)
+			}
+		}
+
+		homeofficeGoingMigration := model.Migration{
+			Title:      MIGRATION_HOMEOFFICE_GOING,
+			Result:     fmt.Sprintf("%d timestamps were migrated", len(timestamps)),
+			FinishedAt: time.Now(),
+			Success:    true,
+		}
+		migrationRepo.MigrationInsert(&homeofficeGoingMigration)
+		log.Println("Migration: HOMEOFFICE_GOING finished")
+	} else {
+		log.Println("Migration: HOMEOFFICE_GOING already finished")
 	}
 
 	r := gin.Default()
@@ -109,10 +166,15 @@ func main() {
 
 					administrationUser.GET(":userID/absence/year/:year/summary", absenceHandler.AbsenceQueryUserSummaryYear)
 					administrationUser.GET(":userID/absence/year/:year", absenceHandler.AbsenceQueryUserYear)
+					administrationUser.GET(":userID/absence/years", absenceHandler.AbsenceQueryUserYears)
 
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
 					administrationUser.GET(":userID/timestamp/months", timestampHandler.TimestampUserQueryMonths)
+				}
+				administrationMigrations := administration.Group("migration")
+				{
+					administrationMigrations.GET("", migrationHandler.AdministrationMigrationGetAll)
 				}
 			}
 

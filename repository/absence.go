@@ -354,3 +354,20 @@ func (r Absence) HolidayFindByYear(year int) (model.Holidays, error) {
 
 	return items, result.Error
 }
+
+func (r Absence) FindYearsWithAbsencesByUserId(userID uint) ([]int, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []int
+
+	result := db.Model(&model.Absence{}).
+		Select("distinct extract(year from absence_from) as year").
+		Where("user_id = ?", userID).
+		Scan(&items)
+
+	return items, result.Error
+}
