@@ -74,4 +74,5 @@ export default {
   MSG_DELETE_SUCCESS: 'successfully deleted {item} {identifier}',
   LABEL_WORKTIME: 'Worktime',
   LABEL_COMMON: 'Common',
+  LABEL_MIN_CHARS: 'minimum of {count} characters',
 };

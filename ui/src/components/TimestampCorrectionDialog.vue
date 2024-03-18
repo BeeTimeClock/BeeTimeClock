@@ -94,8 +94,8 @@ function createTimestampCorrection() {
           <DateTimePickerComponent class="q-mt-md" v-model="timestampCorrectionCreateRequest.NewGoingTimestamp"
                                    :label="$t('LABEL_GOING_TIMESTAMP')" />
           <q-checkbox v-model="timestampCorrectionCreateRequest.IsHomeoffice" :label="$t('LABEL_HOMEOFFICE')" />
-          <q-input :rules="[val => !!val || $t('LABEL_FIELD_REQUIRED')]" v-model="timestampCorrectionCreateRequest.ChangeReason"
-                   type="textarea" :label="$t('LABEL_REASON')" />
+          <q-input :rules="[val => val.trim().length >= 20 || t('LABEL_FIELD_REQUIRED') + ' ' + t('LABEL_MIN_CHARS', {count: 20})]" v-model="timestampCorrectionCreateRequest.ChangeReason"
+                   type="textarea" :label="`${t('LABEL_REASON')} (${t('LABEL_MIN_CHARS', {count: 20})})`" />
         </q-card-section>
         <q-card-actions>
           <q-btn v-close-popup :label="$t('BTN_CANCEL')" color="negative" type="reset" />
