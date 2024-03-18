@@ -24,7 +24,7 @@ const byAbsenceReason = computed(() => {
 })
 
 function loadUserSummary() {
-  BeeTimeClock.administrationSummaryUserCurrentYear(props.userId).then(response => {
+  BeeTimeClock.administrationSummaryUserCurrentYear(props.userId, new Date().getFullYear()).then(response => {
     if (response.status === 200) {
       userSummary.value = response.data.Data;
     }
