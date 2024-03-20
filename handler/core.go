@@ -2,13 +2,13 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 func getUserFromParam(c *gin.Context, userRepo *repository.User) (model.User, bool) {
@@ -62,7 +62,7 @@ func getClientIPByHeaders(c *gin.Context) (ip string, err error) {
 		"X-FORWARDED-FOR",
 	}
 
-	log.Printf("%#v\n", c.Request.Header)
+	fmt.Printf("%#v\n", c.Request.Header)
 
 	for _, header := range headers {
 		value := c.Request.Header.Get(header)
