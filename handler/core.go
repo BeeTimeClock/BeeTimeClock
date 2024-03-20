@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func getUserFromParam(c *gin.Context, userRepo *repository.User) (model.User, bool) {
@@ -51,4 +53,23 @@ func getYearMonthFromParam(c *gin.Context) (int, int, bool) {
 	}
 
 	return year, month, true
+}
+
+func getClientIPByHeaders(c *gin.Context) (ip string, err error) {
+	headers := []string{
+		"X-Forwarded-For",
+		"x-forwarded-for",
+		"X-FORWARDED-FOR",
+	}
+
+	log.Printf("%#v\n", c.Request.Header)
+
+	for _, header := range headers {
+		value := c.Request.Header.Get(header)
+		if value != "" {
+			return value, nil
+		}
+	}
+
+	return "", errors.New("cant detect client ip")
 }

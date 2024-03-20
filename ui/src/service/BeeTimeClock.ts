@@ -11,6 +11,7 @@ import {
   TimestampGroup, TimestampYearMonthGrouped
 } from 'src/models/Timestamp';
 import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
+import {Settings} from 'src/models/Settings';
 
 class BeeTimeClock {
   login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
@@ -157,6 +158,14 @@ class BeeTimeClock {
 
   timestampQueryMonthOvertime(year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
     return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/overtime`)
+  }
+
+  administrationSettings() : Promise<AxiosResponse<BaseResponse<Settings>>> {
+    return api.get('/api/v1/administration/settings');
+  }
+
+  administrationSettingsSave(settings: Settings) : Promise<AxiosResponse<BaseResponse<Settings>>> {
+    return api.put('/api/v1/administration/settings', settings);
   }
 }
 

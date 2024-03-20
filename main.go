@@ -62,11 +62,18 @@ func main() {
 		panic(err)
 	}
 
+	settingsRepo := repository.NewSettings(env)
+	err = settingsRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	userHandler := handler.NewUser(env, userRepo)
-	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo)
+	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
+	administrationHandler := handler.NewAdministration(env, settingsRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 	if err != nil {
@@ -175,6 +182,11 @@ func main() {
 				administrationMigrations := administration.Group("migration")
 				{
 					administrationMigrations.GET("", migrationHandler.AdministrationMigrationGetAll)
+				}
+				administrationSettings := administration.Group("settings")
+				{
+					administrationSettings.GET("", administrationHandler.AdministrationGetSettings)
+					administrationSettings.PUT("", administrationHandler.AdministrationUpdateSettings)
 				}
 			}
 

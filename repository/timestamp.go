@@ -209,7 +209,14 @@ func (r *Timestamp) FindYearMonthsWithTimestampsByUserId(userID uint) ([]model.T
 
 	var items []model.TimestampYearMonthGrouped
 
-	result := db.Model(&model.Timestamp{}).
+	var count int64
+	result := db.Model(&model.Timestamp{}).Where("user_id = ?", userID).Count(&count)
+
+	if count == 0 {
+		return items, result.Error
+	}
+
+	result = db.Model(&model.Timestamp{}).
 		Select("distinct extract(year from coming_timestamp) as year, extract(month from coming_timestamp) as month").
 		Where("user_id = ?", userID).
 		Scan(&items)

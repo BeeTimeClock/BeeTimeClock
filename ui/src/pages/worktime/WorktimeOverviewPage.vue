@@ -13,14 +13,7 @@
                  @click="actionCheckIn()" />
         </div>
         <div class="col q-pa-md">
-          <q-btn class="full-width" color="positive" :label="$t('BTN_CHECK_IN') + ' (Homeoffice)'"
-                 @click="actionCheckIn(true)" />
-        </div>
-        <div class="col q-pa-md">
           <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut" />
-        </div>
-        <div class="col q-pa-md">
-          <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT') + ' (Homeoffice)'" @click="actionCheckOut(true)" />
         </div>
         <div class="col q-pa-md">
           <q-btn class="full-width" color="primary" :label="$t('BTN_TIMESTAMP_ADD')" @click="promptTimestampCorrectionCreate = true"/>

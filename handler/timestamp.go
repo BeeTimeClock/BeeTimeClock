@@ -2,9 +2,12 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"slices"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
@@ -18,14 +21,16 @@ type Timestamp struct {
 	user      *repository.User
 	timestamp *repository.Timestamp
 	absence   *repository.Absence
+	settings  *repository.Settings
 }
 
-func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence) *Timestamp {
+func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence, settings *repository.Settings) *Timestamp {
 	return &Timestamp{
 		env:       env,
 		user:      user,
 		timestamp: timestamp,
 		absence:   absence,
+		settings:  settings,
 	}
 }
 
@@ -94,10 +99,16 @@ func (h *Timestamp) TimestampActionCheckIn(c *gin.Context) {
 		}
 	}
 
+	isHomeoffice, err := h.isHomeoffice(c, timestampActionCheckInRequest.IsHomeoffice)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
 	timestamp := model.Timestamp{
 		User:            &user,
 		ComingTimestamp: time.Now(),
-		IsHomeoffice:    timestampActionCheckInRequest.IsHomeoffice,
+		IsHomeoffice:    isHomeoffice,
 	}
 
 	err = h.timestamp.Insert(&timestamp)
@@ -107,6 +118,30 @@ func (h *Timestamp) TimestampActionCheckIn(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(timestamp))
+}
+
+func (h *Timestamp) isHomeoffice(c *gin.Context, prefered bool) (bool, error) {
+	settings, err := h.settings.SettingsFind()
+	if err != nil {
+		return false, err
+	}
+
+	if *settings.CheckinDetectionByIPAddress == true {
+		clientIp, err := getClientIPByHeaders(c)
+		if err != nil {
+			return false, err
+		}
+
+		log.Printf("Use ClientIP Detection: %s\n", clientIp)
+
+		isOfficeIp := slices.ContainsFunc(settings.OfficeIPAddresses, func(s model.SettingsOfficeIPAddresses) bool {
+			return s.IPAddress == clientIp
+		})
+
+		return !isOfficeIp, nil
+	} else {
+		return prefered, nil
+	}
 }
 
 func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
@@ -134,8 +169,14 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 		return
 	}
 
+	isHomeoffice, err := h.isHomeoffice(c, timestampCheckoutActionRequest.IsHomeoffice)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
 	lastTimestamp.GoingTimestamp = time.Now()
-	lastTimestamp.IsHomeofficeGoing = timestampCheckoutActionRequest.IsHomeoffice
+	lastTimestamp.IsHomeofficeGoing = isHomeoffice
 
 	err = h.timestamp.Update(&lastTimestamp)
 	if err != nil {

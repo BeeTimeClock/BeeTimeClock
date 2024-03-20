@@ -67,6 +67,9 @@
             <q-item clickable v-ripple :to="{name: 'AdministrationUserOverview'}">
               {{ $t('MENU_USERS') }}
             </q-item>
+            <q-item clickable v-ripple :to="{name: 'AdministrationSettings'}">
+              {{ $t('MENU_SETTINGS') }}
+            </q-item>
           </div>
         </q-list>
       </q-scroll-area>
@@ -97,9 +100,9 @@
 import {defineComponent, ref} from 'vue';
 import {useAuthStore} from 'stores/microsoft-auth';
 import {useI18n} from 'vue-i18n';
-import {User} from "src/models/Authentication";
-import BeeTimeClock from "src/service/BeeTimeClock";
-import {BackendStatus} from "src/models/Base";
+import {User} from 'src/models/Authentication';
+import BeeTimeClock from 'src/service/BeeTimeClock';
+import {BackendStatus} from 'src/models/Base';
 
 export default defineComponent({
   name: 'MainLayout',
