@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -130,7 +129,7 @@ func (h *Timestamp) isHomeoffice(c *gin.Context, prefered bool) (bool, error) {
 			return false, err
 		}
 
-		log.Printf("Use ClientIP Detection: %s\n", clientIp)
+		fmt.Printf("Use ClientIP Detection: %s\n", clientIp)
 
 		isOfficeIp := false
 		for _, officeIp := range settings.OfficeIPAddresses {
