@@ -63,8 +63,6 @@ func getClientIPByHeaders(c *gin.Context) (ip string, err error) {
 		"X-Real-Ip",
 	}
 
-	fmt.Printf("%#v\n", c.Request.Header)
-
 	for _, header := range headers {
 		value := c.Request.Header.Get(header)
 		if value != "" {
