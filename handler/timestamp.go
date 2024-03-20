@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"slices"
-
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
@@ -134,9 +132,13 @@ func (h *Timestamp) isHomeoffice(c *gin.Context, prefered bool) (bool, error) {
 
 		log.Printf("Use ClientIP Detection: %s\n", clientIp)
 
-		isOfficeIp := slices.ContainsFunc(settings.OfficeIPAddresses, func(s model.SettingsOfficeIPAddresses) bool {
-			return s.IPAddress == clientIp
-		})
+		isOfficeIp := false
+		for _, officeIp := range settings.OfficeIPAddresses {
+			if officeIp.IPAddress == clientIp {
+				isOfficeIp = true
+				break
+			}
+		}
 
 		return !isOfficeIp, nil
 	} else {
