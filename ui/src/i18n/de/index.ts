@@ -72,4 +72,8 @@ export default {
   LABEL_WORKTIME: 'Arbeitszeit',
   LABEL_COMMON: 'Allgemein',
   LABEL_MIN_CHARS: 'mindestens {count} Zeichen',
+  LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS: 'Automatische Erkennung des Stempelorts anhand der Büro IP Addressen',
+  BTN_ADD: 'Hinzufügen',
+  MENU_SETTINGS: 'Einstellungen',
+  LABEL_SEARCH: 'Suchen',
 };

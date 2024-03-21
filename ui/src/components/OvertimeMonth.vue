@@ -15,15 +15,26 @@ const props = defineProps({
   modelMonth: {
     type: Number,
     default: new Date().getMonth() + 1
+  },
+  modelUserId: {
+    type: String,
   }
 });
 
 function loadOvertime() {
-  BeeTimeClock.timestampQueryMonthOvertime(props.modelYear, props.modelMonth).then(result => {
-    if (result.status === 200) {
-      overtimeResponse.value = result.data.Data;
-    }
-  });
+  if (props.modelUserId && props.modelUserId != '') {
+    BeeTimeClock.administrationTimestampQueryMonthOvertime(props.modelUserId, props.modelYear, props.modelMonth).then(result => {
+      if (result.status === 200) {
+        overtimeResponse.value = result.data.Data;
+      }
+    });
+  } else {
+    BeeTimeClock.timestampQueryMonthOvertime(props.modelYear, props.modelMonth).then(result => {
+      if (result.status === 200) {
+        overtimeResponse.value = result.data.Data;
+      }
+    });
+  }
 }
 
 

@@ -236,7 +236,7 @@ const pagination = {
           </div>
           <div class="row q-mt-md">
             <div class="col">
-              <OvertimeMonth v-model:model-month="selectedMonth" v-model:model-year="selectedYear"
+              <OvertimeMonth v-if="user" v-model:model-user-id="user.ID" v-model:model-month="selectedMonth" v-model:model-year="selectedYear"
                              class="full-width" />
             </div>
           </div>

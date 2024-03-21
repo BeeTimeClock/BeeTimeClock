@@ -148,6 +148,10 @@ class BeeTimeClock {
     return api.get(`/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`)
   }
 
+  administrationTimestampQueryMonthOvertime(userId: string, year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
+    return api.get(`/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/overtime`)
+  }
+
   administrationAbsenceYears(userId: string) : Promise<AxiosResponse<BaseResponse<number[]>>> {
     return api.get(`/api/v1/administration/user/${userId}/absence/years`)
   }

@@ -268,10 +268,44 @@ func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	result, err := h.overtimeMonth(user.ID, year, month)
+	overtimeHours, err := h.overtimeMonth(user.ID, year, month)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
+	}
+
+	holidays, err := h.absence.HolidayFindByYear(year)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+
+	subtractedHours := 0.0
+	if overtimeHours > 0 {
+		switch user.OvertimeSubtractionModel {
+		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
+			subtractedHours = user.OvertimeSubtractionAmount
+
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+
+			break
+		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
+			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+			break
+		}
+	}
+
+	result := model.OvertimeResult{
+		Total:      overtimeHours,
+		Needed:     neededHours,
+		Subtracted: subtractedHours,
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))

@@ -45,8 +45,8 @@ export default {
   LABEL_TIMESTAMP_CORRECTION_VIEW: 'timestamp corrections',
   LABEL_OLD_COMING: 'old coming',
   LABEL_OLD_GOING: 'old going',
-  MSG_CHECK_OUT_SUCCESS: 'checkin success',
-  MSG_CHECK_IN_SUCCESS: 'checkout success',
+  MSG_CHECK_OUT_SUCCESS: 'checkout success',
+  MSG_CHECK_IN_SUCCESS: 'checkin success',
   BTN_TIMESTAMP_ADD: 'add timestamp',
   LABEL_VALID_TILL: 'valid till',
   LABEL_DESCRIPTION: 'description',
@@ -75,4 +75,8 @@ export default {
   LABEL_WORKTIME: 'Worktime',
   LABEL_COMMON: 'Common',
   LABEL_MIN_CHARS: 'minimum of {count} characters',
+  LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS: 'automatic detection of the checkin/checkout location by the office ip address',
+  BTN_ADD: 'Add',
+  MENU_SETTINGS: 'Settings',
+  LABEL_SEARCH: 'Search'
 };

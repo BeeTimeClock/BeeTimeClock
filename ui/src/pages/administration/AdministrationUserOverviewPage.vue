@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { User } from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import UserAbsenceSummary from 'components/UserAbsenceSummary.vue';
@@ -13,6 +13,7 @@ const { t } = useI18n();
 
 const users = ref([] as User[]);
 const absenceReasons = ref([] as AbsenceReason[]);
+const needle = ref('');
 
 function loadUsers() {
   BeeTimeClock.administrationGetUsers(true).then(result => {
@@ -27,6 +28,16 @@ function loadAbsenceReasons() {
     absenceReasons.value = result.data.Data;
   });
 }
+
+const sortedFilteredUsers = computed(() => {
+  const search = needle.value.toLowerCase()
+  const data = users.value.filter(s => {
+    if (s.LastName.toLowerCase().indexOf(search) >= 0) return true
+    if (s.FirstName.toLowerCase().indexOf(search) >= 0) return true
+    if (s.Username.toLowerCase().indexOf(search) >= 0) return true
+  });
+  return data.sort((a, b) => a.LastName.localeCompare(b.LastName))
+})
 
 function deleteUser(user: User) {
   q.dialog({
@@ -51,7 +62,8 @@ onMounted(() => {
 
 <template>
   <q-page padding>
-    <q-markup-table>
+    <q-input :label="t('LABEL_SEARCH')" v-model="needle"/>
+    <q-markup-table class="q-mt-lg">
       <thead>
       <tr class="bg-primary text-white">
         <th class="text-left">{{ $t('LABEL_USER') }}</th>
@@ -62,7 +74,7 @@ onMounted(() => {
       </tr>
       </thead>
       <tbody>
-      <tr v-for="user in users" :key="user.Username">
+      <tr v-for="user in sortedFilteredUsers" :key="user.Username">
         <td>{{ user.Username }}</td>
         <td>{{ user.FirstName }}</td>
         <td>{{ user.LastName }}</td>

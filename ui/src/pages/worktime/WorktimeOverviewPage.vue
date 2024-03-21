@@ -124,13 +124,11 @@ async function loadTimestampMonths() {
 }
 
 onMounted(async () => {
-  console.log('month: ', new Date().getMonth());
   await loadTimestampMonths();
   loadTimestampGrouped();
 });
 
 watch(selectedYear, () => {
-  console.log('year changed');
   if (timestampYearMonths.value[selectedYear.value].includes(selectedMonth.value)) {
     loadTimestampGrouped();
     return;

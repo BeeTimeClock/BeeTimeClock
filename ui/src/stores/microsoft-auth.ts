@@ -52,7 +52,6 @@ export const useAuthStore = defineStore('auth', {
     },
     isAdministrator(): boolean {
       const session = this.getSession();
-      console.log(session);
       if (!session) return false;
       return session.AccessLevel == 'admin';
     },

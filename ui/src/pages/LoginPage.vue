@@ -102,7 +102,6 @@ function loginWithMicrosoft() {
 }
 
 function gotoDashboard() {
-  console.log('route to dashboard');
   router.push({name: 'Dashboard'})
 }
 
