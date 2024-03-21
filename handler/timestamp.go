@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
@@ -124,17 +125,24 @@ func (h *Timestamp) isHomeoffice(c *gin.Context, prefered bool) (bool, error) {
 	}
 
 	if *settings.CheckinDetectionByIPAddress == true {
-		clientIp, err := getClientIPByHeaders(c)
+		clientIps, err := getClientIPByHeaders(c)
 		if err != nil {
 			return false, err
 		}
 
-		fmt.Printf("Use ClientIP Detection: %s\n", clientIp)
-
 		isOfficeIp := false
-		for _, officeIp := range settings.OfficeIPAddresses {
-			if officeIp.IPAddress == clientIp {
-				isOfficeIp = true
+
+		for _, input := range strings.Split(clientIps, ",") {
+			clientIp := strings.TrimSpace(input)
+			fmt.Printf("Use ClientIP Detection: %s\n", clientIps)
+			for _, officeIp := range settings.OfficeIPAddresses {
+				if officeIp.IPAddress == clientIp {
+					isOfficeIp = true
+					break
+				}
+			}
+
+			if isOfficeIp {
 				break
 			}
 		}
