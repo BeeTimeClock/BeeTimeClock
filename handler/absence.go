@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -89,6 +90,45 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(absence))
+}
+
+func (h *Absence) AbsenceDelete(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceIdParam := c.Param("id")
+	absenceId, err := strconv.Atoi(absenceIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absence, err := h.absence.FindByID(uint(absenceId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if *absence.UserID != user.ID {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("not your own absence, can't delete")))
+		return
+	}
+
+	if absence.AbsenceFrom.Before(time.Now()) {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("can't delete past absence")))
+		return
+	}
+
+	err = h.absence.Delete(&absence)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 func (h *Absence) AbsenceQueryUserYear(c *gin.Context) {

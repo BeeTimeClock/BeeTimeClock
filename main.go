@@ -218,6 +218,7 @@ func main() {
 			{
 				absence.GET("", absenceHandler.AbsenceGetAll)
 				absence.POST("", absenceHandler.AbsenceCreate)
+				absence.DELETE(":id", absenceHandler.AbsenceDelete)
 				absence.GET("query/me/summary", absenceHandler.AbsenceQueryCurrentUserSummary)
 				absence.GET("query/users/summary", absenceHandler.AbsenceQueryUsersSummary)
 				absence.GET("reasons", absenceHandler.AbsenceReasonsGetAll)

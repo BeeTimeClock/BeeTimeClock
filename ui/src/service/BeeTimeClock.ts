@@ -76,6 +76,10 @@ class BeeTimeClock {
     return api.post('/api/v1/absence', absenceCreateRequest);
   }
 
+  deleteAbsence(absenceId: number) : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(`/api/v1/absence/${absenceId}`);
+  }
+
   getAbsences() : Promise<AxiosResponse<BaseResponse<Absence[]>>> {
     return api.get('/api/v1/absence')
   }

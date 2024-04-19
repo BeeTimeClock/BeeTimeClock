@@ -67,7 +67,7 @@ export default {
   LABEL_OVERTIME_SUBTRACTION_AMOUNT: 'Überstunden Abzug',
   LABEL_PERCENTAGE: 'Prozent',
   LABEL_HOURS: 'Stunden',
-  MSG_DELETE: '{item} löschen?',
+  MSG_DELETE: '{item} {identifier} löschen?',
   MSG_DELETE_SUCCESS: '{item} {identifier} wurde erfolgreich gelöscht',
   LABEL_WORKTIME: 'Arbeitszeit',
   LABEL_COMMON: 'Allgemein',
@@ -76,4 +76,7 @@ export default {
   BTN_ADD: 'Hinzufügen',
   MENU_SETTINGS: 'Einstellungen',
   LABEL_SEARCH: 'Suchen',
+  LABEL_ACTIONS: 'Aktionen',
+  LABEL_ABSENCE: 'Abwesenheit',
+  LABEL_DELETE: 'Löschen',
 };

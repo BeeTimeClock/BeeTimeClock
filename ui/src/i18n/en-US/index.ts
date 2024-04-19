@@ -78,5 +78,8 @@ export default {
   LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS: 'automatic detection of the checkin/checkout location by the office ip address',
   BTN_ADD: 'Add',
   MENU_SETTINGS: 'Settings',
-  LABEL_SEARCH: 'Search'
+  LABEL_SEARCH: 'Search',
+  LABEL_ACTIONS: 'actions',
+  LABEL_ABSENCE: 'absence',
+  LABEL_DELETE: 'delete',
 };
