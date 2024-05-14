@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -139,7 +140,7 @@ func main() {
 	})
 
 	uiFSSub, _ := fs.Sub(uiFS, "ui/dist/spa")
-	r.StaticFS("ui", http.FS(uiFSSub))
+	r.StaticFS("/ui/", &uiWrapper{FileSystem: http.FS(uiFSSub)})
 
 	v1 := r.Group("api/v1")
 	{
@@ -283,4 +284,25 @@ func importHolidays(env *core.Environment, absenceRepo *repository.Absence, year
 	}
 
 	return nil
+}
+
+type uiWrapper struct {
+	FileSystem http.FileSystem
+}
+
+func (w *uiWrapper) Open(name string) (http.File, error) {
+	// return file if it exists
+	file, err := w.FileSystem.Open(name)
+	if err == nil {
+		return file, nil
+	}
+
+	// redirect non-existing files to index.html
+	// required for spa ui to work correctly
+	if errors.Is(err, fs.ErrNotExist) {
+		file, err := w.FileSystem.Open("index.html")
+		return file, err
+	}
+
+	return nil, err
 }
