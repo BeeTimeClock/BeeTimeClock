@@ -172,13 +172,15 @@ const columns = [
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
     field: 'AbsenceFrom',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY')
+    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
+    sortable: true
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
     field: 'AbsenceTill',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY')
+    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
+    sortable: true
   },
   {
     name: 'absenceNettoDays',
@@ -189,6 +191,7 @@ const columns = [
 
 const pagination = {
   rowsPerPage: 10,
+  sortBy: 'absenceFrom'
 }
 
 </script>
