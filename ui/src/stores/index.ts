@@ -1,7 +1,6 @@
 import { store } from 'quasar/wrappers'
 import { createPinia } from 'pinia'
 import { Router } from 'vue-router';
-import {useMsalStore} from "stores/microsoft-auth";
 
 /*
  * When adding new properties to stores, you should also

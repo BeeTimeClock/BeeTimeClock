@@ -2,7 +2,7 @@ import {boot} from 'quasar/wrappers'
 import {InteractionRequiredAuthError, IPublicClientApplication, PublicClientApplication} from '@azure/msal-browser';
 import {useAuthStore} from 'stores/microsoft-auth';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import {getCurrentInstance} from "vue";
+import {getCurrentInstance} from 'vue';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {

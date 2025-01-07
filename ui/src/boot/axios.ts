@@ -1,6 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
-import {ACCESS_TOKEN_STORE_KEY, AUTH_PROVIDER_STORE_KEY, useAuthStore} from 'stores/microsoft-auth';
+import {ACCESS_TOKEN_STORE_KEY, AUTH_PROVIDER_STORE_KEY} from 'stores/microsoft-auth';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {

@@ -1,8 +1,7 @@
 import {defineStore} from 'pinia';
-import {Configuration} from "@azure/msal-browser";
-import BeeTimeClock from "src/service/BeeTimeClock";
-import {User} from "src/models/Authentication";
-import { Cookies } from 'quasar';
+import {Configuration} from '@azure/msal-browser';
+import BeeTimeClock from 'src/service/BeeTimeClock';
+import {User} from 'src/models/Authentication';
 
 
 export const ACCESS_TOKEN_STORE_KEY = 'accessToken';
