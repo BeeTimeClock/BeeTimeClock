@@ -235,6 +235,7 @@ onMounted(async () => {
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <div v-if="col.name == 'absenceActions'">
               <q-btn
+                v-if="props.row.Deletable"
                 icon="delete"
                 color="negative"
                 @click="deleteAbsence(props.row)"

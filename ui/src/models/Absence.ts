@@ -21,6 +21,7 @@ export interface ApiAbsence {
   CreatedAt: Date;
   UpdatedAt: Date;
   NettoDays: number;
+  Deletable: boolean;
 }
 
 export interface AbsenceSummaryItem {

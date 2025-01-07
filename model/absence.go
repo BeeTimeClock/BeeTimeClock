@@ -52,6 +52,7 @@ type AbsenceReturn struct {
 	NettoDays       int
 	CreatedAt       time.Time
 	Reason          string `json:",omitempty"`
+	Deletable       bool
 }
 
 func (a *Absence) GetAbsenceWorkDays() int {
@@ -71,6 +72,10 @@ func (a *Absence) GetAbsenceWorkDays() int {
 	return days
 }
 
+func (a *Absence) IsDeletableByUser() bool {
+	return a.AbsenceFrom.After(time.Now()) || time.Now().Sub(a.CreatedAt).Hours() <= 24
+}
+
 func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealReason bool) []AbsenceReturn {
 	result := []AbsenceReturn{}
 	for _, absence := range absences {
@@ -80,6 +85,7 @@ func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealRea
 			AbsenceTill: absence.AbsenceTill,
 			NettoDays:   absence.GetAbsenceWorkDays(),
 			CreatedAt:   absence.CreatedAt,
+			Deletable:   absence.IsDeletableByUser(),
 		}
 
 		if user != nil {
