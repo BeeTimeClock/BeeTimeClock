@@ -112,14 +112,16 @@ func (h *Absence) AbsenceDelete(c *gin.Context) {
 		return
 	}
 
-	if *absence.UserID != user.ID {
-		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("not your own absence, can't delete")))
-		return
-	}
+	if (user.AccessLevel == model.USER_ACCESS_LEVEL_USER) {
+		if *absence.UserID != user.ID {
+			c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("not your own absence, can't delete")))
+			return
+		}
 
-	if absence.AbsenceFrom.Before(time.Now()) && time.Now().Sub(absence.CreatedAt).Hours() > 24 {
-		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("can't delete past absence")))
-		return
+		if absence.AbsenceFrom.Before(time.Now()) && time.Now().Sub(absence.CreatedAt).Hours() > 24 {
+			c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("can't delete past absence")))
+			return
+		}	
 	}
 
 	err = h.absence.Delete(&absence)
