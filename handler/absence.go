@@ -117,7 +117,7 @@ func (h *Absence) AbsenceDelete(c *gin.Context) {
 		return
 	}
 
-	if absence.AbsenceFrom.Before(time.Now()) {
+	if absence.AbsenceFrom.Before(time.Now()) && time.Now().Sub(absence.CreatedAt).Hours() > 24 {
 		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("can't delete past absence")))
 		return
 	}
