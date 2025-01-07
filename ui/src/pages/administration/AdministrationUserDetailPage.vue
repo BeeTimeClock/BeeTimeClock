@@ -8,11 +8,9 @@ import { useI18n } from 'vue-i18n';
 import { showInfoMessage } from 'src/helper/message';
 import WorktimeOverviewTable from 'components/WorktimeOverviewTable.vue';
 import OvertimeMonth from 'components/OvertimeMonth.vue';
-import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
 import { TimestampGroup, TimestampYearMonthGrouped } from 'src/models/Timestamp';
-import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
-import { Absence, AbsenceReason, AbsenceSummaryItem } from 'src/models/Absence';
-import { date } from 'quasar';
+import { Absence, AbsenceReason } from 'src/models/Absence';
+import { useQuasar } from 'quasar';
 
 const { t } = useI18n();
 
@@ -29,6 +27,7 @@ const absenceYears = ref<number[]>([]);
 const absences = ref<Absence[]>([]);
 const selectedAbsenceYear = ref<number>(new Date().getFullYear());
 const absenceReasons = ref<AbsenceReason[]>([]);
+const q = useQuasar();
 
 const accessLevelOptions = [
   {
@@ -112,7 +111,7 @@ function loadAbsenceYears() {
 function loadAbsences() {
   BeeTimeClock.administrationAbsencesByYear(userId, selectedAbsenceYear.value).then(result => {
     if (result.status === 200) {
-      absences.value = result.data.Data;
+      absences.value = result.data.Data.map(s => Absence.fromApi(s));
     }
   })
 }
@@ -171,15 +170,13 @@ const columns = [
   {
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
-    field: 'AbsenceFrom',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
+    field: 'formatFromFull',
     sortable: true
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
-    field: 'AbsenceTill',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
+    field: 'formatTillFull',
     sortable: true
   },
   {
@@ -192,6 +189,21 @@ const columns = [
 const pagination = {
   rowsPerPage: 10,
   sortBy: 'absenceFrom'
+}
+
+function deleteUserAbsence(absence: Absence) {
+  q.dialog({
+    message: t('MSG_DELETE', { item: t('LABEL_ABSENCE'), identifier:  `${absence.formatFrom} - ${absence.formatTill}`}),
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    BeeTimeClock.deleteAbsence(absence.ID).then(result => {
+      if (result.status === 204) {
+        loadAbsences();
+        showInfoMessage(t('MSG_DELETE_SUCCESS'));
+      }
+    });
+  });
 }
 
 </script>
@@ -249,7 +261,34 @@ const pagination = {
         </q-tab-panel>
         <q-tab-panel name="absence">
           <q-select v-model="selectedAbsenceYear" :label="t('LABEL_YEAR')" :options="absenceYears" class="full-width"/>
-          <q-table class="q-mt-lg" :rows="absences" :columns="columns" :flat="flat" :pagination="pagination"/>
+          <q-table class="q-mt-lg" :rows="absences" :columns="columns" :flat="flat" :pagination="pagination">
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                >
+                  {{ col.label }}
+                </q-th>
+                <q-th auto-width />
+              </q-tr>
+            </template>
+            <template v-slot:body="props">
+              <q-tr :props="props" :key="`m_${props.row.index}`">
+                <q-td
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                >
+                  {{ col.value }}
+                </q-td>
+                <q-td auto-width>
+                  <q-btn icon="delete" color="negative" @click="deleteUserAbsence(props.row)"/>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
         </q-tab-panel>
       </q-tab-panels>
     </div>

@@ -30,14 +30,12 @@ const myAbsencesColumns = [
   {
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
-    field: 'AbsenceFrom',
-    format: (val: Date) => date.formatDate(val, 'DD.MM.YYYY'),
+    field: 'formatFromFull',
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
-    field: 'AbsenceTill',
-    format: (val: Date) => date.formatDate(val, 'DD.MM.YYYY'),
+    field: 'formatTillFull',
   },
   {
     name: 'absenceReason',
@@ -115,7 +113,7 @@ function loadAbsenceSummary() {
 function loadAbsences() {
   BeeTimeClock.getAbsences().then((result) => {
     if (result.status === 200) {
-      absences.value = result.data.Data;
+      absences.value = result.data.Data.map(s => Absence.fromApi(s));
     }
   });
 }

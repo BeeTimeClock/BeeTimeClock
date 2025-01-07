@@ -10,7 +10,13 @@ import {
   TimestampCreateRequest,
   TimestampGroup, TimestampYearMonthGrouped
 } from 'src/models/Timestamp';
-import {Absence, AbsenceCreateRequest, AbsenceReason, AbsenceSummaryItem, AbsenceUserSummary} from 'src/models/Absence';
+import {
+  AbsenceCreateRequest,
+  AbsenceReason,
+  AbsenceSummaryItem,
+  AbsenceUserSummary,
+  ApiAbsence
+} from 'src/models/Absence';
 import {Settings} from 'src/models/Settings';
 
 class BeeTimeClock {
@@ -69,7 +75,7 @@ class BeeTimeClock {
     return api.get('/api/v1/absence/reasons');
   }
 
-  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<Absence>>> {
+  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
     absenceCreateRequest.AbsenceFrom = new Date(absenceCreateRequest.AbsenceFrom)
     absenceCreateRequest.AbsenceTill = new Date(absenceCreateRequest.AbsenceTill)
 
@@ -80,7 +86,7 @@ class BeeTimeClock {
     return api.delete(`/api/v1/absence/${absenceId}`);
   }
 
-  getAbsences() : Promise<AxiosResponse<BaseResponse<Absence[]>>> {
+  getAbsences() : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
     return api.get('/api/v1/absence')
   }
 
@@ -160,7 +166,7 @@ class BeeTimeClock {
     return api.get(`/api/v1/administration/user/${userId}/absence/years`)
   }
 
-  administrationAbsencesByYear(userId: string, year: number) : Promise<AxiosResponse<BaseResponse<Absence[]>>> {
+  administrationAbsencesByYear(userId: string, year: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
     return api.get(`/api/v1/administration/user/${userId}/absence/year/${year}`)
   }
 

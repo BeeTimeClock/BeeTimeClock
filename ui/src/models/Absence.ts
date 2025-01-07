@@ -1,4 +1,6 @@
 import {User} from 'src/models/Authentication';
+import { autoImplement } from 'src/helper/functions';
+import { date } from 'quasar';
 
 export interface AbsenceCreateRequest {
   AbsenceFrom: Date;
@@ -11,7 +13,7 @@ export interface AbsenceReason {
   Description: string;
 }
 
-export interface Absence {
+export interface ApiAbsence {
   ID: number;
   AbsenceFrom: Date;
   AbsenceTill: Date;
@@ -49,4 +51,26 @@ export type AbsenceUserSummaryYearMap = {
 export type AbsenceUserSummary = {
   ByYear: AbsenceUserSummaryYearMap;
   HolidayDaysPerYear: number;
+}
+
+export class Absence extends autoImplement<ApiAbsence>() {
+  static fromApi(apiItem: ApiAbsence) : Absence {
+    return new Absence(apiItem);
+  }
+
+  get formatTill() {
+    return date.formatDate(this.AbsenceTill, 'DD. MMM. YYYY')
+  }
+
+  get formatFrom() {
+    return date.formatDate(this.AbsenceFrom, 'DD. MMM. YYYY')
+  }
+
+  get formatTillFull() {
+    return date.formatDate(this.AbsenceTill, 'ddd DD. MMM. YYYY')
+  }
+
+  get formatFromFull() {
+    return date.formatDate(this.AbsenceFrom, 'ddd DD. MMM. YYYY')
+  }
 }
