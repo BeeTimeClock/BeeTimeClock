@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -25,15 +24,49 @@ func (d *DatabaseManager) newConnection() (*gorm.DB, error) {
 
 	dbType := os.Getenv("DB_TYPE")
 	if dbType == "" {
-		dbType = "sqlite"
+		dbType = "psql"
 	}
 
 	var dialect gorm.Dialector
 
+	hasMissing := false
+
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	database := os.Getenv("DATABASE")
+	port := os.Getenv("DB_PORT")
+	
+	if host == "" {
+		fmt.Println("Missing DB_HOST")
+		hasMissing = true
+	}
+	
+	if user == "" {
+		fmt.Println("Missing DB_USER")
+		hasMissing = true
+	}
+	
+	if password  == "" {
+		fmt.Println("Missing DB_PASSWORD")
+		hasMissing = true
+	}
+
+	if database == "" {
+		fmt.Println("Missing DB_DATABASE")
+		hasMissing = true
+	}
+
+	if port == "" {
+		fmt.Println("Missing DB_PORT")
+		hasMissing = true
+	}
+
+	if hasMissing {
+		return nil, fmt.Errorf("missing database env vars")
+	}
+
 	switch dbType {
-	case "sqlite":
-		dialect = sqlite.Open(fmt.Sprintf("%s.db", d.prefix))
-		break
 	case "psql":
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable application_name=%s",
 			os.Getenv("DB_HOST"),
@@ -46,6 +79,8 @@ func (d *DatabaseManager) newConnection() (*gorm.DB, error) {
 
 		dialect = postgres.Open(dsn)
 		break
+	default:
+		return nil, fmt.Errorf("database type %s not supported", dbType)
 	}
 
 	config.NamingStrategy = schema.NamingStrategy{
