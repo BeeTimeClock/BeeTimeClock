@@ -179,6 +179,19 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
+func (h *Absence) AbsenceQueryUsersSummaryCurrentYear(c *gin.Context) {
+	absences, err := h.absence.FindByQuery(true, "absence_till >= ? and absence_till <= ?",
+		fmt.Sprintf("%d-01-01", time.Now().Year()), fmt.Sprintf("%d-12-31", time.Now().Year()))
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c))
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
 func (h *Absence) AbsenceQueryUserSummaryYear(c *gin.Context) {
 	userIdParam := c.Param("userID")
 	userId, err := strconv.Atoi(userIdParam)
