@@ -109,7 +109,7 @@ func (r *Absence) FindByQuery(withUser bool, query string, args ...interface{}) 
 	if withUser {
 		result = result.Preload(clause.Associations)
 	}
-	result = result.Where(query, args).Find(&items)
+	result = result.Where(query, args...).Find(&items)
 	return items, result.Error
 }
 
