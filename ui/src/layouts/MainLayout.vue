@@ -67,6 +67,9 @@
             <q-item clickable v-ripple :to="{name: 'AdministrationUserOverview'}">
               {{ $t('MENU_USERS') }}
             </q-item>
+            <q-item clickable v-ripple :to="{name: 'AdministrationTeamOverview'}">
+              {{ $t('MENU_TEAMS') }}
+            </q-item>
             <q-item clickable v-ripple :to="{name: 'AdministrationSettings'}">
               {{ $t('MENU_SETTINGS') }}
             </q-item>

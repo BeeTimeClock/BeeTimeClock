@@ -56,7 +56,7 @@ const myAbsencesColumns = [
   },
   {
     name: 'absenceActions',
-    label: t('LABEL_ACTIONS'),
+    label: t('LABEL_ACTION', 2),
   },
 ];
 

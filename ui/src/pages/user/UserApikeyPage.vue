@@ -76,7 +76,7 @@ import { useI18n } from 'vue-i18n';
   <q-dialog persistent v-model="promptApikeyAdd">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_APIKEY_CREATE') }}
+        {{ $t('LABEL_CREATE', {item: $t('LABEL_APIKEY')}) }}
       </q-card-section>
       <q-card-section>
         <q-input v-model="apikeyCreateRequest.Description" :label="$t('LABEL_DESCRIPTION')"/>
@@ -93,7 +93,7 @@ import { useI18n } from 'vue-i18n';
   <q-dialog persistent v-model="promptApikeySuccess">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_APIKEY_SUCCESS') }}
+        {{ $t('MSG_CREATE_SUCCESS', {item: $t('LABEL_APIKEY')}) }}
       </q-card-section>
       <q-card-section>
         {{ $t('MSG_APIKEY_SHOW_WARNING') }}

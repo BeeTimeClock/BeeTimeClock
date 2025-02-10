@@ -47,7 +47,7 @@ const overtimeSubtractions = [
   },
   {
     value: 'hours',
-    label: t('LABEL_HOURS')
+    label: t('LABEL_HOUR',2)
   }
 ];
 
@@ -218,7 +218,7 @@ function deleteUserAbsence(absence: Absence) {
       >
         <q-tab name="common" icon="account_circle" :label="t('LABEL_COMMON')" />
         <q-tab name="worktime" icon="alarms" :label="t('LABEL_WORKTIME')" />
-        <q-tab name="absence" icon="event_busy" :label="t('LABEL_ABSENCES')" />
+        <q-tab name="absence" icon="event_busy" :label="t('LABEL_ABSENCE',2)" />
       </q-tabs>
       <q-tab-panels v-model="selectedTab">
         <q-tab-panel name="common">

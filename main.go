@@ -39,6 +39,12 @@ func main() {
 		panic(err)
 	}
 
+	teamRepo := repository.NewTeam(env)
+	err = teamRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	timestampRepo := repository.NewTimestamp(env)
 	err = timestampRepo.Migrate()
 	if err != nil {
@@ -69,7 +75,7 @@ func main() {
 		panic(err)
 	}
 
-	userHandler := handler.NewUser(env, userRepo)
+	userHandler := handler.NewUser(env, userRepo, teamRepo)
 	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
@@ -77,9 +83,6 @@ func main() {
 	administrationHandler := handler.NewAdministration(env, settingsRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
-	if err != nil {
-		panic(err)
-	}
 
 	_, err = migrationRepo.MigrationFindByTitle(MIGRATION_HOMEOFFICE_GOING)
 	homeofficeGoingMigrationExists := true
@@ -164,6 +167,17 @@ func main() {
 			administration := v1.Group("administration")
 			{
 				administration.Use(auth.AdministratorAccessRequired)
+				administrationTeam := administration.Group("team")
+				{
+					administrationTeam.GET("", userHandler.AdministrationTeamGetAll)
+					administrationTeam.POST("", userHandler.AdministrationTeamCreate)
+					administrationTeam.PUT(":teamID", userHandler.AdministrationTeamUpdate)
+					administrationTeam.GET(":teamID", userHandler.AdministrationTeamGetByID)
+					administrationTeam.DELETE(":teamID", userHandler.AdministrationTeamDelete)
+					administrationTeam.GET(":teamID/member", userHandler.AdministrationTeamMemberGetByTeamID)
+					administrationTeam.POST(":teamID/member", userHandler.AdministrationTeamMemberCreate)
+					administrationTeam.DELETE(":teamID/member/:teamMemberID", userHandler.AdministrationTeamMemberDelete)
+				}
 				administrationUser := administration.Group("user")
 				{
 					administrationUser.GET("", userHandler.AdministrationUserGetAll)

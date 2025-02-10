@@ -17,12 +17,14 @@ import (
 type User struct {
 	env  *core.Environment
 	user *repository.User
+	team *repository.Team
 }
 
-func NewUser(env *core.Environment, user *repository.User) *User {
+func NewUser(env *core.Environment, user *repository.User, team *repository.Team) *User {
 	return &User{
 		env:  env,
 		user: user,
+		team: team,
 	}
 }
 
@@ -216,4 +218,224 @@ func (h *User) CurrentUserApikeyCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(userApikey))
+}
+
+func (h *User) AdministrationTeamGetAll(c *gin.Context) {
+	withDataQueryParam := c.Query("with_data")
+	withData := withDataQueryParam == "true"
+
+	teams, err := h.team.TeamFindAll(withData)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(teams))
+}
+
+func (h *User) AdministrationTeamCreate(c *gin.Context) {
+	var teamCreateRequest model.TeamCreateRequest
+
+	err := c.BindJSON(&teamCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	teamOwner, err := h.user.FindByID(teamCreateRequest.TeamOwnerID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	team := model.Team{
+		Teamname:  teamCreateRequest.Teamname,
+		TeamOwner: teamOwner,
+	}
+
+	err = h.team.TeamInsert(&team)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.NewSuccessResponse(team))
+}
+
+func (h *User) AdministrationTeamUpdate(c *gin.Context) {
+	var teamUpdateRequest model.TeamCreateRequest
+	err := c.BindJSON(&teamUpdateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = h.user.FindByID(teamUpdateRequest.TeamOwnerID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	team, err := h.team.TeamFindById(uint(teamId), false)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	team.Teamname = teamUpdateRequest.Teamname
+	team.TeamOwnerID = teamUpdateRequest.TeamOwnerID
+
+	err = h.team.TeamUpdate(&team)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(team))
+}
+
+func (h *User) AdministrationTeamGetByID(c *gin.Context) {
+	withDataQueryParam := c.Query("with_data")
+	withData := withDataQueryParam == "true"
+
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	team, err := h.team.TeamFindById(uint(teamId), withData)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(team))
+}
+
+func (h *User) AdministrationTeamMemberGetByTeamID(c *gin.Context) {
+	withDataQueryParam := c.Query("with_data")
+	withData := withDataQueryParam == "true"
+
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	members, err := h.team.TeamMemberFindByTeamId(uint(teamId), withData)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(members))
+}
+
+func (h *User) AdministrationTeamDelete(c *gin.Context) {
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	team, err := h.team.TeamFindById(uint(teamId), false)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	err = h.team.TeamDelete(&team)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *User) AdministrationTeamMemberCreate(c *gin.Context) {
+	var teamMemberCreateRequest model.TeamMemberCreateRequest
+	err := c.BindJSON(&teamMemberCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	team, err := h.team.TeamFindById(uint(teamId), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	user, err := h.user.FindByID(teamMemberCreateRequest.UserID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teamMember := model.TeamMember{
+		Team: team,
+		User: user,
+	}
+
+	err = h.team.TeamMemberInsert(&teamMember)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.NewSuccessResponse(teamMember))
+}
+
+func (h *User) AdministrationTeamMemberDelete(c *gin.Context) {
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.ParseUint(teamIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamid")))
+		return
+	}
+
+	teamMemberIdParam := c.Param("teamMemberID")
+	teamMemberId, err := strconv.ParseUint(teamMemberIdParam, 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("missing teamMemberid")))
+		return
+	}
+
+	teamMember, err := h.team.TeamMemberFindById(uint(teamMemberId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if teamMember.TeamID != uint(teamId) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Errorf("member is not part of the team"))
+		return
+	}
+
+	err = h.team.TeamMemberDelete(&teamMember)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

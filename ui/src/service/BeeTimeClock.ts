@@ -1,4 +1,4 @@
-import {AuthRequest, AuthResponse, User} from 'src/models/Authentication';
+import { ApiUser, AuthRequest, AuthResponse, User } from 'src/models/Authentication';
 import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings, UserApikey, UserApikeyCreateRequest} from 'src/models/Base';
 import {api} from 'boot/axios';
 import {AxiosResponse} from 'axios';
@@ -18,6 +18,7 @@ import {
   ApiAbsence
 } from 'src/models/Absence';
 import {Settings} from 'src/models/Settings';
+import { ApiTeam, ApiTeamCreateRequest, ApiTeamMember, ApiTeamMemberCreateRequest } from 'src/models/Team';
 
 class BeeTimeClock {
   login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
@@ -102,12 +103,47 @@ class BeeTimeClock {
     return api.get('/api/v1/absence/query/me/summary')
   }
 
-  administrationGetUsers(withData?: boolean) : Promise<AxiosResponse<BaseResponse<User[]>>> {
+  administrationGetUsers(withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiUser[]>>> {
     const params = {
       with_data: withData,
     } ;
 
     return api.get('/api/v1/administration/user', { params: params });
+  }
+
+  administrationGetTeams(withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
+    const params = {
+      with_data: withData,
+    } ;
+
+    return api.get('/api/v1/administration/team', { params: params });
+  }
+
+  administrationCreateTeam(teamCreateRequest: ApiTeamCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
+    return api.post('/api/v1/administration/team', teamCreateRequest)
+  }
+
+  administrationGetTeam(teamId: number, withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
+    const params = {
+      with_data: withData,
+    }
+    return api.get(`/api/v1/administration/team/${teamId}`, {params: params});
+  }
+
+  administrationGetTeamMembers(teamId: number, withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeamMember[]>>> {
+    const params = {
+      with_data: withData,
+    } ;
+
+    return api.get(`/api/v1/administration/team/${teamId}/member`, { params: params });
+  }
+
+  administrationCreateTeamMember(teamId: number, teamMemberCreateRequest: ApiTeamMemberCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiTeamMember>>> {
+    return api.post(`/api/v1/administration/team/${teamId}/member`, teamMemberCreateRequest)
+  }
+
+  administrationDeleteTeamMember(teamId: number, teamMemberId: number) : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(`/api/v1/administration/team/${teamId}/member/${teamMemberId}`)
   }
 
   administrationGetUserById(userId: string) : Promise<AxiosResponse<BaseResponse<User>>> {
