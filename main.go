@@ -15,6 +15,7 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/database"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/handler"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/middleware"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
@@ -25,7 +26,10 @@ var (
 	GitCommit string
 )
 
-const MIGRATION_HOMEOFFICE_GOING = "HOMEOFFICE_GOING"
+const (
+	MIGRATION_HOMEOFFICE_GOING  = "HOMEOFFICE_GOING"
+	MIGRATION_EXTERNAL_CALENDAR = "EXTERNAL_CALENDAR"
+)
 
 func main() {
 	env := core.NewEnvironment()
@@ -128,6 +132,11 @@ func main() {
 		log.Println("Migration: HOMEOFFICE_GOING finished")
 	} else {
 		log.Println("Migration: HOMEOFFICE_GOING already finished")
+	}
+
+	err = migrateExternalCalendar(env, migrationRepo, absenceRepo)
+	if err != nil {
+		panic(err)
 	}
 
 	r := gin.Default()
@@ -252,7 +261,78 @@ func main() {
 	r.Run()
 }
 
-func importHolidays(env *core.Environment, absenceRepo *repository.Absence, year int) error {
+func migrateExternalCalendar(env *core.Environment, migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
+	if !microsoft.IsMicrosoftConnected() {
+		log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR skipped (no microsoft connection)")
+		return nil
+	}
+
+	_, err := migrationRepo.MigrationFindByTitle(MIGRATION_EXTERNAL_CALENDAR)
+	migrationExists := true
+
+	if err != nil {
+		if err == repository.ErrMigrationNotFound {
+			migrationExists = false
+		} else {
+			return err
+		}
+	}
+
+	if migrationExists {
+		log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR already finished")
+		return nil
+	}
+
+	log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR started")
+	absences, err := absenceRepo.FindAll(true)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, absence := range absences {
+		if absence.AbsenceFrom.Year() < 2025 {
+			continue
+		}
+
+		if absence.ExternalEventID != "" {
+			continue
+		}
+
+		eventId, err := microsoft.CreateCalendarEntry(absence.User.Username, &absence)
+		if err != nil {
+			return err
+		}
+
+		absence.ExternalEventID = eventId
+		absence.ExternalEventProvider = model.EXTERNAL_EVENT_PROVIDER_MICROSOFT
+
+		err = absenceRepo.Update(&absence)
+		if err != nil {
+			migration := model.Migration{
+				Title:      MIGRATION_EXTERNAL_CALENDAR,
+				Result:     err.Error(),
+				FinishedAt: time.Now(),
+				Success:    false,
+			}
+			migrationRepo.MigrationInsert(&migration)
+
+			return err
+		}
+	}
+	migration := model.Migration{
+		Title:      MIGRATION_EXTERNAL_CALENDAR,
+		Result:     "events migrated",
+		FinishedAt: time.Now(),
+		Success:    true,
+	}
+	migrationRepo.MigrationInsert(&migration)
+
+	log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR finished")
+
+	return nil
+}
+
+func importHolidays(absenceRepo *repository.Absence, year int) error {
 	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://feiertage-api.de/api/?jahr=%d&nur_land=NI", year), nil)
 	if err != nil {
 		return err

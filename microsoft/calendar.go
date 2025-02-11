@@ -41,6 +41,7 @@ func getClient() (*graph.GraphServiceClient, error) {
 }
 
 func CreateCalendarEntry(username string, absence *model.Absence) (string, error) {
+	log.Printf("Microsoft Create Event: for %s from %s to %s", username, absence.AbsenceFrom, absence.AbsenceTill)
 	subject := "BTC: Abwesend"
 	requestBody := graphmodels.NewEvent()
 	requestBody.SetSubject(&subject)
@@ -99,7 +100,15 @@ func DeleteCalendarEntry(username string, absence *model.Absence) error {
 		return err
 	}
 
-	fmt.Printf("Delete Event: %s\n", absence.ExternalEventID)
-
-	return graphClient.Users().ByUserId(username).Events().ByEventId(absence.ExternalEventID).Delete(context.Background(), nil)
+	err = graphClient.Users().ByUserId(username).Events().ByEventId(absence.ExternalEventID).Delete(context.Background(), nil)
+	if err != nil {
+		if odataErr, ok := err.(*odataerrors.ODataError); ok {
+			if *odataErr.GetErrorEscaped().GetCode() == "ErrorItemNotFound" {
+				return nil
+			}
+			return fmt.Errorf("error getting event: %v", odataErr.GetErrorEscaped().GetMessage())
+		}
+		return fmt.Errorf("error getting event: %v", err)
+	}
+	return nil
 }
