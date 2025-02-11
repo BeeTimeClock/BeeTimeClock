@@ -3,19 +3,29 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
+const (
+	EXTERNAL_EVENT_PROVIDER_MICROSOFT ExternalEventProvider = "microsoft"
+)
+
+type ExternalEventProvider string
+
 type Absence struct {
 	gorm.Model
-	UserID          *uint `gorm:"not null"`
-	User            *User `json:"-"`
-	AbsenceFrom     time.Time
-	AbsenceTill     time.Time
-	AbsenceReasonID *uint `gorm:"not null"`
-	AbsenceReason   AbsenceReason
-	SignedUserID    *uint
-	SignedUser      *User
+	UserID                *uint `gorm:"not null"`
+	User                  *User `json:"-"`
+	AbsenceFrom           time.Time
+	AbsenceTill           time.Time
+	AbsenceReasonID       *uint `gorm:"not null"`
+	AbsenceReason         AbsenceReason
+	SignedUserID          *uint
+	SignedUser            *User
+	ExternalEventProvider ExternalEventProvider
+	ExternalEventID       string
+	Identifier            uuid.UUID
 }
 
 type AbsenceReason struct {

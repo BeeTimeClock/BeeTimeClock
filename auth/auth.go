@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,7 @@ func (a *AuthProvider) AuthRequired(c *gin.Context) {
 	switch {
 	case strings.HasPrefix(authorizationHeader, "Bearer "):
 		tokenString := strings.Replace(authorizationHeader, "Bearer ", "", 1)
+		c.Set("token", tokenString)
 
 		switch strings.ToLower(authProvider) {
 		case "local", "":
@@ -102,7 +104,7 @@ func (a *AuthProvider) AuthProviders(c *gin.Context) {
 		Microsoft bool
 	}
 
-	hasMicrosoft := getMicrosoftClientId() != ""
+	hasMicrosoft := microsoft.GetMicrosoftClientId() != ""
 
 	authProviders := AuthProviders{
 		Local:     true,

@@ -8,9 +8,11 @@ import (
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type Absence struct {
@@ -81,6 +83,18 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 		AbsenceFrom:   absenceCreateRequest.AbsenceFrom,
 		AbsenceTill:   absenceCreateRequest.AbsenceTill,
 		AbsenceReason: absenceReason,
+		Identifier:    uuid.New(),
+	}
+
+	if microsoft.IsMicrosoftConnected() {
+		eventId, err := microsoft.CreateCalendarEntry(user.Username, &absence)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+
+		absence.ExternalEventID = eventId
+		absence.ExternalEventProvider = model.EXTERNAL_EVENT_PROVIDER_MICROSOFT
 	}
 
 	err = h.absence.Insert(&absence)
@@ -121,6 +135,21 @@ func (h *Absence) AbsenceDelete(c *gin.Context) {
 		if !absence.IsDeletableByUser() {
 			c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(fmt.Errorf("can't delete past absence")))
 			return
+		}
+	}
+
+	if absence.ExternalEventID != "" {
+		absenceUser, err := h.user.FindByID(*absence.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+		if absence.ExternalEventProvider == model.EXTERNAL_EVENT_PROVIDER_MICROSOFT {
+			err = microsoft.DeleteCalendarEntry(absenceUser.Username, &absence)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+				return
+			}
 		}
 	}
 

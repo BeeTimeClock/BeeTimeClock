@@ -20,6 +20,10 @@ class MsalProvider {
   refresh() {
     const accessTokenRequest = {
       scopes: [
+        'openid',
+        'profile',
+        'email',
+        'Calendars.ReadWrite',
       ],
     };
 

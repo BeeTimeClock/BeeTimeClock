@@ -5,9 +5,9 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
@@ -15,14 +15,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 )
-
-func getMicrosoftTenantId() string {
-	return os.Getenv("MICROSOFT_TENANT_ID")
-}
-
-func getMicrosoftClientId() string {
-	return os.Getenv("MICROSOFT_CLIENT_ID")
-}
 
 func (a *AuthProvider) microsoftAuthRequired(c *gin.Context, tokenString string) {
 	token, err := verifyToken(tokenString)
@@ -80,7 +72,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 		if err != nil {
 			return nil, err
 		}
-		issuerTemplated := strings.ReplaceAll(keys.PrivateParams()["issuer"].(string), "{tenantid}", getMicrosoftTenantId())
+		issuerTemplated := strings.ReplaceAll(keys.PrivateParams()["issuer"].(string), "{tenantid}", microsoft.GetMicrosoftTenantId())
 		if issuer != issuerTemplated {
 			return nil, fmt.Errorf("wrong issuer")
 		}
@@ -97,7 +89,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 
 		cleanedAud := strings.Trim(strings.TrimSpace(string(audBytes)), "\"")
 
-		if cleanedAud != getMicrosoftClientId() {
+		if cleanedAud != microsoft.GetMicrosoftClientId() {
 			return nil, fmt.Errorf("wrong client")
 		}
 
@@ -118,7 +110,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 
 func (a *AuthProvider) MicrosoftAuthSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(gin.H{
-		"ClientID": getMicrosoftClientId(),
-		"TenantID": getMicrosoftTenantId(),
+		"ClientID": microsoft.GetMicrosoftClientId(),
+		"TenantID": microsoft.GetMicrosoftTenantId(),
 	}))
 }
