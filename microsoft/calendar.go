@@ -53,12 +53,14 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	start.SetTimeZone(&timeZone)
 	requestBody.SetStart(start)
 
-	end := graphmodels.NewDateTimeTimeZone()
-	enddateTime := absence.AbsenceTill.Format(time.RFC3339)
-	end.SetDateTime(&enddateTime)
-	endtimeZone := "Europe/Berlin"
-	end.SetTimeZone(&endtimeZone)
-	requestBody.SetEnd(end)
+	if absence.AbsenceFrom.Format(time.DateOnly) != absence.AbsenceTill.Format(time.DateOnly) {
+		end := graphmodels.NewDateTimeTimeZone()
+		enddateTime := absence.AbsenceTill.Format(time.RFC3339)
+		end.SetDateTime(&enddateTime)
+		endtimeZone := "Europe/Berlin"
+		end.SetTimeZone(&endtimeZone)
+		requestBody.SetEnd(end)
+	}
 
 	transactionId := absence.Identifier.String()
 	requestBody.SetTransactionId(&transactionId)
