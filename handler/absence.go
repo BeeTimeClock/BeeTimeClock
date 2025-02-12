@@ -86,6 +86,12 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 		Identifier:    uuid.New(),
 	}
 
+	err = h.absence.Insert(&absence)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
 	if microsoft.IsMicrosoftConnected() {
 		eventId, err := microsoft.CreateCalendarEntry(user.Username, &absence)
 		if err != nil {
@@ -93,14 +99,17 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 			return
 		}
 
-		absence.ExternalEventID = eventId
-		absence.ExternalEventProvider = model.EXTERNAL_EVENT_PROVIDER_MICROSOFT
-	}
+		absenceExternalEvent := model.AbsenceExternalEvent{
+			Absence:               absence,
+			ExternalEventID:       eventId,
+			ExternalEventProvider: model.EXTERNAL_EVENT_PROVIDER_MICROSOFT,
+		}
 
-	err = h.absence.Insert(&absence)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-		return
+		err = h.absence.AbsenceExternalEventInsert(&absenceExternalEvent)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(absence))
@@ -138,14 +147,17 @@ func (h *Absence) AbsenceDelete(c *gin.Context) {
 		}
 	}
 
-	if absence.ExternalEventID != "" {
-		absenceUser, err := h.user.FindByID(*absence.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-			return
-		}
-		if absence.ExternalEventProvider == model.EXTERNAL_EVENT_PROVIDER_MICROSOFT {
-			err = microsoft.DeleteCalendarEntry(absenceUser.Username, &absence)
+	if len(absence.ExternalEvents) > 0 {
+		for _, externalEvent := range absence.ExternalEvents {
+			if externalEvent.ExternalEventProvider == model.EXTERNAL_EVENT_PROVIDER_MICROSOFT {
+				err = microsoft.DeleteCalendarEntry(absence.User.Username, &absence, &externalEvent)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+					return
+				}
+			}
+			fmt.Println("delete")
+			err = h.absence.AbsenceExternalEventDelete(&externalEvent)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 				return

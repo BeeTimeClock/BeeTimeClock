@@ -26,6 +26,16 @@ type Absence struct {
 	ExternalEventProvider ExternalEventProvider
 	ExternalEventID       string
 	Identifier            uuid.UUID
+	ExternalEvents        []AbsenceExternalEvent
+}
+
+type AbsenceExternalEvent struct {
+	gorm.Model
+	AbsenceID             uint
+	Absence               Absence
+	ExternalEventID       string
+	ExternalEventProvider ExternalEventProvider
+	Update                bool
 }
 
 type AbsenceReason struct {

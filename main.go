@@ -28,8 +28,9 @@ var (
 )
 
 const (
-	MIGRATION_HOMEOFFICE_GOING  = "HOMEOFFICE_GOING"
-	MIGRATION_EXTERNAL_CALENDAR = "EXTERNAL_CALENDAR"
+	MIGRATION_HOMEOFFICE_GOING        = "HOMEOFFICE_GOING"
+	MIGRATION_EXTERNAL_CALENDAR       = "EXTERNAL_CALENDAR"
+	MIGRATION_EXTERNAL_CALENDAR_MULTI = "EXTERNAL_CALENDAR_MULTI"
 )
 
 func main() {
@@ -135,7 +136,12 @@ func main() {
 		log.Println("Migration: HOMEOFFICE_GOING already finished")
 	}
 
-	err = migrateExternalCalendar(env, migrationRepo, absenceRepo)
+	err = migrateExternalCalendar(migrationRepo, absenceRepo)
+	if err != nil {
+		panic(err)
+	}
+
+	err = migrateExternalCalendarMulti(migrationRepo, absenceRepo)
 	if err != nil {
 		panic(err)
 	}
@@ -262,7 +268,95 @@ func main() {
 	r.Run()
 }
 
-func migrateExternalCalendar(env *core.Environment, migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
+func migrateExternalCalendarMulti(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
+	_, err := migrationRepo.MigrationFindByTitle(MIGRATION_EXTERNAL_CALENDAR_MULTI)
+	migrationExists := true
+
+	if err != nil {
+		if err == repository.ErrMigrationNotFound {
+			migrationExists = false
+		} else {
+			return err
+		}
+	}
+
+	if migrationExists {
+		log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR_MULTI already finished")
+		return nil
+	}
+
+	log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR_MULTI started")
+	absences, err := absenceRepo.FindAll(true)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, absence := range absences {
+		if absence.ExternalEventID == "" {
+			continue
+		}
+
+		eventExists := false
+		for _, event := range absence.ExternalEvents {
+			if event.ExternalEventID == absence.ExternalEventID {
+				eventExists = true
+				break
+			}
+		}
+
+		if eventExists {
+			continue
+		}
+
+		absenceExternalEvent := model.AbsenceExternalEvent{
+			Absence:               absence,
+			ExternalEventProvider: absence.ExternalEventProvider,
+			ExternalEventID:       absence.ExternalEventID,
+		}
+
+		err = absenceRepo.AbsenceExternalEventInsert(&absenceExternalEvent)
+		if err != nil {
+			migration := model.Migration{
+				Title:      MIGRATION_EXTERNAL_CALENDAR_MULTI,
+				Result:     err.Error(),
+				FinishedAt: time.Now(),
+				Success:    false,
+			}
+			migrationRepo.MigrationInsert(&migration)
+
+			return err
+		}
+
+		absence.ExternalEventID = "<migrated>"
+		absence.ExternalEventProvider = ""
+
+		err = absenceRepo.Update(&absence)
+		if err != nil {
+			migration := model.Migration{
+				Title:      MIGRATION_EXTERNAL_CALENDAR_MULTI,
+				Result:     err.Error(),
+				FinishedAt: time.Now(),
+				Success:    false,
+			}
+			migrationRepo.MigrationInsert(&migration)
+
+			return err
+		}
+	}
+
+	migration := model.Migration{
+		Title:      MIGRATION_EXTERNAL_CALENDAR_MULTI,
+		Result:     "events migrated",
+		FinishedAt: time.Now(),
+		Success:    true,
+	}
+	migrationRepo.MigrationInsert(&migration)
+
+	log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR_MULTI finished")
+	return nil
+}
+
+func migrateExternalCalendar(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
 	if !microsoft.IsMicrosoftConnected() {
 		log.Println("Migration: MIGRATION_EXTERNAL_CALENDAR skipped (no microsoft connection)")
 		return nil

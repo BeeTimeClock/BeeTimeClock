@@ -42,11 +42,9 @@ func getClient() (*graph.GraphServiceClient, error) {
 
 func CreateCalendarEntry(username string, absence *model.Absence) (string, error) {
 	log.Printf("Microsoft Create Event: for %s from %s to %s", username, absence.AbsenceFrom, absence.AbsenceTill)
-	subject := "BTC: Abwesend"
+	subject := fmt.Sprintf("BTC: %s", absence.AbsenceReason.Description)
 	requestBody := graphmodels.NewEvent()
 	requestBody.SetSubject(&subject)
-
-	fmt.Printf("Date: %s\n", fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly)))
 
 	start := graphmodels.NewDateTimeTimeZone()
 	dateTime := fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly))
@@ -95,13 +93,13 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	return *result.GetId(), nil
 }
 
-func DeleteCalendarEntry(username string, absence *model.Absence) error {
+func DeleteCalendarEntry(username string, absence *model.Absence, absenceExternalEvent *model.AbsenceExternalEvent) error {
 	graphClient, err := getClient()
 	if err != nil {
 		return err
 	}
 
-	err = graphClient.Users().ByUserId(username).Events().ByEventId(absence.ExternalEventID).Delete(context.Background(), nil)
+	err = graphClient.Users().ByUserId(username).Events().ByEventId(absenceExternalEvent.ExternalEventID).Delete(context.Background(), nil)
 	if err != nil {
 		if odataErr, ok := err.(*odataerrors.ODataError); ok {
 			if *odataErr.GetErrorEscaped().GetCode() == "ErrorItemNotFound" {

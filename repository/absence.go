@@ -32,6 +32,11 @@ func (r *Absence) Migrate() error {
 		return err
 	}
 
+	err = db.AutoMigrate(&model.AbsenceExternalEvent{})
+	if err != nil {
+		return err
+	}
+
 	err = db.AutoMigrate(&model.AbsenceReason{})
 	if err != nil {
 		return err
@@ -121,7 +126,7 @@ func (r *Absence) FindByID(id uint) (model.Absence, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.Absence
-	result := db.Find(&item, "id = ?", id)
+	result := db.Preload(clause.Associations).Find(&item, "id = ?", id)
 
 	if result.RowsAffected == 0 {
 		return model.Absence{}, fmt.Errorf("no absence with id %d found", id)
@@ -369,5 +374,89 @@ func (r Absence) FindYearsWithAbsencesByUserId(userID uint) ([]int, error) {
 		Where("user_id = ?", userID).
 		Scan(&items)
 
+	return items, result.Error
+}
+
+var ErrAbsenceExternalEventNotFound = errors.New("AbsenceExternalEvent not found")
+
+func (r Absence) AbsenceExternalEventFindAll() ([]model.AbsenceExternalEvent, error) {
+	var items []model.AbsenceExternalEvent
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Find(&items)
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
+func (r Absence) AbsenceExternalEventFindById(id uint) (model.AbsenceExternalEvent, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return model.AbsenceExternalEvent{}, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var item model.AbsenceExternalEvent
+	result := db.Find(&item, "id = ?", id)
+	if result.Error != nil {
+		return model.AbsenceExternalEvent{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return model.AbsenceExternalEvent{}, ErrAbsenceExternalEventNotFound
+	}
+	return item, result.Error
+}
+
+func (r Absence) AbsenceExternalEventInsert(item *model.AbsenceExternalEvent) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Create(item)
+	return result.Error
+}
+
+func (r Absence) AbsenceExternalEventUpdate(item *model.AbsenceExternalEvent) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Updates(item)
+	return result.Error
+}
+
+func (r Absence) AbsenceExternalEventDelete(item *model.AbsenceExternalEvent) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Unscoped().Delete(item)
+	return result.Error
+}
+
+func (r Absence) AbsenceExternalEventFindByAbsenceId(absenceId uint) ([]model.AbsenceExternalEvent, error) {
+	var items []model.AbsenceExternalEvent
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Find(&items, "absence_id = ?", absenceId)
+	if result.Error != nil {
+		return items, result.Error
+	}
 	return items, result.Error
 }
