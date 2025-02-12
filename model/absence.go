@@ -43,6 +43,10 @@ type AbsenceReason struct {
 	Description string
 }
 
+type AbsenceReasonCreateRequest struct {
+	Description string `binding:"required"`
+}
+
 type AbsenceCreateRequest struct {
 	AbsenceFrom     time.Time `binding:"required"`
 	AbsenceTill     time.Time `binding:"required"`

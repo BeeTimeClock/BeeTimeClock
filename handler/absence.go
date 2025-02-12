@@ -29,6 +29,81 @@ func NewAbsence(env *core.Environment, user *repository.User, absence *repositor
 	}
 }
 
+func (h *Absence) AdministrationAbsenceReasonCreate(c *gin.Context) {
+	var absenceReasonCreateRequest model.AbsenceReasonCreateRequest
+	err := c.BindJSON(&absenceReasonCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReason := model.AbsenceReason{
+		Description: absenceReasonCreateRequest.Description,
+	}
+
+	err = h.absence.InsertAbsenceReason(&absenceReason)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.NewSuccessResponse(absenceReason))
+}
+
+func (h *Absence) AdministrationAbsenceReasonDelete(c *gin.Context) {
+	absenceReasonIdParam := c.Param("absenceReasonID")
+	absenceReasonId, err := strconv.Atoi(absenceReasonIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReason, err := h.absence.FindAbsenceReasonByID(uint(absenceReasonId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	err = h.absence.DeleteAbsenceReason(&absenceReason)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *Absence) AdministrationAbsenceReasonUpdate(c *gin.Context) {
+	var absenceReasonUpdateRequest model.AbsenceReasonCreateRequest
+	err := c.BindJSON(&absenceReasonUpdateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReasonIdParam := c.Param("absenceReasonID")
+	absenceReasonId, err := strconv.Atoi(absenceReasonIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReason, err := h.absence.FindAbsenceReasonByID(uint(absenceReasonId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReason.Description = absenceReasonUpdateRequest.Description
+	err = h.absence.UpdateAbsenceReason(&absenceReason)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(absenceReason))
+}
+
 func (h *Absence) AbsenceGetAll(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {

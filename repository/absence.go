@@ -237,6 +237,28 @@ func (r *Absence) FindAbsenceReasonByID(id uint) (model.AbsenceReason, error) {
 	return item, result.Error
 }
 
+func (r *Absence) UpdateAbsenceReason(item *model.AbsenceReason) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Updates(&item)
+	return result.Error
+}
+
+func (r *Absence) DeleteAbsenceReason(item *model.AbsenceReason) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Delete(&item)
+	return result.Error
+}
+
 var ErrHolidayNotFound = errors.New("Holiday not found")
 
 func (r Absence) HolidayFindAll() ([]model.Holiday, error) {

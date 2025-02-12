@@ -210,6 +210,14 @@ func main() {
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
 					administrationUser.GET(":userID/timestamp/months", timestampHandler.TimestampUserQueryMonths)
 				}
+				administrationAbsence := administration.Group("absence")
+				{
+					administrationAbsence.GET("reasons", absenceHandler.AbsenceReasonsGetAll)
+					administrationAbsence.POST("reasons", absenceHandler.AdministrationAbsenceReasonCreate)
+					administrationAbsence.PUT("reasons/:absenceReasonID", absenceHandler.AdministrationAbsenceReasonUpdate)
+					administrationAbsence.DELETE("reasons/:absenceReasonID", absenceHandler.AdministrationAbsenceReasonDelete)
+				}
+
 				administrationMigrations := administration.Group("migration")
 				{
 					administrationMigrations.GET("", migrationHandler.AdministrationMigrationGetAll)
