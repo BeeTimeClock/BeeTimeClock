@@ -20,6 +20,7 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 var (
@@ -296,6 +297,11 @@ func migrateExternalCalendar(env *core.Environment, migrationRepo *repository.Mi
 
 		if absence.ExternalEventID != "" {
 			continue
+		}
+
+		if absence.Identifier == uuid.Nil {
+			absence.Identifier = uuid.New()
+			absenceRepo.Update(&absence)
 		}
 
 		eventId, err := microsoft.CreateCalendarEntry(absence.User.Username, &absence)

@@ -47,20 +47,18 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	requestBody.SetSubject(&subject)
 
 	start := graphmodels.NewDateTimeTimeZone()
-	dateTime := absence.AbsenceFrom.Format(time.RFC3339)
+	dateTime := absence.AbsenceFrom.Format(time.DateOnly)
 	start.SetDateTime(&dateTime)
 	timeZone := "Europe/Berlin"
 	start.SetTimeZone(&timeZone)
 	requestBody.SetStart(start)
 
-	if absence.AbsenceFrom.Format(time.DateOnly) != absence.AbsenceTill.Format(time.DateOnly) {
-		end := graphmodels.NewDateTimeTimeZone()
-		enddateTime := absence.AbsenceTill.Format(time.RFC3339)
-		end.SetDateTime(&enddateTime)
-		endtimeZone := "Europe/Berlin"
-		end.SetTimeZone(&endtimeZone)
-		requestBody.SetEnd(end)
-	}
+	end := graphmodels.NewDateTimeTimeZone()
+	enddateTime := absence.AbsenceTill.Format(time.DateOnly)
+	end.SetDateTime(&enddateTime)
+	endtimeZone := "Europe/Berlin"
+	end.SetTimeZone(&endtimeZone)
+	requestBody.SetEnd(end)
 
 	transactionId := absence.Identifier.String()
 	requestBody.SetTransactionId(&transactionId)
