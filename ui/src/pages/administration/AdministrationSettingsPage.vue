@@ -3,12 +3,15 @@ import {OfficeIPAddress, Settings} from 'src/models/Settings';
 import {onMounted, ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {useI18n} from 'vue-i18n';
+import { AbsenceReason } from 'src/models/Absence';
+import AbsenceReasonAdministrationTable from 'components/AbsenceReasonAdministrationTable.vue';
 
 const {t} = useI18n();
 
 const applicationSettings = ref<Settings | undefined>(undefined);
 const newIpAddress = ref<OfficeIPAddress | null>();
 const promptOfficeIpAdd = ref(false);
+const tab = ref('timestamp')
 
 function loadSettings() {
   BeeTimeClock.administrationSettings().then(result => {
@@ -41,30 +44,63 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-page padding>
+  <q-page>
     <div v-if="applicationSettings">
-      <q-toggle :label="t('LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS')"
-                v-model="applicationSettings.CheckinDetectionByIPAddress"/>
-      <q-card class="q-mt-lg">
-        <q-card-section class="bg-primary text-white text-h6">
-          Office IPs
-        </q-card-section>
-        <q-card-section>
-          <q-list>
-            <q-item v-for="officeIp in applicationSettings.OfficeIPAddresses" :key="officeIp.ID">
-              <q-item-section>
-                <q-item-label>{{ officeIp.IPAddress }}</q-item-label>
-                <q-item-label caption>{{ officeIp.Description }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-btn class="full-width" :label="t('BTN_ADD')" color="primary"
-                     @click="newIpAddress = {} as OfficeIPAddress; promptOfficeIpAdd = true"/>
-            </q-item>
-          </q-list>
-        </q-card-section>
-      </q-card>
-      <q-btn class="full-width q-mt-lg" color="primary" :label="t('BTN_SAVE')" @click="updateSettings"/>
+      <q-splitter
+        v-model="splitterModel"
+      >
+        <template v-slot:before>
+          <q-tabs
+            v-model="tab"
+            vertical
+            class="text-teal"
+          >
+            <q-tab name="timestamp" icon="watch" :label="$t('LABEL_TIMESTAMP')" />
+            <q-tab name="absence" icon="event" :label="$t('LABEL_ABSENCE')" />
+          </q-tabs>
+        </template>
+
+        <template v-slot:after>
+          <q-tab-panels
+            v-model="tab"
+            animated
+            swipeable
+            vertical
+            transition-prev="jump-up"
+            transition-next="jump-up"
+          >
+            <q-tab-panel name="timestamp">
+              <q-toggle :label="t('LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS')"
+                        v-model="applicationSettings.CheckinDetectionByIPAddress"/>
+              <q-card class="q-mt-lg">
+                <q-card-section class="bg-primary text-white text-h6">
+                  Office IPs
+                </q-card-section>
+                <q-card-section>
+                  <q-list>
+                    <q-item v-for="officeIp in applicationSettings.OfficeIPAddresses" :key="officeIp.ID">
+                      <q-item-section>
+                        <q-item-label>{{ officeIp.IPAddress }}</q-item-label>
+                        <q-item-label caption>{{ officeIp.Description }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-btn class="full-width" :label="t('BTN_ADD')" color="primary"
+                             @click="newIpAddress = {} as OfficeIPAddress; promptOfficeIpAdd = true"/>
+                    </q-item>
+                  </q-list>
+                </q-card-section>
+              </q-card>
+              <q-btn class="full-width q-mt-lg" color="primary" :label="t('BTN_SAVE')" @click="updateSettings"/>
+            </q-tab-panel>
+
+            <q-tab-panel name="absence" class="q-pa-none">
+              <AbsenceReasonAdministrationTable/>
+            </q-tab-panel>
+          </q-tab-panels>
+        </template>
+
+      </q-splitter>
     </div>
     <q-dialog v-model="promptOfficeIpAdd">
       <q-card v-if="newIpAddress">
