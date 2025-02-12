@@ -46,18 +46,19 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	requestBody := graphmodels.NewEvent()
 	requestBody.SetSubject(&subject)
 
+	fmt.Printf("Date: %s\n", fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly)))
+
 	start := graphmodels.NewDateTimeTimeZone()
-	dateTime := absence.AbsenceFrom.Format(time.DateOnly)
+	dateTime := fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly))
 	start.SetDateTime(&dateTime)
 	timeZone := "Europe/Berlin"
 	start.SetTimeZone(&timeZone)
 	requestBody.SetStart(start)
 
 	end := graphmodels.NewDateTimeTimeZone()
-	enddateTime := absence.AbsenceTill.Format(time.DateOnly)
+	enddateTime := fmt.Sprintf("%sT00:00:00", absence.AbsenceTill.Add(24*time.Hour).Format(time.DateOnly))
 	end.SetDateTime(&enddateTime)
-	endtimeZone := "Europe/Berlin"
-	end.SetTimeZone(&endtimeZone)
+	end.SetTimeZone(&timeZone)
 	requestBody.SetEnd(end)
 
 	transactionId := absence.Identifier.String()
