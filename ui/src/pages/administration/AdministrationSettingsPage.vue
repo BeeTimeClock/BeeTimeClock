@@ -63,11 +63,7 @@ onMounted(() => {
         <template v-slot:after>
           <q-tab-panels
             v-model="tab"
-            animated
-            swipeable
             vertical
-            transition-prev="jump-up"
-            transition-next="jump-up"
           >
             <q-tab-panel name="timestamp">
               <q-toggle :label="t('LABEL_CHECKIN_DETECTION_BY_IP_ADDRESS')"
@@ -94,8 +90,15 @@ onMounted(() => {
               <q-btn class="full-width q-mt-lg" color="primary" :label="t('BTN_SAVE')" @click="updateSettings"/>
             </q-tab-panel>
 
-            <q-tab-panel name="absence" class="q-pa-none">
-              <AbsenceReasonAdministrationTable/>
+            <q-tab-panel name="absence">
+              <q-card>
+                <q-card-section class="bg-primary text-white text-h6">
+                  {{$t('LABEL_ABSENCE_REASON', 2 )}}
+                </q-card-section>
+                <q-card-section>
+                  <AbsenceReasonAdministrationTable/>
+                </q-card-section>
+              </q-card>
             </q-tab-panel>
           </q-tab-panels>
         </template>

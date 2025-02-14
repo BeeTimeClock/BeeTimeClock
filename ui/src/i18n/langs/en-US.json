@@ -5,6 +5,7 @@
   "LABEL_NETTO_DAYS": "netto days",
   "LABEL_USER": "user|users",
   "LABEL_REASON": "reason|reasons",
+  "LABEL_ABSENCE_REASON": "absence reason|absence reasons",
   "BTN_CLOSE": "close",
   "MSG_CREATE_SUCCESS": "{item} created successfully",
   "LABEL_CREATE": "create {item}",
@@ -84,5 +85,7 @@
   "MSG_CHECK_IN_SUCCESS": "checkin success",
   "MSG_CHECK_OUT_SUCCESS": "checkout success",
   "LABEL_APIKEY": "apikey",
-  "LABEL_TIMESTAMP": "LABEL_TIMESTAMP"
+  "LABEL_TIMESTAMP": "timestamp",
+  "TITLE_UPDATE": "Update {item} {identifier}",
+  "TITLE_CREATE": "Create {item}"
 }

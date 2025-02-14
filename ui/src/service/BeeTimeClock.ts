@@ -75,6 +75,14 @@ class BeeTimeClock {
     return api.get('/api/v1/absence/reasons');
   }
 
+  administrationUpdateAbsenceReason(absenceReasonId: number, absenceReason: ApiAbsenceReason) : Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
+    return api.put(`/api/v1/administration/absence/reasons/${absenceReasonId}`, absenceReason)
+  }
+
+  administrationCreateAbsenceReason(absenceReason: ApiAbsenceReason) : Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
+    return api.post('/api/v1/administration/absence/reasons', absenceReason);
+  }
+
   createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
     absenceCreateRequest.AbsenceFrom = new Date(absenceCreateRequest.AbsenceFrom)
     absenceCreateRequest.AbsenceTill = new Date(absenceCreateRequest.AbsenceTill)
