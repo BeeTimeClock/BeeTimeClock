@@ -5,6 +5,7 @@
   "LABEL_NETTO_DAYS": "Nettotage",
   "LABEL_USER": "Benutzer",
   "LABEL_REASON": "Grund|Gründe",
+  "LABEL_ABSENCE_REASON": "Abwesenheitsgrund|Abwesenheitsgründe",
   "BTN_CLOSE": "Schließen",
   "MSG_CREATE_SUCCESS": "{item} erfolgreich erstellt",
   "LABEL_CREATE": "{item} erstellen",
@@ -84,5 +85,7 @@
   "BTN_CHECK_OUT": "ausstempeln",
   "LABEL_TIMESTAMP": "Zeitpunkt",
   "MSG_CHECK_IN_SUCCESS": "erfolgreich eingestempelt",
-  "MSG_CHECK_OUT_SUCCESS": "erfolgreich ausgestempelt"
+  "MSG_CHECK_OUT_SUCCESS": "erfolgreich ausgestempelt",
+  "TITLE_UPDATE": "{item} {identifier} bearbeiten",
+  "TITLE_CREATE": "{item} anlegen"
 }

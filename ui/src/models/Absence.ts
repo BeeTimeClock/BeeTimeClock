@@ -8,8 +8,18 @@ export interface AbsenceCreateRequest {
   AbsenceReasonID: number;
 }
 
-export interface AbsenceReason {
+export interface ApiAbsenceReason {
   ID: number;
+  Description: string;
+}
+
+export class AbsenceReason extends autoImplement<ApiAbsenceReason>() {
+  static fromApi(apiItem: ApiAbsenceReason) : AbsenceReason {
+    return new AbsenceReason(apiItem);
+  }
+}
+
+export interface AbsenceReasonCreateRequest {
   Description: string;
 }
 
