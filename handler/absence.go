@@ -8,6 +8,7 @@ import (
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/helper"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
@@ -298,6 +299,25 @@ func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 func (h *Absence) AbsenceQueryUsersSummaryCurrentYear(c *gin.Context) {
 	absences, err := h.absence.FindByQuery(true, "absence_till >= ? and absence_till <= ?",
 		fmt.Sprintf("%d-01-01", time.Now().Year()), fmt.Sprintf("%d-12-31", time.Now().Year()))
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c))
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Absence) AbsenceQueryUsersSummaryCurrentWeek(c *gin.Context) {
+	now := time.Now()
+	year, week := now.ISOWeek()
+
+	weekStart := helper.WeekStart(year, week)
+	weekEnd := weekStart.AddDate(0, 0, 5)
+
+	absences, err := h.absence.FindByQuery(true, "absence_till >= ? and absence_till <= ?",
+		weekStart.Format("2006-01-02"), weekEnd.Format("2006-01-02"))
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -128,4 +129,8 @@ func (u *User) SetPassword(plaintext string) error {
 
 	u.Password = string(bytes)
 	return nil
+}
+
+func (u *User) FullName() string {
+	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }

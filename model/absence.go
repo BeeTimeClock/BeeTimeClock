@@ -100,6 +100,10 @@ func (a *Absence) IsDeletableByUser() bool {
 	return a.AbsenceFrom.After(time.Now()) || time.Now().Sub(a.CreatedAt).Hours() <= 24
 }
 
+func (a *Absence) IsDateInAbsence(d time.Time) bool {
+	return d.Before(a.AbsenceTill) && d.After(a.AbsenceFrom)
+}
+
 func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealReason bool) []AbsenceReturn {
 	result := []AbsenceReturn{}
 	for _, absence := range absences {

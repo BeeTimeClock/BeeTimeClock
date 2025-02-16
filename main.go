@@ -19,6 +19,7 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/middleware"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -261,6 +262,7 @@ func main() {
 				absence.GET("query/me/summary", absenceHandler.AbsenceQueryCurrentUserSummary)
 				absence.GET("query/users/summary", absenceHandler.AbsenceQueryUsersSummary)
 				absence.GET("query/users/summary/current_year", absenceHandler.AbsenceQueryUsersSummaryCurrentYear)
+				absence.GET("query/users/summary/current_week", absenceHandler.AbsenceQueryUsersSummaryCurrentWeek)
 				absence.GET("reasons", absenceHandler.AbsenceReasonsGetAll)
 			}
 
@@ -272,6 +274,8 @@ func main() {
 			}
 		}
 	}
+
+	notify(env, absenceRepo)
 
 	r.Run()
 }
@@ -508,4 +512,19 @@ func (w *uiWrapper) Open(name string) (http.File, error) {
 	}
 
 	return nil, err
+}
+
+func notify(env *core.Environment, absenceRepo *repository.Absence) {
+	checkIntervalTicker := time.NewTicker(30 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-checkIntervalTicker.C:
+				now := time.Now()
+				if now.Weekday() == time.Monday && now.Hour() == 8 && now.Minute() == 0 {
+					worker.NotifyAbsenceWeek(env, absenceRepo)
+				}
+			}
+		}
+	}()
 }
