@@ -520,6 +520,7 @@ func (w *uiWrapper) Open(name string) (http.File, error) {
 
 func notify(env *core.Environment, absenceRepo *repository.Absence) {
 	checkIntervalTicker := time.NewTicker(30 * time.Second)
+	send := false
 	go func() {
 		for {
 			select {
@@ -527,7 +528,12 @@ func notify(env *core.Environment, absenceRepo *repository.Absence) {
 				now := time.Now()
 				log.Printf("Check for Week notify: %s", now.Format(time.DateTime))
 				if now.Weekday() == time.Monday && now.Hour() == 8 && now.Minute() == 0 {
-					worker.NotifyAbsenceWeek(env, absenceRepo)
+					if (!send) {
+						worker.NotifyAbsenceWeek(env, absenceRepo)
+					}
+					send = true
+				} else {
+					send = false
 				}
 			}
 		}
