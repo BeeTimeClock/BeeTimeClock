@@ -6,18 +6,21 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/worker"
 	"github.com/gin-gonic/gin"
 )
 
 type Administration struct {
 	env      *core.Environment
 	settings *repository.Settings
+	absence  *repository.Absence
 }
 
-func NewAdministration(env *core.Environment, settings *repository.Settings) *Administration {
+func NewAdministration(env *core.Environment, settings *repository.Settings, absence *repository.Absence) *Administration {
 	return &Administration{
 		env:      env,
 		settings: settings,
+		absence:  absence,
 	}
 }
 
@@ -47,4 +50,9 @@ func (h Administration) AdministrationUpdateSettings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(settings))
+}
+
+func (h Administration) AdministrationNotifyAbsenceWeek(c *gin.Context) {
+	worker.NotifyAbsenceWeek(h.env, h.absence)
+	c.Status(http.StatusNoContent)
 }

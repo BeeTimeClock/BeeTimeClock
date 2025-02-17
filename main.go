@@ -87,7 +87,7 @@ func main() {
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
-	administrationHandler := handler.NewAdministration(env, settingsRepo)
+	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 
@@ -227,6 +227,10 @@ func main() {
 				{
 					administrationSettings.GET("", administrationHandler.AdministrationGetSettings)
 					administrationSettings.PUT("", administrationHandler.AdministrationUpdateSettings)
+				}
+				administrationNotify := administration.Group("notify")
+				{
+					administrationNotify.POST("absence/week", administrationHandler.AdministrationNotifyAbsenceWeek)
 				}
 			}
 
@@ -521,6 +525,7 @@ func notify(env *core.Environment, absenceRepo *repository.Absence) {
 			select {
 			case <-checkIntervalTicker.C:
 				now := time.Now()
+				log.Printf("Check for Week notify: %s", now.Format(time.DateTime))
 				if now.Weekday() == time.Monday && now.Hour() == 8 && now.Minute() == 0 {
 					worker.NotifyAbsenceWeek(env, absenceRepo)
 				}
