@@ -101,7 +101,7 @@ func (a *Absence) IsDeletableByUser() bool {
 }
 
 func (a *Absence) IsDateInAbsence(d time.Time) bool {
-	return d.Before(a.AbsenceTill) && d.After(a.AbsenceFrom)
+	return d.Equal(a.AbsenceFrom.UTC()) || d.Equal(a.AbsenceTill.UTC()) || (d.Before(a.AbsenceTill.UTC()) && d.After(a.AbsenceFrom.UTC()))
 }
 
 func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealReason bool) []AbsenceReturn {

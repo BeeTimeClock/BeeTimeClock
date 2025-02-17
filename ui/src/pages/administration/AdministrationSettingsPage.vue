@@ -3,8 +3,8 @@ import {OfficeIPAddress, Settings} from 'src/models/Settings';
 import {onMounted, ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {useI18n} from 'vue-i18n';
-import { AbsenceReason } from 'src/models/Absence';
 import AbsenceReasonAdministrationTable from 'components/AbsenceReasonAdministrationTable.vue';
+import { showInfoMessage } from 'src/helper/message';
 
 const {t} = useI18n();
 
@@ -38,6 +38,14 @@ function addNewIpAddress() {
   applicationSettings.value.OfficeIPAddresses.push(newIpAddress.value);
 }
 
+function notifyCurrentWeek() {
+  BeeTimeClock.administrationNotifyAbsenceWeek().then(result => {
+    if (result.status === 204) {
+      showInfoMessage('notify sent')
+    }
+  })
+}
+
 onMounted(() => {
   loadSettings();
 })
@@ -57,6 +65,7 @@ onMounted(() => {
           >
             <q-tab name="timestamp" icon="watch" :label="$t('LABEL_TIMESTAMP')" />
             <q-tab name="absence" icon="event" :label="$t('LABEL_ABSENCE')" />
+            <q-tab name="notify" icon="alert" :label="$t('LABEL_NOTIFY')" />
           </q-tabs>
         </template>
 
@@ -99,6 +108,9 @@ onMounted(() => {
                   <AbsenceReasonAdministrationTable/>
                 </q-card-section>
               </q-card>
+            </q-tab-panel>
+            <q-tab-panel name="notify">
+              <q-btn label="Notify Absence Current Week" @click="notifyCurrentWeek"/>
             </q-tab-panel>
           </q-tab-panels>
         </template>

@@ -224,6 +224,10 @@ class BeeTimeClock {
   administrationSettingsSave(settings: Settings) : Promise<AxiosResponse<BaseResponse<Settings>>> {
     return api.put('/api/v1/administration/settings', settings);
   }
+
+  administrationNotifyAbsenceWeek() : Promise<AxiosResponse<BaseResponse<never>>>{
+    return api.post('/api/v1/administration/notify/absence/week', {})
+  }
 }
 
 export default new BeeTimeClock();

@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"log"
 	"strings"
 	"time"
 
@@ -15,7 +16,6 @@ func NotifyAbsenceWeek(env *core.Environment, absenceRepo *repository.Absence) e
 	if !env.Notification.Enabled {
 		return nil
 	}
-
 	now := time.Now()
 	year, week := now.ISOWeek()
 
@@ -29,7 +29,6 @@ func NotifyAbsenceWeek(env *core.Environment, absenceRepo *repository.Absence) e
 		return err
 	}
 
-	mstClient := goteamsnotify.NewTeamsClient()
 	grouped := make(map[time.Time][]string)
 	var facts []adaptivecard.Fact
 
@@ -37,6 +36,7 @@ func NotifyAbsenceWeek(env *core.Environment, absenceRepo *repository.Absence) e
 		for i := 0; i < 5; i++ {
 			current := weekStart.AddDate(0, 0, i)
 			if absence.IsDateInAbsence(current) {
+				log.Println("is")
 				if _, exists := grouped[current]; !exists {
 					grouped[current] = []string{}
 				}
@@ -45,6 +45,8 @@ func NotifyAbsenceWeek(env *core.Environment, absenceRepo *repository.Absence) e
 			}
 		}
 	}
+
+	log.Printf("grouped: %#v", grouped)
 
 	for weekday, names := range grouped {
 		facts = append(facts, adaptivecard.Fact{
@@ -70,6 +72,9 @@ func NotifyAbsenceWeek(env *core.Environment, absenceRepo *repository.Absence) e
 	msg := adaptivecard.NewMessage()
 	msg.Attach(card)
 
+	log.Println(msg.PrettyPrint())
+
+	mstClient := goteamsnotify.NewTeamsClient()
 	if err := mstClient.Send(env.Notification.WebhookUrl, msg); err != nil {
 		return err
 	}

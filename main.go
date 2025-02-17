@@ -526,9 +526,8 @@ func notify(env *core.Environment, absenceRepo *repository.Absence) {
 			select {
 			case <-checkIntervalTicker.C:
 				now := time.Now()
-				log.Printf("Check for Week notify: %s", now.Format(time.DateTime))
 				if now.Weekday() == time.Monday && now.Hour() == 8 && now.Minute() == 0 {
-					if (!send) {
+					if !send {
 						worker.NotifyAbsenceWeek(env, absenceRepo)
 					}
 					send = true
