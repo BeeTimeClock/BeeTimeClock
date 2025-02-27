@@ -169,7 +169,7 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 	}
 
 	if microsoft.IsMicrosoftConnected() {
-		eventId, err := microsoft.CreateCalendarEntry(user.Username, &absence)
+		eventId, err := microsoft.CreateCalendarEntryFromAbsence(user.Username, &absence)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 			return
@@ -226,7 +226,7 @@ func (h *Absence) AbsenceDelete(c *gin.Context) {
 	if len(absence.ExternalEvents) > 0 {
 		for _, externalEvent := range absence.ExternalEvents {
 			if externalEvent.ExternalEventProvider == model.EXTERNAL_EVENT_PROVIDER_MICROSOFT {
-				err = microsoft.DeleteCalendarEntry(absence.User.Username, &absence, &externalEvent)
+				err = microsoft.DeleteCalendarEntry(absence.User.Username, externalEvent.ExternalEventID)
 				if err != nil {
 					c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 					return

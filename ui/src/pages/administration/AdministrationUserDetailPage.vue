@@ -233,6 +233,8 @@ function deleteUserAbsence(absence: Absence) {
                         v-model="user.OvertimeSubtractionModel" map-options emit-value />
               <q-input :label="$t('LABEL_OVERTIME_SUBTRACTION_AMOUNT')" v-model.number="user.OvertimeSubtractionAmount"
                        type="number" />
+              <q-input :label="$t('LABEL_STAFF_NUMBER')" v-model.number="user.StaffNumber"
+                       type="number" />
             </q-card-section>
             <q-card-actions>
               <q-btn :label="$t('BTN_SAVE')" color="primary" @click="saveUser" />

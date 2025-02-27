@@ -92,6 +92,7 @@ func (h *User) AdministrationUserUpdate(c *gin.Context) {
 	user.AccessLevel = userUpdateRequest.AccessLevel
 	user.OvertimeSubtractionAmount = userUpdateRequest.OvertimeSubtractionAmount
 	user.OvertimeSubtractionModel = userUpdateRequest.OvertimeSubtractionModel
+	user.StaffNumber = userUpdateRequest.StaffNumber
 
 	err = h.user.Update(&user)
 	if err != nil {
@@ -114,6 +115,7 @@ func (h *User) AdministrationUserCreate(c *gin.Context) {
 	user.AccessLevel = userCreateRequest.AccessLevel
 	user.FirstName = userCreateRequest.FirstName
 	user.LastName = userCreateRequest.LastName
+	user.StaffNumber = userCreateRequest.StaffNumber
 
 	err = user.SetPassword(userCreateRequest.Password)
 	if err != nil {
@@ -163,6 +165,37 @@ func (h *User) CurrentUserGet(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(user.GetUserResponse()))
+}
+
+func (h *User) CurrentUserUpdate(c *gin.Context) {
+	currentUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	var userUpdateRequest model.UserUpdateRequest
+	err = c.BindJSON(&userUpdateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	user, err := h.user.FindByID(currentUser.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	user.StaffNumber = userUpdateRequest.StaffNumber
+
+	err = h.user.Update(&user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 

@@ -4,3 +4,7 @@ ui/dist
 beetimeclock
 .idea/
 btc.exe
+.direnv/
+images/
+output/
+/upload/

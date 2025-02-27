@@ -40,27 +40,39 @@ func getClient() (*graph.GraphServiceClient, error) {
 	return graph.NewGraphServiceClientWithCredentials(oboCredential, []string{"https://graph.microsoft.com/.default"})
 }
 
-func CreateCalendarEntry(username string, absence *model.Absence) (string, error) {
-	log.Printf("Microsoft Create Event: for %s from %s to %s", username, absence.AbsenceFrom, absence.AbsenceTill)
-	subject := fmt.Sprintf("BTC: %s", absence.AbsenceReason.Description)
+func CreateCalendarEntryFromAbsence(username string, absence *model.Absence) (string, error) {
+	from := fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly))
+	till := fmt.Sprintf("%sT00:00:00", absence.AbsenceTill.Add(24*time.Hour).Format(time.DateOnly))
+	identifier := absence.Identifier.String()
+
+	return CreateCalendarEntry(username, identifier, absence.AbsenceReason.Description, from, till, graphmodels.PRIVATE_SENSITIVITY)
+}
+
+func CreateCalendarEntryFromExternalWork(username string, externalWork *model.ExternalWork) (string, error) {
+	from := externalWork.From.Format("2006-01-02T15:04:05")
+	till := externalWork.Till.Format("2006-01-02T15:04:05")
+	identifier := externalWork.Identifier.String()
+
+	return CreateCalendarEntry(username, identifier, externalWork.Description, from, till, graphmodels.PRIVATE_SENSITIVITY)
+}
+
+func CreateCalendarEntry(username string, identifier string, description string, fromIso string, tillIso string, sensitivity graphmodels.Sensitivity) (string, error) {
+	subject := fmt.Sprintf("BTC: %s", description)
 	requestBody := graphmodels.NewEvent()
 	requestBody.SetSubject(&subject)
 
 	start := graphmodels.NewDateTimeTimeZone()
-	dateTime := fmt.Sprintf("%sT00:00:00", absence.AbsenceFrom.Format(time.DateOnly))
-	start.SetDateTime(&dateTime)
+	start.SetDateTime(&fromIso)
 	timeZone := "Europe/Berlin"
 	start.SetTimeZone(&timeZone)
 	requestBody.SetStart(start)
 
 	end := graphmodels.NewDateTimeTimeZone()
-	enddateTime := fmt.Sprintf("%sT00:00:00", absence.AbsenceTill.Add(24*time.Hour).Format(time.DateOnly))
-	end.SetDateTime(&enddateTime)
+	end.SetDateTime(&tillIso)
 	end.SetTimeZone(&timeZone)
 	requestBody.SetEnd(end)
 
-	transactionId := absence.Identifier.String()
-	requestBody.SetTransactionId(&transactionId)
+	requestBody.SetTransactionId(&identifier)
 
 	isAllDay := true
 	requestBody.SetIsAllDay(&isAllDay)
@@ -71,7 +83,6 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	reminder := false
 	requestBody.SetIsReminderOn(&reminder)
 
-	sensitivity := graphmodels.PRIVATE_SENSITIVITY
 	requestBody.SetSensitivity(&sensitivity)
 
 	graphClient, err := getClient()
@@ -93,13 +104,13 @@ func CreateCalendarEntry(username string, absence *model.Absence) (string, error
 	return *result.GetId(), nil
 }
 
-func DeleteCalendarEntry(username string, absence *model.Absence, absenceExternalEvent *model.AbsenceExternalEvent) error {
+func DeleteCalendarEntry(username string, externalEventId string) error {
 	graphClient, err := getClient()
 	if err != nil {
 		return err
 	}
 
-	err = graphClient.Users().ByUserId(username).Events().ByEventId(absenceExternalEvent.ExternalEventID).Delete(context.Background(), nil)
+	err = graphClient.Users().ByUserId(username).Events().ByEventId(externalEventId).Delete(context.Background(), nil)
 	if err != nil {
 		if odataErr, ok := err.(*odataerrors.ODataError); ok {
 			if *odataErr.GetErrorEscaped().GetCode() == "ErrorItemNotFound" {

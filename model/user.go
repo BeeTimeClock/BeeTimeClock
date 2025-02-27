@@ -29,6 +29,7 @@ type User struct {
 	WorkingHoursPerWeek       float64
 	OvertimeSubtractionModel  OvertimeSubtractionModel
 	OvertimeSubtractionAmount float64
+	StaffNumber               int64
 }
 
 func NewUser(username string) User {
@@ -54,6 +55,7 @@ type UserCreateRequest struct {
 	LastName            string
 	HolidayDaysPerYear  uint
 	WorkingHoursPerWeek float64
+	StaffNumber         int64
 }
 
 type UserUpdateRequest struct {
@@ -64,6 +66,7 @@ type UserUpdateRequest struct {
 	WorkingHoursPerWeek       float64
 	OvertimeSubtractionAmount float64
 	OvertimeSubtractionModel  OvertimeSubtractionModel
+	StaffNumber               int64
 }
 
 type UserResponse struct {
@@ -74,6 +77,7 @@ type UserResponse struct {
 	AccessLevel               string
 	OvertimeSubtractionModel  OvertimeSubtractionModel
 	OvertimeSubtractionAmount float64
+	StaffNumber               int64
 }
 
 type UserApikey struct {
@@ -105,6 +109,7 @@ func (u *User) GetUserResponse() UserResponse {
 		AccessLevel:               string(u.AccessLevel),
 		OvertimeSubtractionModel:  u.OvertimeSubtractionModel,
 		OvertimeSubtractionAmount: u.OvertimeSubtractionAmount,
+		StaffNumber:               u.StaffNumber,
 	}
 }
 

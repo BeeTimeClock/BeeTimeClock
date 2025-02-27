@@ -1,26 +1,56 @@
-import { ApiUser, AuthRequest, AuthResponse, User } from 'src/models/Authentication';
-import {AuthProviders, BackendStatus, BaseResponse, MicrosoftAuthSettings, UserApikey, UserApikeyCreateRequest} from 'src/models/Base';
-import {api} from 'boot/axios';
-import {AxiosResponse} from 'axios';
+import {
+  ApiUser,
+  AuthRequest,
+  AuthResponse,
+  User,
+} from 'src/models/Authentication';
+import {
+  AuthProviders,
+  BackendStatus,
+  BaseResponse,
+  MicrosoftAuthSettings,
+  UserApikey,
+  UserApikeyCreateRequest,
+} from 'src/models/Base';
+import { api } from 'boot/axios';
+import { AxiosResponse } from 'axios';
 import {
   OvertimeResponse,
   SumResponse,
   Timestamp,
   TimestampCorrectionCreateRequest,
   TimestampCreateRequest,
-  TimestampGroup, TimestampYearMonthGrouped
+  TimestampGroup,
+  TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
 import {
   AbsenceCreateRequest,
   AbsenceSummaryItem,
   AbsenceUserSummary,
-  ApiAbsence, ApiAbsenceReason
+  ApiAbsence,
+  ApiAbsenceReason,
 } from 'src/models/Absence';
-import {Settings} from 'src/models/Settings';
-import { ApiTeam, ApiTeamCreateRequest, ApiTeamMember, ApiTeamMemberCreateRequest } from 'src/models/Team';
+import { Settings } from 'src/models/Settings';
+import {
+  ApiTeam,
+  ApiTeamCreateRequest,
+  ApiTeamMember,
+  ApiTeamMemberCreateRequest,
+} from 'src/models/Team';
+import {
+  ApiExternalWork,
+  ApiExternalWorkCompensation,
+  ApiExternalWorkCreateRequest,
+  ApiExternalWorkExpanse, ApiExternalWorkInvoicedInfo,
+  ExternalWorkCompensation
+} from 'src/models/ExternalWork';
+import { ApiOvertimeMonthQuota } from 'src/models/Overtime';
 
 class BeeTimeClock {
-  login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
+  login(
+    username: string,
+    password: string
+  ): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
     const authRequest = {
       Username: username,
       Password: password,
@@ -29,204 +59,430 @@ class BeeTimeClock {
     return api.get('/api/v1/auth', { params: authRequest });
   }
 
-  timestampQueryCurrentMonthGrouped() : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+  timestampQueryCurrentMonthGrouped(): Promise<
+    AxiosResponse<BaseResponse<TimestampGroup[]>>
+  > {
     return api.get('/api/v1/timestamp/query/current_month/grouped');
   }
 
-  timestampQueryMonthGrouped(year: number, month: number) : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
-    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/grouped`)
+  timestampQueryMonthGrouped(
+    year: number,
+    month: number
+  ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get(
+      `/api/v1/timestamp/query/year/${year}/month/${month}/grouped`
+    );
   }
 
-  timestampOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
-    return api.get('/api/v1/timestamp/overtime');
-
-  }
-
-  timestampQueryCurrentMonthOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+  timestampQueryCurrentMonthOvertime(): Promise<
+    AxiosResponse<BaseResponse<SumResponse>>
+  > {
     return api.get('/api/v1/timestamp/query/current_month/overtime');
   }
 
-  timestampActionCheckin(isHomeoffice = false) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+  timestampActionCheckin(
+    isHomeoffice = false
+  ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     const timestampCreateRequest = {
       IsHomeoffice: isHomeoffice,
     } as TimestampCreateRequest;
 
-    return api.post('/api/v1/timestamp/action/checkin',  timestampCreateRequest);
+    return api.post('/api/v1/timestamp/action/checkin', timestampCreateRequest);
   }
 
-  timestampCorrectionCreate(timestamp: Timestamp, timestampCorrectionCreateRequest: TimestampCorrectionCreateRequest) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
-    return api.post(`/api/v1/timestamp/${timestamp.ID}/correction`, timestampCorrectionCreateRequest)
+  timestampCorrectionCreate(
+    timestamp: Timestamp,
+    timestampCorrectionCreateRequest: TimestampCorrectionCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.post(
+      `/api/v1/timestamp/${timestamp.ID}/correction`,
+      timestampCorrectionCreateRequest
+    );
   }
 
-  timestampCreate(timestampCreateRequest: TimestampCreateRequest) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+  timestampCreate(
+    timestampCreateRequest: TimestampCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     return api.post('/api/v1/timestamp', timestampCreateRequest);
   }
 
-  timestampActionCheckout(isHomeoffice: false) : Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+  timestampActionCheckout(
+    isHomeoffice: false
+  ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     const timestampCheckoutRequest = {
       IsHomeoffice: isHomeoffice,
     } as TimestampCreateRequest;
 
-
-    return api.post('/api/v1/timestamp/action/checkout', {timestampCheckoutRequest});
+    return api.post('/api/v1/timestamp/action/checkout', {
+      timestampCheckoutRequest,
+    });
   }
 
-  absenceReasons() : Promise<AxiosResponse<BaseResponse<ApiAbsenceReason[]>>> {
+  absenceReasons(): Promise<AxiosResponse<BaseResponse<ApiAbsenceReason[]>>> {
     return api.get('/api/v1/absence/reasons');
   }
 
-  administrationUpdateAbsenceReason(absenceReasonId: number, absenceReason: ApiAbsenceReason) : Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
-    return api.put(`/api/v1/administration/absence/reasons/${absenceReasonId}`, absenceReason)
+  administrationUpdateAbsenceReason(
+    absenceReasonId: number,
+    absenceReason: ApiAbsenceReason
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
+    return api.put(
+      `/api/v1/administration/absence/reasons/${absenceReasonId}`,
+      absenceReason
+    );
   }
 
-  administrationCreateAbsenceReason(absenceReason: ApiAbsenceReason) : Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
+  administrationCreateAbsenceReason(
+    absenceReason: ApiAbsenceReason
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
     return api.post('/api/v1/administration/absence/reasons', absenceReason);
   }
 
-  createAbsence(absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
-    absenceCreateRequest.AbsenceFrom = new Date(absenceCreateRequest.AbsenceFrom)
-    absenceCreateRequest.AbsenceTill = new Date(absenceCreateRequest.AbsenceTill)
+  createAbsence(
+    absenceCreateRequest: AbsenceCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
+    absenceCreateRequest.AbsenceFrom = new Date(
+      absenceCreateRequest.AbsenceFrom
+    );
+    absenceCreateRequest.AbsenceTill = new Date(
+      absenceCreateRequest.AbsenceTill
+    );
 
     return api.post('/api/v1/absence', absenceCreateRequest);
   }
 
-  deleteAbsence(absenceId: number) : Promise<AxiosResponse<BaseResponse<never>>> {
+  deleteAbsence(
+    absenceId: number
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(`/api/v1/absence/${absenceId}`);
   }
 
-  getAbsences() : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
-    return api.get('/api/v1/absence')
+  getAbsences(): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get('/api/v1/absence');
   }
 
-  getMeUser() : Promise<AxiosResponse<BaseResponse<User>>> {
+  getMeUser(): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.get('/api/v1/user/me');
   }
 
-  queryAbsenceSummary() : Promise<AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>> {
-    return api.get('/api/v1/absence/query/users/summary')
+  updateMeUser(user: User): Promise<AxiosResponse<BaseResponse<User>>> {
+    return api.put('/api/v1/user/me', user);
   }
 
-  queryMyAbsenceSummary() : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
-    return api.get('/api/v1/absence/query/me/summary')
+
+  queryAbsenceSummary(): Promise<
+    AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
+  > {
+    return api.get('/api/v1/absence/query/users/summary');
   }
 
-  administrationGetUsers(withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiUser[]>>> {
+  queryMyAbsenceSummary(): Promise<
+    AxiosResponse<BaseResponse<AbsenceUserSummary>>
+  > {
+    return api.get('/api/v1/absence/query/me/summary');
+  }
+
+  getExternalWork(): Promise<AxiosResponse<BaseResponse<ApiExternalWork[]>>> {
+    return api.get('/api/v1/external_work');
+  }
+
+  getExternalWorkInvoiced(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkInvoicedInfo[]>>> {
+    return api.get('/api/v1/external_work/invoiced');
+  }
+
+  getExternalWorkById(
+    id: number
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.get(`/api/v1/external_work/${id}`);
+  }
+
+  submitExternalWork(
+    externalWorkId: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.post(`/api/v1/external_work/${externalWorkId}/action/submit`);
+  }
+
+  createExternalWork(
+    externalWorkCreateRequest: ApiExternalWorkCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.post('/api/v1/external_work', externalWorkCreateRequest);
+  }
+
+  createExternalWorkExpanse(
+    externalWorkId: number,
+    externalWorkExpanse: ApiExternalWorkExpanse
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
+    return api.post(
+      `/api/v1/external_work/${externalWorkId}/expanse`,
+      externalWorkExpanse
+    );
+  }
+
+  updateExternalWorkExpanse(
+    externalWorkId: number,
+    externalWorkExpanseId: number,
+    externalWorkExpanse: ApiExternalWorkExpanse
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
+    return api.put(
+      `/api/v1/external_work/${externalWorkId}/expanse/${externalWorkExpanseId}`,
+      externalWorkExpanse
+    );
+  }
+
+  administrationGetUsers(
+    withData?: boolean
+  ): Promise<AxiosResponse<BaseResponse<ApiUser[]>>> {
     const params = {
       with_data: withData,
-    } ;
+    };
 
     return api.get('/api/v1/administration/user', { params: params });
   }
 
-  administrationGetTeams(withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
+  administrationGetTeams(
+    withData?: boolean
+  ): Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
     const params = {
       with_data: withData,
-    } ;
+    };
 
     return api.get('/api/v1/administration/team', { params: params });
   }
 
-  administrationCreateTeam(teamCreateRequest: ApiTeamCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
-    return api.post('/api/v1/administration/team', teamCreateRequest)
+  administrationCreateTeam(
+    teamCreateRequest: ApiTeamCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
+    return api.post('/api/v1/administration/team', teamCreateRequest);
   }
 
-  administrationGetTeam(teamId: number, withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
+  administrationGetTeam(
+    teamId: number,
+    withData?: boolean
+  ): Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
     const params = {
       with_data: withData,
-    }
-    return api.get(`/api/v1/administration/team/${teamId}`, {params: params});
+    };
+    return api.get(`/api/v1/administration/team/${teamId}`, { params: params });
   }
 
-  administrationGetTeamMembers(teamId: number, withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiTeamMember[]>>> {
+  administrationGetTeamMembers(
+    teamId: number,
+    withData?: boolean
+  ): Promise<AxiosResponse<BaseResponse<ApiTeamMember[]>>> {
     const params = {
       with_data: withData,
-    } ;
+    };
 
-    return api.get(`/api/v1/administration/team/${teamId}/member`, { params: params });
+    return api.get(`/api/v1/administration/team/${teamId}/member`, {
+      params: params,
+    });
   }
 
-  administrationCreateTeamMember(teamId: number, teamMemberCreateRequest: ApiTeamMemberCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiTeamMember>>> {
-    return api.post(`/api/v1/administration/team/${teamId}/member`, teamMemberCreateRequest)
+  administrationCreateTeamMember(
+    teamId: number,
+    teamMemberCreateRequest: ApiTeamMemberCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<ApiTeamMember>>> {
+    return api.post(
+      `/api/v1/administration/team/${teamId}/member`,
+      teamMemberCreateRequest
+    );
   }
 
-  administrationDeleteTeamMember(teamId: number, teamMemberId: number) : Promise<AxiosResponse<BaseResponse<never>>> {
-    return api.delete(`/api/v1/administration/team/${teamId}/member/${teamMemberId}`)
+  administrationDeleteTeamMember(
+    teamId: number,
+    teamMemberId: number
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(
+      `/api/v1/administration/team/${teamId}/member/${teamMemberId}`
+    );
   }
 
-  administrationGetUserById(userId: string) : Promise<AxiosResponse<BaseResponse<User>>> {
+  administrationGetUserById(
+    userId: string
+  ): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.get(`/api/v1/administration/user/${userId}`);
   }
 
-  administrationUpdateUser(user: User) : Promise<AxiosResponse<BaseResponse<User>>> {
+  administrationUpdateUser(
+    user: User
+  ): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.put(`/api/v1/administration/user/${user.ID}`, user);
   }
 
-  administrationDeleteUser(user: User) : Promise<AxiosResponse<BaseResponse<never>>> {
+  administrationDeleteUser(
+    user: User
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(`/api/v1/administration/user/${user.ID}`);
   }
 
-  administrationSummaryUserCurrentYear(userId: number, year: number) : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
-    return api.get(`/api/v1/administration/user/${userId}/absence/year/${year}/summary`)
+  administrationSummaryUserCurrentYear(
+    userId: number,
+    year: number
+  ): Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
+    return api.get(
+      `/api/v1/administration/user/${userId}/absence/year/${year}/summary`
+    );
   }
 
-  getStatus() : Promise<AxiosResponse<BaseResponse<BackendStatus>>> {
+  getStatus(): Promise<AxiosResponse<BaseResponse<BackendStatus>>> {
     return api.get('/api/v1/status');
   }
 
-  getAuthProviders() : Promise<AxiosResponse<BaseResponse<AuthProviders>>> {
+  getAuthProviders(): Promise<AxiosResponse<BaseResponse<AuthProviders>>> {
     return api.get('/api/v1/auth/providers');
   }
 
-  getMicrosoftAuthSettings() : Promise<AxiosResponse<BaseResponse<MicrosoftAuthSettings>>> {
+  getMicrosoftAuthSettings(): Promise<
+    AxiosResponse<BaseResponse<MicrosoftAuthSettings>>
+  > {
     return api.get('/api/v1/auth/microsoft');
   }
 
-  getUserApikey() : Promise<AxiosResponse<BaseResponse<UserApikey[]>>> {
+  getUserApikey(): Promise<AxiosResponse<BaseResponse<UserApikey[]>>> {
     return api.get('/api/v1/user/me/apikey');
   }
 
-  createUserApikey(userApikeyCreateRequest: UserApikeyCreateRequest) : Promise<AxiosResponse<BaseResponse<UserApikey>>> {
+  createUserApikey(
+    userApikeyCreateRequest: UserApikeyCreateRequest
+  ): Promise<AxiosResponse<BaseResponse<UserApikey>>> {
     return api.post('/api/v1/user/me/apikey', userApikeyCreateRequest);
   }
 
-  timestampQueryMonths() : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+  timestampQueryMonths(): Promise<
+    AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>
+  > {
     return api.get('/api/v1/timestamp/query/timestamp/months');
   }
 
-  administrationTimestampUserMonths(userId: string) : Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+  administrationTimestampUserMonths(
+    userId: string
+  ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
     return api.get(`/api/v1/administration/user/${userId}/timestamp/months`);
   }
 
-  administrationTimestampQueryMonthGrouped(userId: string, year: number, month: number) : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
-    return api.get(`/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`)
+  administrationTimestampQueryMonthGrouped(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get(
+      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`
+    );
   }
 
-  administrationTimestampQueryMonthOvertime(userId: string, year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
-    return api.get(`/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/overtime`)
+  administrationTimestampQueryMonthOvertime(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
+    return api.get(
+      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/overtime`
+    );
   }
 
-  administrationAbsenceYears(userId: string) : Promise<AxiosResponse<BaseResponse<number[]>>> {
-    return api.get(`/api/v1/administration/user/${userId}/absence/years`)
+  administrationAbsenceYears(
+    userId: string
+  ): Promise<AxiosResponse<BaseResponse<number[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/absence/years`);
   }
 
-  administrationAbsencesByYear(userId: string, year: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
-    return api.get(`/api/v1/administration/user/${userId}/absence/year/${year}`)
+  administrationAbsencesByYear(
+    userId: string,
+    year: number
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get(
+      `/api/v1/administration/user/${userId}/absence/year/${year}`
+    );
   }
 
-  timestampQueryMonthOvertime(year: number, month: number) : Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
-    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/overtime`)
+  timestampQueryMonthOvertime(
+    year: number,
+    month: number
+  ): Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
+    return api.get(
+      `/api/v1/timestamp/query/year/${year}/month/${month}/overtime`
+    );
   }
 
-  administrationSettings() : Promise<AxiosResponse<BaseResponse<Settings>>> {
+  administrationSettings(): Promise<AxiosResponse<BaseResponse<Settings>>> {
     return api.get('/api/v1/administration/settings');
   }
 
-  administrationSettingsSave(settings: Settings) : Promise<AxiosResponse<BaseResponse<Settings>>> {
+  administrationSettingsSave(
+    settings: Settings
+  ): Promise<AxiosResponse<BaseResponse<Settings>>> {
     return api.put('/api/v1/administration/settings', settings);
   }
 
-  administrationNotifyAbsenceWeek() : Promise<AxiosResponse<BaseResponse<never>>>{
-    return api.post('/api/v1/administration/notify/absence/week', {})
+  administrationNotifyAbsenceWeek(): Promise<
+    AxiosResponse<BaseResponse<never>>
+  > {
+    return api.post('/api/v1/administration/notify/absence/week', {});
+  }
+
+  overtimeMonthQuotas(): Promise<
+    AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>
+  > {
+    return api.get('/api/v1/overtime');
+  }
+
+  calculateOvertimeMonthQuota(
+    year: number,
+    month: number
+  ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
+    return api.post(`/api/v1/overtime/action/calculate/${year}/${month}`, {});
+  }
+
+  overtimeTotal(): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get('/api/v1/overtime/total');
+  }
+
+  administrationExternalWorkCompensation(): Promise<
+    AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>
+  > {
+    return api.get('/api/v1/administration/external_work/compensation');
+  }
+
+  administrationExternalWorkCompensationUpdate(
+    id: number,
+    externalWorkCompensation: ExternalWorkCompensation
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation>>> {
+    return api.put(
+      `/api/v1/administration/external_work/compensation/${id}`,
+      externalWorkCompensation
+    );
+  }
+
+  externalWorkDownloadPdf(): Promise<AxiosResponse<Blob>> {
+    return api.get('/api/v1/external_work/action/export/pdf', {
+      responseType: 'blob',
+    });
+  }
+
+  externalWorkDownloadInvoicedPdf(identifier: string): Promise<AxiosResponse<Blob>> {
+    return api.get(`/api/v1/external_work/action/export/pdf/${identifier}`, {
+      responseType: 'blob',
+    });
+  }
+
+
+  administrationUploadLogoFile(
+    file: File|Blob
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
+    const fileData = new FormData();
+    fileData.append('file', file);
+
+    return api.post('/api/v1/administration/settings/logo', fileData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  }
+
+  getLogo(): Promise<AxiosResponse<Blob>> {
+    return api.get('/api/v1/logo', {
+      responseType: 'blob',
+    });
   }
 }
 

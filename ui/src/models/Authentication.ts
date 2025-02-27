@@ -17,6 +17,7 @@ export interface ApiUser {
   AccessLevel: string;
   OvertimeSubtractionModel: string;
   OvertimeSubtractionAmount: number;
+  StaffNumber: number;
 }
 
 export class User extends autoImplement<ApiUser>() {

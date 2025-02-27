@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -36,6 +37,7 @@ func NewSuccessResponse(data interface{}) SuccessResponse {
 }
 
 func NewErrorResponse(err error) ErrorResponse {
+	log.Printf("Error: %s", err.Error())
 	return ErrorResponse{
 		BaseResponse: getBaseResponse("error"),
 		Error:        err,

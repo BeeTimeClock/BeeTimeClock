@@ -54,11 +54,20 @@
           <q-item clickable v-ripple :to="{name: 'AbsenceOverview'}">
             {{ $t('MENU_ABSENCE') }}
           </q-item>
+          <q-item clickable v-ripple :to="{name: 'ExternalWorkOverview'}">
+            {{ $t('MENU_EXTERNAL_WORK') }}
+          </q-item>
+          <q-item clickable v-ripple :to="{name: 'OvertimeOverview'}">
+            {{ $t('MENU_OVERTIME') }}
+          </q-item>
           <q-item-label
             header>
             {{ $t('LABEL_ME') }}</q-item-label>
           <q-item clickable v-ripple :to="{name: 'UserApikeyOverview'}">
             {{ $t('MENU_APIKEY') }}
+          </q-item>
+          <q-item clickable v-ripple :to="{name: 'UserSettings'}">
+            {{ $t('MENU_SETTINGS') }}
           </q-item>
           <div v-if="isAdministrator">
             <q-item-label header>
@@ -70,9 +79,25 @@
             <q-item clickable v-ripple :to="{name: 'AdministrationTeamOverview'}">
               {{ $t('MENU_TEAMS') }}
             </q-item>
-            <q-item clickable v-ripple :to="{name: 'AdministrationSettings'}">
-              {{ $t('MENU_SETTINGS') }}
-            </q-item>
+            <q-expansion-item content-inset-level="0.5" :label="$t('MENU_SETTINGS')">
+              <q-list>
+                <q-item clickable v-ripple :to="{name: 'AdministrationSettingsCommon'}">
+                  {{$t('MENU_COMMON')}}
+                </q-item>
+                <q-item clickable v-ripple :to="{name: 'AdministrationSettingsTimestamp'}">
+                  {{$t('MENU_TIMESTAMP')}}
+                </q-item>
+                <q-item clickable v-ripple :to="{name: 'AdministrationSettingsAbsence'}">
+                  {{$t('MENU_ABSENCE')}}
+                </q-item>
+                <q-item clickable v-ripple :to="{name: 'AdministrationSettingsNotify'}">
+                  {{$t('MENU_NOTIFY')}}
+                </q-item>
+                <q-item clickable v-ripple :to="{name: 'AdministrationSettingsExternalWork'}">
+                  {{$t('MENU_EXTERNAL_WORK')}}
+                </q-item>
+              </q-list>
+            </q-expansion-item>
           </div>
         </q-list>
       </q-scroll-area>

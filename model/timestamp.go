@@ -18,15 +18,6 @@ type Timestamp struct {
 	Corrections       []TimestampCorrection
 }
 
-type TimestampMonthQuota struct {
-	gorm.Model
-	UserID uint `gorm:"index:idx_month_quota,unique;index"`
-	User   User
-	Year   int `gorm:"index:idx_month_quota,unique"`
-	Month  int `gorm:"index:idx_month_quota,unique"`
-	Hours  float64
-}
-
 type TimestampCorrection struct {
 	gorm.Model
 	TimestampID        uint `gorm:"not null"`
@@ -67,9 +58,16 @@ type TimestampGroup struct {
 	OvertimeHours   float64
 }
 
+type TimestampMonthCalculated struct {
+	TimestampGroups []TimestampGroup
+	OvertimeHours   float64
+	WorkingHours    float64
+}
+
 type TimestampYearMonthGrouped struct {
-	Year  int
-	Month int
+	Year   int
+	Month  int
+	UserID uint
 }
 
 func (t *Timestamp) IsComplete() bool {
@@ -105,6 +103,20 @@ func (t *Timestamp) CalculateWorkingHours() (float64, float64) {
 type WorkTimeModel struct {
 	DefaultHoursPerWeekday   float64
 	HoursPerWeekdayException map[time.Weekday]float64
+}
+
+func (w *WorkTimeModel) GetWorkingHoursForDay(input time.Time, holidays Holidays) float64 {
+	if holidays.Contains(input) {
+		return 0.0
+	}
+
+	neededHours := w.DefaultHoursPerWeekday
+
+	if hours, exists := w.HoursPerWeekdayException[input.Weekday()]; exists {
+		neededHours = hours
+	}
+
+	return neededHours
 }
 
 func DefaultWorkTimeModel() WorkTimeModel {
