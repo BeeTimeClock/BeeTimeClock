@@ -18,6 +18,7 @@ import {
 } from 'src/models/Absence';
 import {Settings} from 'src/models/Settings';
 import { ApiTeam, ApiTeamCreateRequest, ApiTeamMember, ApiTeamMemberCreateRequest } from 'src/models/Team';
+import { ApiExternalWork, ApiExternalWorkCreateRequest, ApiExternalWorkExpanse } from 'src/models/ExternalWork';
 
 class BeeTimeClock {
   login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
@@ -108,6 +109,26 @@ class BeeTimeClock {
 
   queryMyAbsenceSummary() : Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
     return api.get('/api/v1/absence/query/me/summary')
+  }
+
+  getExternalWork() : Promise<AxiosResponse<BaseResponse<ApiExternalWork[]>>> {
+    return api.get('/api/v1/external_work')
+  }
+
+  getExternalWorkById(id: number) : Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.get(`/api/v1/external_work/${id}`)
+  }
+
+  createExternalWork(externalWorkCreateRequest: ApiExternalWorkCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.post('/api/v1/external_work', externalWorkCreateRequest)
+  }
+
+  createExternalWorkExpanse(externalWorkId: number, externalWorkExpanse: ApiExternalWorkExpanse) : Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
+    return api.post(`/api/v1/external_work/${externalWorkId}/expanse`, externalWorkExpanse)
+  }
+
+  updateExternalWorkExpanse(externalWorkId: number, externalWorkExpanseId: number, externalWorkExpanse: ApiExternalWorkExpanse) : Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
+    return api.put(`/api/v1/external_work/${externalWorkId}/expanse/${externalWorkExpanseId}`, externalWorkExpanse)
   }
 
   administrationGetUsers(withData?: boolean) : Promise<AxiosResponse<BaseResponse<ApiUser[]>>> {
