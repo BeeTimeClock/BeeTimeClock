@@ -54,6 +54,9 @@
           <q-item clickable v-ripple :to="{name: 'AbsenceOverview'}">
             {{ $t('MENU_ABSENCE') }}
           </q-item>
+          <q-item clickable v-ripple :to="{name: 'ExternalWorkOverview'}">
+            {{ $t('MENU_EXTERNAL_WORK') }}
+          </q-item>
           <q-item-label
             header>
             {{ $t('LABEL_ME') }}</q-item-label>

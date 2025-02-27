@@ -82,12 +82,19 @@ func main() {
 		panic(err)
 	}
 
+	externalWorkRepo := repository.NewExternalWork(env)
+	err = externalWorkRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
 	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
 	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo)
+	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 
@@ -270,6 +277,13 @@ func main() {
 				absence.GET("reasons", absenceHandler.AbsenceReasonsGetAll)
 			}
 
+			externalWork := v1.Group("external_work")
+			{
+				externalWork.GET("", externalWorkHandler.ExternalWorkGetAll)
+				externalWork.GET(":id", externalWorkHandler.ExternalWorkGetById)
+				externalWork.POST("", externalWorkHandler.ExternalWorkCreate)
+			}
+
 			user := v1.Group("user")
 			{
 				user.GET("me", userHandler.CurrentUserGet)
@@ -414,7 +428,7 @@ func migrateExternalCalendar(migrationRepo *repository.Migration, absenceRepo *r
 			absenceRepo.Update(&absence)
 		}
 
-		eventId, err := microsoft.CreateCalendarEntry(absence.User.Username, &absence)
+		eventId, err := microsoft.CreateCalendarEntryFromAbsence(absence.User.Username, &absence)
 		if err != nil {
 			return err
 		}

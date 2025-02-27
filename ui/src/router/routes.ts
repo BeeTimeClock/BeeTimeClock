@@ -28,6 +28,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/absence/AbsenceOverviewPage.vue'),
       },
       {
+        name: 'ExternalWorkOverview',
+        path: 'external_work',
+        component: () => import('pages/externalWork/ExternalWorkOverviewPage.vue')
+      },
+      {
+        name: 'ExternalWorkDetail',
+        path: 'external_work/:externalWorkId',
+        component: () => import('pages/externalWork/ExternalWorkDetailPage.vue')
+      },
+      {
         name: 'FuelOverview',
         path: 'fuel',
         component: () => import('pages/fuel/FuelOverviewPage.vue')
