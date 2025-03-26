@@ -4,7 +4,7 @@
       <q-page class="flex flex-center bg-grey-2">
         <q-card class="q-pa-md shadow-2 my_card" bordered>
           <q-card-section class="text-center">
-            <img width="256" :src="'logo.png'" alt="btc-logo"/>
+            <img width="256" :src="'logo.svg'" alt="btc-logo"/>
             <div class="text-grey-9 text-h3 text-weight-bold">Bee Time Clock</div>
             <div class="text-grey-9 text-h5 text-weight-bold">{{ $t('LABEL_SIGN_IN') }}</div>
           </q-card-section>
