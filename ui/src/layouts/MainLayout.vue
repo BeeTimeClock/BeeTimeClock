@@ -13,7 +13,7 @@
 
         <q-toolbar-title>
           <q-avatar square>
-            <img src="logo.png" alt="btc-logo"/>
+            <img src="logo.svg" alt="btc-logo"/>
           </q-avatar>
           Bee Time Clock
         </q-toolbar-title>
