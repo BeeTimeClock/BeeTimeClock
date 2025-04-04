@@ -35,7 +35,7 @@ watch(formattedDate, (newDateValue) => {
     <template v-slot:prepend>
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="formattedDate" :mask="dateFormat">
+          <q-date v-model="formattedDate" :mask="dateFormat" today-btn>
             <div class="row items-center justify-end">
               <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
             </div>
@@ -47,7 +47,7 @@ watch(formattedDate, (newDateValue) => {
     <template v-slot:append>
       <q-icon name="access_time" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-time v-model="formattedDate" :mask="dateFormat" format24h>
+          <q-time v-model="formattedDate" :mask="dateFormat" format24h now-btn>
             <div class="row items-center justify-end">
               <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
             </div>
