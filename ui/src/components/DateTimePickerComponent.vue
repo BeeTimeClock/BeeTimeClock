@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { date } from 'quasar';
+import {computed, ref, watch} from 'vue';
+import {date} from 'quasar';
 
 const props = defineProps({
   modelValue: {
@@ -23,6 +23,8 @@ const value = computed({
   }
 });
 
+const pickerOpen = ref(false)
+
 const formattedDate = ref(date.formatDate(value.value, dateFormat));
 
 watch(formattedDate, (newDateValue) => {
@@ -32,32 +34,26 @@ watch(formattedDate, (newDateValue) => {
 
 <template>
   <q-input filled v-model="formattedDate" :label="label" mask="">
-    <template v-slot:prepend>
-      <q-icon name="event" class="cursor-pointer">
-        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-date v-model="formattedDate" :mask="dateFormat" today-btn>
-            <div class="row items-center justify-end">
-              <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
-            </div>
-          </q-date>
-        </q-popup-proxy>
-      </q-icon>
-    </template>
-
     <template v-slot:append>
-      <q-icon name="access_time" class="cursor-pointer">
-        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-          <q-time v-model="formattedDate" :mask="dateFormat" format24h now-btn>
-            <div class="row items-center justify-end">
-              <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
-            </div>
-          </q-time>
-        </q-popup-proxy>
+      <q-icon name="event" class="cursor-pointer" @click="pickerOpen = true">
       </q-icon>
     </template>
   </q-input>
+
+  <q-dialog v-model="pickerOpen" id="date-picker">
+      <div class="row justify-center" style="max-width: 50vw">
+        <q-date v-model="formattedDate" :mask="dateFormat" today-btn square flat/>
+        <q-time v-model="formattedDate" :mask="dateFormat" format24h now-btn square flat>
+          <div class="row items-center justify-end">
+            <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat/>
+          </div>
+        </q-time>
+      </div>
+  </q-dialog>
 </template>
 
 <style scoped>
-
+.q-dialog__inner--minimized > div {
+  max-width: unset !important;
+}
 </style>
