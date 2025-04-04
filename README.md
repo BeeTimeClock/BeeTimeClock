@@ -17,7 +17,7 @@ make develop-backend
 
 And frontend with
 ```
-make develop frontend
+make develop-frontend
 ```
 
 
