@@ -280,8 +280,13 @@ func main() {
 			externalWork := v1.Group("external_work")
 			{
 				externalWork.GET("", externalWorkHandler.ExternalWorkGetAll)
-				externalWork.GET(":id", externalWorkHandler.ExternalWorkGetById)
 				externalWork.POST("", externalWorkHandler.ExternalWorkCreate)
+
+				externalWorkDetail := externalWork.Group(":externalWorkId")
+				{
+					externalWorkDetail.GET("", externalWorkHandler.ExternalWorkGetById)
+					externalWorkDetail.POST("expanse", externalWorkHandler.ExternalWorkExpanseCreate)
+				}
 			}
 
 			user := v1.Group("user")

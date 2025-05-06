@@ -72,7 +72,7 @@ onMounted(() => {
         />
       </div>
     </div>
-    <q-inner-loading :showin="loading" />
+    <q-inner-loading :showing="loading" />
   </q-page>
 </template>
 

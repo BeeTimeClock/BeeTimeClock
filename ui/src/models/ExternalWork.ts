@@ -4,13 +4,19 @@ export interface ApiExternalWorkExpanse {
   ID: number;
   ExternalWorkID: number;
   Date: Date;
-  DepartureTime: Date;
+  DepartureTime?: Date;
   ArrivalTime: Date;
   TravelDurationHours: number;
   PauseDurationHours: number;
+  RestDurationHours: number;
   OnSiteFrom: Date;
   OnSiteTill: Date;
+  OnSiteDuration: number;
   Place: string;
+  TotalWorkingHours: number;
+  TotalOperationHours: number;
+  TotalOvertimeHours: number;
+  TotalAwayHours: number;
 }
 
 export class ExternalWorkExpanse extends autoImplement<ApiExternalWorkExpanse>() {

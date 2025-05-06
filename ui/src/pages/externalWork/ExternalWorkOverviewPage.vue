@@ -67,6 +67,7 @@ function saveExternalWork() {
           t('MSG_CREATE_SUCCESS', { item: t('LABEL_EXTERNAL_WORK') })
         );
         promptCreateExternalWork.value = false;
+        loadExternalWorkItems();
       }
     }
   );

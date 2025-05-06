@@ -107,6 +107,16 @@ type WorkTimeModel struct {
 	HoursPerWeekdayException map[time.Weekday]float64
 }
 
+func (w *WorkTimeModel) GetWorkingHoursForDay(input time.Time) float64 {
+	neededHours := w.DefaultHoursPerWeekday
+
+	if hours, exists := w.HoursPerWeekdayException[input.Weekday()]; exists {
+		neededHours = hours
+	}
+
+	return neededHours
+}
+
 func DefaultWorkTimeModel() WorkTimeModel {
 	return WorkTimeModel{
 		DefaultHoursPerWeekday: 8.0,

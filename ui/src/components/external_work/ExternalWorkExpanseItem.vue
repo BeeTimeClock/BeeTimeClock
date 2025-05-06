@@ -1,21 +1,59 @@
 <script setup lang="ts">
 import { date } from 'quasar';
 import { ExternalWorkExpanse } from 'src/models/ExternalWork';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import TimeInput from 'components/TimeInput.vue';
+import BeeTimeClock from 'src/service/BeeTimeClock';
 
 const externalWorkExpanse = defineModel('externalworkexpanse', {
   type: ExternalWorkExpanse,
   required: true,
 });
 const editMode = ref(false);
+const emits = defineEmits(['updated']);
+const isNew = computed(() => {
+  return externalWorkExpanse.value.ID == 0;
+});
+
+function updateOrCreate() {
+  if (isNew.value) {
+    createExternalWorkExpanse();
+  } else {
+    updateExternalWorkExpanse();
+  }
+}
+
+function updateExternalWorkExpanse() {
+  BeeTimeClock.updateExternalWorkExpanse(
+    externalWorkExpanse.value.ExternalWorkID,
+    externalWorkExpanse.value.ID,
+    externalWorkExpanse.value
+  ).then((result) => {
+    if (result.status == 200) {
+      emits('updated');
+    }
+  });
+}
+
+function createExternalWorkExpanse() {
+  BeeTimeClock.createExternalWorkExpanse(
+    externalWorkExpanse.value.ExternalWorkID,
+    externalWorkExpanse.value
+  ).then((result) => {
+    if (result.status == 200) {
+      emits('updated');
+    }
+  });
+}
 </script>
 
 <template>
-  <q-card class="q-mb-lg">
+  <q-card class="q-mb-lg" v-if="externalWorkExpanse">
     <q-card-section class="bg-primary text-white text-h6 row">
       <div class="col">
         {{ date.formatDate(externalWorkExpanse.Date, 'ddd. DD.MM.YYYY') }}
+        {{ externalWorkExpanse.ID }}
+        {{ externalWorkExpanse.ExternalWorkID }}
       </div>
       <div class="col-auto">
         <q-btn
@@ -28,7 +66,7 @@ const editMode = ref(false);
           <q-btn
             color="positive"
             icon="save"
-            @click="editMode = false"
+            @click="updateOrCreate"
             class="q-mr-md"
           />
           <q-btn color="negative" icon="cancel" @click="editMode = false" />
@@ -44,7 +82,7 @@ const editMode = ref(false);
                 v-model="externalWorkExpanse.DepartureTime"
                 v-model:date="externalWorkExpanse.Date"
                 :readonly="!editMode"
-                :label="$t('LABEL_DEPARTURE_TIME')"
+                :label="$t('LABEL_DEPARTURE_TIME_HOME')"
               />
             </q-item-label>
           </q-item-section>
@@ -54,16 +92,22 @@ const editMode = ref(false);
                 v-model="externalWorkExpanse.ArrivalTime"
                 v-model:date="externalWorkExpanse.Date"
                 :readonly="!editMode"
-                :label="$t('LABEL_ARRIVAL_TIME')"
+                :label="$t('LABEL_ARRIVAL_TIME_HOME')"
               />
             </q-item-label>
           </q-item-section>
-          <q-item-section></q-item-section>
           <q-item-section>
             <q-input
               v-model.number="externalWorkExpanse.TravelDurationHours"
-              type="number"
-              :label="$t('LABEL_TRAVEL_DURATION')"
+              :label="$t('LABEL_TRAVEL_DURATION_HOURS')"
+              :readonly="!editMode"
+            />
+          </q-item-section>
+          <q-item-section>
+            <q-input
+              v-model.number="externalWorkExpanse.RestDurationHours"
+              :label="$t('LABEL_REST_DURATION_HOURS')"
+              :readonly="!editMode"
             />
           </q-item-section>
         </q-item>
@@ -93,7 +137,8 @@ const editMode = ref(false);
           </q-item-section>
           <q-item-section>
             <q-input
-              v-model="externalWorkExpanse.PauseDurationHours"
+              v-if="!editMode"
+              v-model.number="externalWorkExpanse.TotalWorkingHours"
               :label="$t('LABEL_ON_SITE_DURATION')"
               readonly
             />
@@ -101,9 +146,27 @@ const editMode = ref(false);
         </q-item>
         <q-item>
           <q-item-section>
-            <q-input v-model="externalWorkExpanse.Place" :label="$t('LABEL_PLACE')" :readonly="!editMode"/>
+            <q-input
+              v-model="externalWorkExpanse.Place"
+              :label="$t('LABEL_PLACE')"
+              :readonly="!editMode"
+            />
           </q-item-section>
         </q-item>
+      </q-list>
+    </q-card-section>
+    <q-card-section>
+      <q-list>
+        <q-expansion-item :label="$t('LABEL_CALCULATION')">
+          <q-list>
+            <q-item>
+              <q-item-section>
+                <q-item-label caption>Spesen (soz frei)</q-item-label>
+                <q-item-label>20 Euro</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-expansion-item>
       </q-list>
     </q-card-section>
   </q-card>

@@ -2,7 +2,9 @@ package handler
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
+	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
@@ -51,7 +53,7 @@ func (h *ExternalWork) ExternalWorkGetById(c *gin.Context) {
 		return
 	}
 
-	idParam := c.Param("id")
+	idParam := c.Param("externalWorkId")
 	id, err := strconv.ParseInt(idParam, 10, 32)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
@@ -69,21 +71,28 @@ func (h *ExternalWork) ExternalWorkGetById(c *gin.Context) {
 		return
 	}
 
-	if len(externalWorkItem.WorkExpanses) == 0 {
-		fromDay := helper.GetDayDate(externalWorkItem.From)
-		tillDay := helper.GetDayDate(externalWorkItem.Till)
+	fromDay := helper.GetDayDate(externalWorkItem.From)
+	tillDay := helper.GetDayDate(externalWorkItem.Till)
 
-		currentDay := fromDay
-		for currentDay.Before(tillDay.AddDate(0, 0, 1)) {
+	currentDay := fromDay
+	for currentDay.Before(tillDay.AddDate(0, 0, 1)) {
+		if !slices.ContainsFunc(externalWorkItem.WorkExpanses, func(n model.ExternalWorkExpense) bool {
+			return n.Date.Round(24*time.Hour).UTC() == currentDay
+		}) {
 			expanseItem := model.ExternalWorkExpense{
-				ExternalWork: externalWorkItem,
-				Date:         currentDay,
+				ExternalWork:   externalWorkItem,
+				ExternalWorkID: externalWorkItem.ID,
+				Date:           currentDay,
 			}
 
 			externalWorkItem.WorkExpanses = append(externalWorkItem.WorkExpanses, expanseItem)
-
-			currentDay = currentDay.AddDate(0, 0, 1)
 		}
+
+		currentDay = currentDay.AddDate(0, 0, 1)
+	}
+
+	for _, workExpense := range externalWorkItem.WorkExpanses {
+		externalWorkItem.WorkExpansesCalculated = append(externalWorkItem.WorkExpansesCalculated, workExpense.Calculate())
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(externalWorkItem))
@@ -138,4 +147,57 @@ func (h *ExternalWork) ExternalWorkCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(externalWork))
+}
+
+func (h *ExternalWork) ExternalWorkExpanseCreate(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	idParam := c.Param("externalWorkId")
+	id, err := strconv.ParseInt(idParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	var externalWorkExpenseCreateRequest model.ExternalWorkExpenseCreateRequest
+	err = c.BindJSON(&externalWorkExpenseCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkItem, err := h.externalWork.ExternalWorkFindById(uint(id), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if externalWorkItem.UserID != user.ID {
+		c.Status(http.StatusForbidden)
+		return
+	}
+
+	externalWorkExpense := model.ExternalWorkExpense{
+		ExternalWork:        externalWorkItem,
+		Date:                externalWorkExpenseCreateRequest.Date,
+		DepartureTime:       externalWorkExpenseCreateRequest.DepartureTime,
+		ArrivalTime:         externalWorkExpenseCreateRequest.ArrivalTime,
+		TravelDurationHours: externalWorkExpenseCreateRequest.TravelDurationHours,
+		PauseDurationHours:  externalWorkExpenseCreateRequest.PauseDurationHours,
+		OnSiteFrom:          externalWorkExpenseCreateRequest.OnSiteFrom,
+		OnSiteTill:          externalWorkExpenseCreateRequest.OnSiteFrom,
+		Place:               externalWorkExpenseCreateRequest.Place,
+	}
+
+	err = h.externalWork.ExternalWorkExpenseInsert(&externalWorkExpense)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, externalWorkExpense)
 }
