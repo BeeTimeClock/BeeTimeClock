@@ -11,24 +11,29 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/worker"
 	"github.com/gin-gonic/gin"
 )
 
 type Timestamp struct {
-	env       *core.Environment
-	user      *repository.User
-	timestamp *repository.Timestamp
-	absence   *repository.Absence
-	settings  *repository.Settings
+	env             *core.Environment
+	user            *repository.User
+	timestamp       *repository.Timestamp
+	absence         *repository.Absence
+	settings        *repository.Settings
+	holiday         *repository.Holiday
+	timestampWorker *worker.Timestamp
 }
 
-func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence, settings *repository.Settings) *Timestamp {
+func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence, settings *repository.Settings, holiday *repository.Holiday, timestampWorker *worker.Timestamp) *Timestamp {
 	return &Timestamp{
-		env:       env,
-		user:      user,
-		timestamp: timestamp,
-		absence:   absence,
-		settings:  settings,
+		env:             env,
+		user:            user,
+		timestamp:       timestamp,
+		absence:         absence,
+		settings:        settings,
+		holiday:         holiday,
+		timestampWorker: timestampWorker,
 	}
 }
 
@@ -248,7 +253,7 @@ func (h *Timestamp) TimestampUserQueryMonthGrouped(c *gin.Context) {
 		return
 	}
 
-	result, err := h.groupMonth(user.ID, year, month)
+	result, err := h.timestampWorker.CalculateMonth(user.ID, year, month)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -274,7 +279,7 @@ func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	holidays, err := h.absence.HolidayFindByYear(year)
+	holidays, err := h.holiday.HolidayFindByYear(year)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -319,7 +324,7 @@ func (h *Timestamp) TimestampCurrentUserQueryCurrentMonthGrouped(c *gin.Context)
 	}
 
 	currentYear, currentMonth, _ := time.Now().Date()
-	result, err := h.groupMonth(user.ID, currentYear, int(currentMonth))
+	result, err := h.timestampWorker.CalculateMonth(user.ID, currentYear, int(currentMonth))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -369,13 +374,13 @@ func (h *Timestamp) TimestampQueryMonthGrouped(c *gin.Context) {
 		return
 	}
 
-	result, err := h.groupMonth(user.ID, year, month)
+	result, err := h.timestampWorker.CalculateMonth(user.ID, year, month)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result.TimestampGroups))
 }
 
 func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
@@ -405,7 +410,7 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	holidays, err := h.absence.HolidayFindByYear(year)
+	holidays, err := h.holiday.HolidayFindByYear(year)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -442,103 +447,18 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
-func (h *Timestamp) TimestampOvertime(c *gin.Context) {
-	user, err := auth.GetUserFromSession(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
-		return
-	}
-
-	overtimeHoursCurrentMonth, err := h.overtimeCurrentMonth(user.ID)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-		return
-	}
-
-	overtimeTotal, err := h.timestamp.TimestampMonthQuotaSumByUserID(user.ID)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-		return
-	}
-
-	result := model.SumResult{
-		Total: overtimeTotal + overtimeHoursCurrentMonth,
-	}
-
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
-}
-
 func (h *Timestamp) overtimeCurrentMonth(userID uint) (float64, error) {
 	currentYear, currentMonth, _ := time.Now().Date()
 	return h.overtimeMonth(userID, currentYear, int(currentMonth))
 }
 
 func (h *Timestamp) overtimeMonth(userID uint, year int, month int) (float64, error) {
-	result, err := h.groupMonth(userID, year, month)
+	result, err := h.timestampWorker.CalculateMonth(userID, year, month)
 	if err != nil {
 		return 0.0, err
 	}
 
-	overtimeHours := 0.0
-	for _, group := range result {
-		overtimeHours += group.OvertimeHours
-	}
-
-	return overtimeHours, nil
-}
-
-func (h *Timestamp) groupMonth(userID uint, year int, month int) ([]model.TimestampGroup, error) {
-	currentLocation := time.Now().Location()
-
-	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, currentLocation)
-	lastOfMonth := firstOfMonth.AddDate(0, 1, 0).Add(-1 * time.Second)
-
-	timestamps, err := h.timestamp.FindByUserIDAndDate(userID, firstOfMonth, lastOfMonth)
-	if err != nil {
-		return nil, err
-	}
-
-	grouped := make(map[time.Time]model.TimestampGroup)
-
-	for _, timestamp := range timestamps {
-		year, month, day := timestamp.ComingTimestamp.Date()
-		timestamp_date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-
-		if _, exists := grouped[timestamp_date]; !exists {
-			grouped[timestamp_date] = model.TimestampGroup{
-				IsHomeoffice: true,
-				Date:         timestamp_date,
-			}
-		}
-		group := grouped[timestamp_date]
-
-		if !timestamp.IsHomeoffice {
-			group.IsHomeoffice = false
-		}
-		group.Timestamps = append(grouped[timestamp_date].Timestamps, timestamp)
-
-		workingHours, subtractedHours := timestamp.CalculateWorkingHours()
-		group.WorkingHours += workingHours
-		group.SubtractedHours += subtractedHours
-
-		workTimeModel := model.DefaultWorkTimeModel()
-		neededHours := workTimeModel.DefaultHoursPerWeekday
-
-		if hours, exists := workTimeModel.HoursPerWeekdayException[timestamp_date.Weekday()]; exists {
-			neededHours = hours
-		}
-
-		group.OvertimeHours = group.WorkingHours - neededHours
-
-		grouped[timestamp_date] = group
-	}
-
-	result := []model.TimestampGroup{}
-	for _, value := range grouped {
-		result = append(result, value)
-	}
-
-	return result, nil
+	return result.OvertimeHours, nil
 }
 
 func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {

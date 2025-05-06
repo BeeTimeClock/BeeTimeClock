@@ -18,7 +18,13 @@ import {
 } from 'src/models/Absence';
 import {Settings} from 'src/models/Settings';
 import { ApiTeam, ApiTeamCreateRequest, ApiTeamMember, ApiTeamMemberCreateRequest } from 'src/models/Team';
-import { ApiExternalWork, ApiExternalWorkCreateRequest, ApiExternalWorkExpanse } from 'src/models/ExternalWork';
+import {
+  ApiExternalWork,
+  ApiExternalWorkCompensation,
+  ApiExternalWorkCreateRequest,
+  ApiExternalWorkExpanse, ExternalWorkCompensation
+} from 'src/models/ExternalWork';
+import { ApiOvertimeMonthQuota } from 'src/models/Overtime';
 
 class BeeTimeClock {
   login(username: string, password: string): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
@@ -36,11 +42,6 @@ class BeeTimeClock {
 
   timestampQueryMonthGrouped(year: number, month: number) : Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
     return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/grouped`)
-  }
-
-  timestampOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
-    return api.get('/api/v1/timestamp/overtime');
-
   }
 
   timestampQueryCurrentMonthOvertime() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
@@ -249,6 +250,27 @@ class BeeTimeClock {
   administrationNotifyAbsenceWeek() : Promise<AxiosResponse<BaseResponse<never>>>{
     return api.post('/api/v1/administration/notify/absence/week', {})
   }
+
+  overtimeMonthQuotas() : Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>> {
+    return api.get('/api/v1/overtime')
+  }
+
+  calculateOvertimeMonthQuota(year: number, month: number) : Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
+    return api.post(`/api/v1/overtime/action/calculate/${year}/${month}`, {})
+  }
+
+  overtimeTotal() : Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get('/api/v1/overtime/total')
+  }
+
+  administrationExternalWorkCompensation() : Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>> {
+    return api.get('/api/v1/administration/external_work/compensation');
+  }
+
+  administrationExternalWorkCompensationUpdate(id: number, externalWorkCompensation: ExternalWorkCompensation) : Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation>>> {
+    return api.put(`/api/v1/administration/external_work/compensation/${id}`, externalWorkCompensation)
+  }
 }
+
 
 export default new BeeTimeClock();

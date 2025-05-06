@@ -38,9 +38,21 @@ type AbsenceExternalEvent struct {
 	Update                bool
 }
 
+const (
+	ABESENCE_REASON_OVERTIME_IMPACT_NONE     AbsenceReasonOvertimeImpact = "none"
+	ABESENCE_REASON_OVERTIME_IMPACT_DURATION AbsenceReasonOvertimeImpact = "duration"
+	ABESENCE_REASON_OVERTIME_IMPACT_HOURS    AbsenceReasonOvertimeImpact = "hours"
+	ABESENCE_REASON_OVERTIME_IMPACT_DAYS     AbsenceReasonOvertimeImpact = "days"
+)
+
+type AbsenceReasonOvertimeImpact string
+
 type AbsenceReason struct {
 	gorm.Model
 	Description string
+	Impact      AbsenceReasonOvertimeImpact `gorm:"default:none"`
+	ImpactHours float64
+	ImpactDays  float64
 }
 
 type AbsenceReasonCreateRequest struct {

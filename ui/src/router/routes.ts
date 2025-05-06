@@ -43,6 +43,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/fuel/FuelOverviewPage.vue')
       },
       {
+        name: 'OvertimeOverview',
+        path: 'overtime',
+        component: () => import('pages/overtime/OvertimeOverviewPage.vue')
+      },
+      {
         path: 'me',
         children: [
           {
@@ -76,9 +81,29 @@ const routes: RouteRecordRaw[] = [
             component: () => import('pages/administration/AdministrationTeamDetailPage.vue')
           },
           {
-            name: 'AdministrationSettings',
             path: 'settings',
-            component: () => import('pages/administration/AdministrationSettingsPage.vue')
+            children: [
+              {
+                name: 'AdministrationSettingsAbsence',
+                path: 'absence',
+                component: () => import('pages/administration/settings/AdministrationSettingsAbsencePage.vue')
+              },
+              {
+                name: 'AdministrationSettingsTimestamp',
+                path: 'timestamp',
+                component: () => import('pages/administration/settings/AdministrationSettingsTimestampPage.vue')
+              },
+              {
+                name: 'AdministrationSettingsNotify',
+                path: 'notify',
+                component: () => import('pages/administration/settings/AdministrationSettingsNotifyPage.vue')
+              },
+              {
+                name: 'AdministrationSettingsExternalWork',
+                path: 'external_work',
+                component: () => import('pages/administration/settings/AdministrationSettingsExternalWorkPage.vue')
+              }
+            ],
           }
         ]
       }

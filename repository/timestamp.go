@@ -38,11 +38,6 @@ func (r *Timestamp) Migrate() error {
 		return err
 	}
 
-	err = db.AutoMigrate(&model.TimestampMonthQuota{})
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -184,22 +179,6 @@ func (r *Timestamp) TimestampCorrectionFindByTimestampID(timestampID uint) ([]mo
 	return items, result.Error
 }
 
-func (r *Timestamp) TimestampMonthQuotaSumByUserID(userID uint) (float64, error) {
-	db, err := r.env.DatabaseManager.GetConnection()
-	if err != nil {
-		return 0.0, err
-	}
-	defer r.env.DatabaseManager.CloseConnection(db)
-
-	var item model.SumResult
-	result := db.Model(&model.TimestampMonthQuota{}).
-		Select("SUM(hours) as total").
-		Where("user_id = ?", userID).
-		Scan(&item)
-
-	return item.Total, result.Error
-}
-
 func (r *Timestamp) FindYearMonthsWithTimestampsByUserId(userID uint) ([]model.TimestampYearMonthGrouped, error) {
 	db, err := r.env.DatabaseManager.GetConnection()
 	if err != nil {
@@ -219,6 +198,29 @@ func (r *Timestamp) FindYearMonthsWithTimestampsByUserId(userID uint) ([]model.T
 	result = db.Model(&model.Timestamp{}).
 		Select("distinct extract(year from coming_timestamp) as year, extract(month from coming_timestamp) as month").
 		Where("user_id = ?", userID).
+		Scan(&items)
+
+	return items, result.Error
+}
+
+func (r *Timestamp) FindYearMonthsWithTimestamps() ([]model.TimestampYearMonthGrouped, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.TimestampYearMonthGrouped
+
+	var count int64
+	result := db.Model(&model.Timestamp{}).Count(&count)
+
+	if count == 0 {
+		return items, result.Error
+	}
+
+	result = db.Model(&model.Timestamp{}).
+		Select("distinct extract(year from coming_timestamp) as year, extract(month from coming_timestamp) as month, user_id").
 		Scan(&items)
 
 	return items, result.Error

@@ -8,9 +8,16 @@ export interface AbsenceCreateRequest {
   AbsenceReasonID: number;
 }
 
+export enum AbsenceReasonImpact {
+  Duration = "duration",
+  Hours = "hours"
+}
+
 export interface ApiAbsenceReason {
   ID: number;
   Description: string;
+  Impact?: AbsenceReasonImpact;
+  ImpactHours: number;
 }
 
 export class AbsenceReason extends autoImplement<ApiAbsenceReason>() {

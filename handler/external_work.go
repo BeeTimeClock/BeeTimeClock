@@ -2,7 +2,9 @@ package handler
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
+	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
@@ -18,13 +20,15 @@ type ExternalWork struct {
 	env          *core.Environment
 	user         *repository.User
 	externalWork *repository.ExternalWork
+	holiday      *repository.Holiday
 }
 
-func NewExternalWork(env *core.Environment, user *repository.User, externalWork *repository.ExternalWork) *ExternalWork {
+func NewExternalWork(env *core.Environment, user *repository.User, externalWork *repository.ExternalWork, holiday *repository.Holiday) *ExternalWork {
 	return &ExternalWork{
 		env:          env,
 		user:         user,
 		externalWork: externalWork,
+		holiday:      holiday,
 	}
 }
 
@@ -51,7 +55,7 @@ func (h *ExternalWork) ExternalWorkGetById(c *gin.Context) {
 		return
 	}
 
-	idParam := c.Param("id")
+	idParam := c.Param("externalWorkId")
 	id, err := strconv.ParseInt(idParam, 10, 32)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
@@ -69,24 +73,33 @@ func (h *ExternalWork) ExternalWorkGetById(c *gin.Context) {
 		return
 	}
 
-	if len(externalWorkItem.WorkExpanses) == 0 {
-		fromDay := helper.GetDayDate(externalWorkItem.From)
-		tillDay := helper.GetDayDate(externalWorkItem.Till)
+	fromDay := helper.GetDayDate(externalWorkItem.From)
+	tillDay := helper.GetDayDate(externalWorkItem.Till)
 
-		currentDay := fromDay
-		for currentDay.Before(tillDay.AddDate(0, 0, 1)) {
+	currentDay := fromDay
+	for currentDay.Before(tillDay.AddDate(0, 0, 1)) {
+		if !slices.ContainsFunc(externalWorkItem.WorkExpanses, func(n model.ExternalWorkExpense) bool {
+			return n.Date.Round(24*time.Hour).UTC() == currentDay
+		}) {
 			expanseItem := model.ExternalWorkExpense{
-				ExternalWork: externalWorkItem,
-				Date:         currentDay,
+				ExternalWork:   externalWorkItem,
+				ExternalWorkID: externalWorkItem.ID,
+				Date:           currentDay,
 			}
 
 			externalWorkItem.WorkExpanses = append(externalWorkItem.WorkExpanses, expanseItem)
-
-			currentDay = currentDay.AddDate(0, 0, 1)
 		}
+
+		currentDay = currentDay.AddDate(0, 0, 1)
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(externalWorkItem))
+	holidays, err := h.holiday.HolidayFindByDateRange(fromDay, tillDay)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(externalWorkItem.Calculate(holidays)))
 }
 
 func (h *ExternalWork) ExternalWorkCreate(c *gin.Context) {
@@ -104,11 +117,12 @@ func (h *ExternalWork) ExternalWorkCreate(c *gin.Context) {
 	}
 
 	externalWork := model.ExternalWork{
-		User:        user,
-		From:        externalWorkCreateRequest.From,
-		Till:        externalWorkCreateRequest.Till,
-		Description: externalWorkCreateRequest.Description,
-		Identifier:  uuid.New(),
+		User:                       user,
+		ExternalWorkCompensationID: externalWorkCreateRequest.ExternalWorkCompensationID,
+		From:                       externalWorkCreateRequest.From,
+		Till:                       externalWorkCreateRequest.Till,
+		Description:                externalWorkCreateRequest.Description,
+		Identifier:                 uuid.New(),
 	}
 
 	err = h.externalWork.ExternalWorkInsert(&externalWork)
@@ -138,4 +152,187 @@ func (h *ExternalWork) ExternalWorkCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(externalWork))
+}
+
+func (h *ExternalWork) ExternalWorkExpanseCreate(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	idParam := c.Param("externalWorkId")
+	id, err := strconv.ParseInt(idParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	var externalWorkExpenseCreateRequest model.ExternalWorkExpenseCreateRequest
+	err = c.BindJSON(&externalWorkExpenseCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkItem, err := h.externalWork.ExternalWorkFindById(uint(id), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if externalWorkItem.UserID != user.ID {
+		c.Status(http.StatusForbidden)
+		return
+	}
+
+	externalWorkExpense := model.ExternalWorkExpense{
+		ExternalWork:           externalWorkItem,
+		Date:                   externalWorkExpenseCreateRequest.Date,
+		DepartureTime:          externalWorkExpenseCreateRequest.DepartureTime,
+		ArrivalTime:            externalWorkExpenseCreateRequest.ArrivalTime,
+		TravelDurationHours:    externalWorkExpenseCreateRequest.TravelDurationHours,
+		PauseDurationHours:     externalWorkExpenseCreateRequest.PauseDurationHours,
+		OnSiteFrom:             externalWorkExpenseCreateRequest.OnSiteFrom,
+		OnSiteTill:             externalWorkExpenseCreateRequest.OnSiteTill,
+		Place:                  externalWorkExpenseCreateRequest.Place,
+		TravelWithPrivateCarKm: externalWorkExpenseCreateRequest.TravelWithPrivateCarKm,
+	}
+
+	err = h.externalWork.ExternalWorkExpenseInsert(&externalWorkExpense)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, externalWorkExpense)
+}
+
+func (h *ExternalWork) ExternalWorkExpanseUpdate(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	idParam := c.Param("externalWorkId")
+	id, err := strconv.ParseInt(idParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	expanseIdParam := c.Param("externalWorkExpanseId")
+	expanseId, err := strconv.ParseInt(expanseIdParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	var externalWorkExpenseUpdateRequest model.ExternalWorkExpenseUpdateRequest
+	err = c.BindJSON(&externalWorkExpenseUpdateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkItem, err := h.externalWork.ExternalWorkFindById(uint(id), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if externalWorkItem.UserID != user.ID {
+		c.Status(http.StatusForbidden)
+		return
+	}
+
+	externalWorkExpenseItem, err := h.externalWork.ExternalWorkExpenseFindById(uint(expanseId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkExpenseItem.DepartureTime = externalWorkExpenseUpdateRequest.DepartureTime
+	externalWorkExpenseItem.ArrivalTime = externalWorkExpenseUpdateRequest.ArrivalTime
+	externalWorkExpenseItem.TravelDurationHours = externalWorkExpenseUpdateRequest.TravelDurationHours
+	externalWorkExpenseItem.PauseDurationHours = externalWorkExpenseUpdateRequest.PauseDurationHours
+	externalWorkExpenseItem.OnSiteFrom = externalWorkExpenseUpdateRequest.OnSiteFrom
+	externalWorkExpenseItem.OnSiteTill = externalWorkExpenseUpdateRequest.OnSiteTill
+	externalWorkExpenseItem.Place = externalWorkExpenseUpdateRequest.Place
+	externalWorkExpenseItem.TravelWithPrivateCarKm = externalWorkExpenseUpdateRequest.TravelWithPrivateCarKm
+
+	err = h.externalWork.ExternalWorkExpenseUpdate(&externalWorkExpenseItem)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, externalWorkExpenseItem)
+}
+
+func (h *ExternalWork) AdministrationExternalWorkCompensationGetAll(c *gin.Context) {
+	compensations, err := h.externalWork.ExternalWorkCompensationFindAll()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(compensations))
+}
+
+func (h *ExternalWork) AdministrationExternalWorkCompensationCreate(c *gin.Context) {
+	var externalWorkCompensation model.ExternalWorkCompensation
+
+	err := c.BindJSON(&externalWorkCompensation)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	err = h.externalWork.ExternalWorkCompensationInsert(&externalWorkCompensation)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(externalWorkCompensation))
+}
+
+func (h *ExternalWork) AdministrationExternalWorkCompensationUpdate(c *gin.Context) {
+	externalWorkCompensationIdParam := c.Param("externalWorkCompensationId")
+	externalWorkCompensationId, err := strconv.ParseInt(externalWorkCompensationIdParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	var externalWorkCompensationUpdate model.ExternalWorkCompensation
+
+	err = c.BindJSON(&externalWorkCompensationUpdate)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkCompensation, err := h.externalWork.ExternalWorkCompensationFindById(uint(externalWorkCompensationId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkCompensation.AdditionalOptions = externalWorkCompensationUpdate.AdditionalOptions
+	externalWorkCompensation.PrivateCarKmCompensation = externalWorkCompensationUpdate.PrivateCarKmCompensation
+	externalWorkCompensation.WithSocialInsuranceSlots = externalWorkCompensationUpdate.WithSocialInsuranceSlots
+	externalWorkCompensation.WithoutSocialInsuranceSlots = externalWorkCompensationUpdate.WithoutSocialInsuranceSlots
+	externalWorkCompensation.ValidFrom = externalWorkCompensationUpdate.ValidFrom
+	externalWorkCompensation.ValidTill = externalWorkCompensationUpdate.ValidTill
+
+	err = h.externalWork.ExternalWorkCompensationUpdate(&externalWorkCompensation)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(externalWorkCompensation))
 }

@@ -61,6 +61,23 @@ onMounted(() => {
                 <q-item-label>{{ externalWork.Till }}</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item-label header>{{$t('LABEL_CALCULATED')}}</q-item-label>
+            <q-item>
+              <q-item-section>
+                <q-item-label caption>{{ $t('LABEL_TOTAL_OVERTIME_HOURS') }}</q-item-label>
+                <q-item-label>{{ externalWork.TotalOvertimeHours }} {{$t('LABEL_HOUR', externalWork.TotalOvertimeHours)}}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label caption>{{ $t('LABEL_TOTAL_EXPENSE_WITH_SOCIAL_INSURANCE') }}</q-item-label>
+                <q-item-label>{{ externalWork.TotalExpensesWithSocialInsurance }} Euro</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label caption>{{ $t('LABEL_TOTAL_EXPENSE_WITHOUT_SOCIAL_INSURANCE') }}</q-item-label>
+                <q-item-label>{{ externalWork.TotalExpensesWithoutSocialInsurance }} Euro</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-list>
         </q-card-section>
       </q-card>
@@ -69,10 +86,11 @@ onMounted(() => {
           v-for="(expanse, index) in expanses"
           :key="index"
           v-model:externalworkexpanse="expanses[index]"
+          @updated="loadExternalWork"
         />
       </div>
     </div>
-    <q-inner-loading :showin="loading" />
+    <q-inner-loading :showing="loading" />
   </q-page>
 </template>
 
