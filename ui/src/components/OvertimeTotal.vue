@@ -5,7 +5,7 @@ import { formatIndustryHourMinutes } from 'src/helper/formatter';
 
 const value = ref(0);
 
-BeeTimeClock.timestampOvertime().then(result => {
+BeeTimeClock.overtimeTotal().then(result => {
   if (result.status === 200) {
     value.value = result.data.Data.Total;
   }

@@ -1,60 +1,51 @@
 <script setup lang="ts">
 
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
+import { date } from 'quasar';
 
 const label = defineModel('label', {type: String})
 const readonly = defineModel('readonly', {type: Boolean, default: false})
 const value = defineModel<Date|null>();
-const date = defineModel('date', {type:String, required: true})
+const dayDate = defineModel('date', {type:String, required: true})
 
-const timeIntern = ref();
-
+const dateFormat = 'HH:mm';
 const time = computed({
   get() {
-    return timeIntern.value;
+    if (!value.value) return '';
+
+    return date.formatDate(
+      new Date(value.value),
+      dateFormat
+    );
   },
-  set(val: string|undefined|null) {
-    if (val == '--:--') {
-      timeIntern.value = null;
-    } else {
-      timeIntern.value = val;
+  set(newValue) {
+    if (newValue == '') {
+      value.value = undefined;
+      return;
     }
 
-    if (isValid.value) {
-      if (!timeIntern.value) {
-        value.value = null;
-        return;
-      }
-      const currentDate = new Date(date.value);
-      console.log(currentDate.toISOString());
-      const parts = timeIntern.value.split(':')
-      const hours =parseInt(parts[0]);
-      const minutes = parseInt(parts[1]);
-      console.log(parts, hours, minutes)
-      currentDate.setHours(hours, minutes)
-      console.log(currentDate.toISOString());
-      value.value = currentDate;
-    }
-  }
-})
-const isValid = computed(() => {
-  if (!time.value || time.value == undefined || time.value == '') return true;
-  console.log('current val: ', time.value)
-  const timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
-  return timeRegex.test(time.value);
-})
+    const day = date.formatDate(
+      new Date(
+        value.value ??
+        dayDate.value
+      ),
+      'YYYY-MM-DD'
+    );
+
+    const full = `${day} ${newValue}`;
+
+    value.value = new Date(full);
+  },
+});
 </script>
 
 <template>
   <q-input
-    mask="##:##"
-    fill-mask="-"
+    type="time"
     v-model="time"
     :label="label"
     :readonly="readonly"
     :clearable="!readonly"
-    :error="!isValid"
-    :error-message="$t('RULE_VALID_HOUR')"
   />
 </template>
 

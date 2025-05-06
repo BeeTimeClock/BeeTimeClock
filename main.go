@@ -88,15 +88,34 @@ func main() {
 		panic(err)
 	}
 
+	overtimeRepo := repository.NewOvertime(env)
+	err = overtimeRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
+	holiday := repository.NewHoliday(env)
+	err = holiday.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
+	timestampWorker := worker.NewTimestamp(env, userRepo, externalWorkRepo, timestampRepo, holiday)
+	overtimeWorker := worker.NewOvertime(env, userRepo, externalWorkRepo, timestampRepo, holiday, overtimeRepo, timestampWorker, absenceRepo)
+
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
-	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo)
+	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo, holiday, timestampWorker)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
 	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo)
-	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo)
+	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo, holiday)
+	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
+
+	go importHolidays(holiday)
+	go overtimeWorker.CalculateMissingMonths()
 
 	_, err = migrationRepo.MigrationFindByTitle(MIGRATION_HOMEOFFICE_GOING)
 	homeofficeGoingMigrationExists := true
@@ -226,6 +245,12 @@ func main() {
 					administrationAbsence.DELETE("reasons/:absenceReasonID", absenceHandler.AdministrationAbsenceReasonDelete)
 				}
 
+				administrationExternalWork := administration.Group("external_work")
+				{
+					administrationExternalWork.GET("compensation", externalWorkHandler.AdministrationExternalWorkCompensationGetAll)
+					administrationExternalWork.POST("compensation", externalWorkHandler.AdministrationExternalWorkCompensationCreate)
+				}
+
 				administrationMigrations := administration.Group("migration")
 				{
 					administrationMigrations.GET("", migrationHandler.AdministrationMigrationGetAll)
@@ -254,7 +279,13 @@ func main() {
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
 				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
 				timestamp.POST("", timestampHandler.TimestampCreate)
-				timestamp.GET("overtime", timestampHandler.TimestampOvertime)
+			}
+
+			overtime := v1.Group("overtime")
+			{
+				overtime.GET("", overtimeHandler.OvertimeGetAll)
+				overtime.GET("total", overtimeHandler.OvertimeTotal)
+				overtime.POST("action/calculate/:year/:month", overtimeHandler.OvertimeCurrentUserCalculateMonth)
 			}
 
 			fuel := v1.Group("fuel")
@@ -280,8 +311,14 @@ func main() {
 			externalWork := v1.Group("external_work")
 			{
 				externalWork.GET("", externalWorkHandler.ExternalWorkGetAll)
-				externalWork.GET(":id", externalWorkHandler.ExternalWorkGetById)
 				externalWork.POST("", externalWorkHandler.ExternalWorkCreate)
+
+				externalWorkDetail := externalWork.Group(":externalWorkId")
+				{
+					externalWorkDetail.GET("", externalWorkHandler.ExternalWorkGetById)
+					externalWorkDetail.POST("expanse", externalWorkHandler.ExternalWorkExpanseCreate)
+					externalWorkDetail.PUT("expanse/:externalWorkExpanseId", externalWorkHandler.ExternalWorkExpanseUpdate)
+				}
 			}
 
 			user := v1.Group("user")
@@ -341,7 +378,8 @@ func migrateExternalCalendarMulti(migrationRepo *repository.Migration, absenceRe
 		absenceExternalEvent := model.AbsenceExternalEvent{
 			Absence:               absence,
 			ExternalEventProvider: absence.ExternalEventProvider,
-			ExternalEventID:       absence.ExternalEventID,
+
+			ExternalEventID: absence.ExternalEventID,
 		}
 
 		err = absenceRepo.AbsenceExternalEventInsert(&absenceExternalEvent)
@@ -462,7 +500,33 @@ func migrateExternalCalendar(migrationRepo *repository.Migration, absenceRepo *r
 	return nil
 }
 
-func importHolidays(absenceRepo *repository.Absence, year int) error {
+func importHolidays(holiday *repository.Holiday) {
+	importHolidaysCurrentYear(holiday)
+
+	for range time.Tick(time.Hour * 24) {
+		importHolidaysCurrentYear(holiday)
+	}
+}
+
+func importHolidaysCurrentYear(holiday *repository.Holiday) {
+	year := time.Now().Year()
+
+	log.Printf("Holiday Import: %d", year)
+	err := importHolidaysByYear(holiday, year)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func importHolidaysByYear(holiday *repository.Holiday, year int) error {
+	holidays, err := holiday.HolidayFindByYear(year)
+	if err != nil {
+		panic(err)
+	}
+	if len(holidays) > 0 {
+		return nil
+	}
+
 	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://feiertage-api.de/api/?jahr=%d&nur_land=NI", year), nil)
 	if err != nil {
 		return err
@@ -492,13 +556,13 @@ func importHolidays(absenceRepo *repository.Absence, year int) error {
 			return err
 		}
 
-		exists, err := absenceRepo.HolidayIsByDate(date)
+		exists, err := holiday.HolidayIsByDate(date)
 		if err != nil {
 			return err
 		}
 
 		if !exists {
-			err = absenceRepo.HolidayInsert(&model.Holiday{
+			err = holiday.HolidayInsert(&model.Holiday{
 				Name: name,
 				Date: date,
 			})

@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { emptyPagination } from 'src/helper/objects';
 import {
   ApiExternalWorkCreateRequest,
-  ExternalWork,
+  ExternalWork, ExternalWorkCompensation
 } from 'src/models/ExternalWork';
 import { date } from 'quasar';
 import formatDate = date.formatDate;
@@ -16,6 +16,7 @@ const { t } = useI18n();
 const externalWorkItems = ref<ExternalWork[]>();
 const promptCreateExternalWork = ref(false);
 const externalWorkCreateRequest = ref<ApiExternalWorkCreateRequest>();
+const externalWorkCompensations = ref<ExternalWorkCompensation[]>([]);
 
 const columns = [
   {
@@ -23,7 +24,7 @@ const columns = [
     required: true,
     label: t('LABEL_DESCRIPTION'),
     align: 'left',
-    field: 'Description',
+    field: 'Description'
   },
   {
     name: 'From',
@@ -31,7 +32,7 @@ const columns = [
     label: t('LABEL_FROM'),
     align: 'left',
     field: 'From',
-    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`,
+    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`
   },
   {
     name: 'Till',
@@ -39,8 +40,8 @@ const columns = [
     label: t('LABEL_TILL'),
     align: 'left',
     field: 'Till',
-    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`,
-  },
+    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`
+  }
 ];
 
 function loadExternalWorkItems() {
@@ -51,6 +52,14 @@ function loadExternalWorkItems() {
       );
     }
   });
+}
+
+function loadExternalWorkCompensation() {
+  BeeTimeClock.administrationExternalWorkCompensation().then(result => {
+    if (result.status === 200) {
+      externalWorkCompensations.value = result.data.Data.map(s => ExternalWorkCompensation.fromApi(s))
+    }
+  })
 }
 
 function openCreateExternalWorkDialog() {
@@ -67,12 +76,14 @@ function saveExternalWork() {
           t('MSG_CREATE_SUCCESS', { item: t('LABEL_EXTERNAL_WORK') })
         );
         promptCreateExternalWork.value = false;
+        loadExternalWorkItems();
       }
     }
   );
 }
 
 onMounted(() => {
+  loadExternalWorkCompensation();
   loadExternalWorkItems();
 });
 </script>
@@ -114,7 +125,8 @@ onMounted(() => {
             {{ col.value }}
           </q-td>
           <q-td>
-            <q-btn color="primary" icon="chevron_right" :to="{name: 'ExternalWorkDetail', params: {externalWorkId: props.row.ID}}"/>
+            <q-btn color="primary" icon="chevron_right"
+                   :to="{name: 'ExternalWorkDetail', params: {externalWorkId: props.row.ID}}" />
           </q-td>
         </q-tr>
       </template>
@@ -129,6 +141,14 @@ onMounted(() => {
         </q-card-section>
         <q-form @submit="saveExternalWork">
           <q-card-section>
+            <q-select v-model="externalWorkCreateRequest.ExternalWorkCompensationID"
+                      :options="externalWorkCompensations"
+                      emit-value
+                      map-options
+                      option-value="ID"
+                      option-label="IsoCountryCodeA2"
+                      :label="$t('LABEL_EXTERNAL_WORK_COMPENSATION')"
+            />
             <q-input
               v-model="externalWorkCreateRequest.Description"
               class="q-mb-md"
@@ -138,10 +158,13 @@ onMounted(() => {
               v-model="externalWorkCreateRequest.From"
               class="q-mb-md"
               :label="$t('LABEL_FROM')"
+              :has-time="false"
             />
             <DateTimePickerComponent
+              type="date"
               v-model="externalWorkCreateRequest.Till"
               :label="$t('LABEL_TILL')"
+              :has-time="false"
             />
           </q-card-section>
           <q-card-section>
