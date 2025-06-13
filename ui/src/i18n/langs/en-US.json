@@ -142,5 +142,8 @@
   "MENU_COMMON": "Common",
   "LABEL_LOGO": "Logo",
   "LABEL_EXTERNAL_WORK_INVOICED": "invoiced",
-  "LABEL_GENERATE_REPORTS_FROM_ACCEPTED": "generate month reports"
+  "LABEL_GENERATE_REPORTS_FROM_ACCEPTED": "generate month reports",
+  "MENU_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps",
+  "LABEL_HAS_CORRECTIONS": "has corrections",
+  "LABEL_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps"
 }

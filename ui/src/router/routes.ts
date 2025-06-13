@@ -23,6 +23,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/worktime/WorktimeOverviewPage.vue')
       },
       {
+        name: 'SuspiciousTimestampsOverview',
+        path: 'worktime/suspicious',
+        component: () => import('pages/worktime/SuspiciousTimestampsOverviewPage.vue')
+      },
+      {
         name: 'AbsenceOverview',
         path: 'absence',
         component: () => import('pages/absence/AbsenceOverviewPage.vue'),

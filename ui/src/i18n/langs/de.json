@@ -142,5 +142,8 @@
   "MENU_COMMON": "Allgemein",
   "LABEL_LOGO": "Logo",
   "LABEL_EXTERNAL_WORK_INVOICED": "abgerechnet",
-  "LABEL_GENERATE_REPORTS_FROM_ACCEPTED": "Monatsbericht generieren"
+  "LABEL_GENERATE_REPORTS_FROM_ACCEPTED": "Monatsbericht generieren",
+  "MENU_SUSPICIOUS_TIMESTAMPS": "Ungewöhnliche Stempelungen",
+  "LABEL_HAS_CORRECTIONS": "hat Korrekturen",
+  "LABEL_SUSPICIOUS_TIMESTAMPS": "Ungewöhnliche Stempelungen"
 }

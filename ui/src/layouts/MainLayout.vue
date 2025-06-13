@@ -60,6 +60,9 @@
           <q-item clickable v-ripple :to="{name: 'OvertimeOverview'}">
             {{ $t('MENU_OVERTIME') }}
           </q-item>
+          <q-item clickable v-ripple :to="{name: 'SuspiciousTimestampsOverview'}">
+            {{ $t('MENU_SUSPICIOUS_TIMESTAMPS') }}
+          </q-item>
           <q-item-label
             header>
             {{ $t('LABEL_ME') }}</q-item-label>

@@ -354,6 +354,12 @@ class BeeTimeClock {
     return api.get('/api/v1/timestamp/query/timestamp/months');
   }
 
+  timestampQuerySuspicious(): Promise<
+    AxiosResponse<BaseResponse<Timestamp[]>>
+  > {
+    return api.get('/api/v1/timestamp/query/suspicious');
+  }
+
   administrationTimestampUserMonths(
     userId: string
   ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {

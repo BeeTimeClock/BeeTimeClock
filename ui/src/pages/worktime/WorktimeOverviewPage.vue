@@ -35,7 +35,7 @@
       <div class="q-pt-lg">
         <WorktimeOverviewTable v-model="timestampCurrentMonthGrouped" @create="loadTimestampGrouped()"/>
       </div>
-      <TimestampCorrectionDialog v-model:model-show="promptTimestampCorrectionCreate" @refresh="loadTimestampGrouped()"/>
+      <TimestampCorrectionDialog v-model:show="promptTimestampCorrectionCreate" @refresh="loadTimestampGrouped()"/>
     </div>
     <q-inner-loading :showing="isLoading" />
   </q-page>
@@ -103,7 +103,6 @@ function actionCheckOut(isHomeoffice?: boolean) {
 function loadTimestampGrouped() {
   BeeTimeClock.timestampQueryMonthGrouped(selectedYear.value, selectedMonth.value).then((result) => {
     if (result.status === 200) {
-      console.log('data: ', result.data.Data)
       timestampCurrentMonthGrouped.value = result.data.Data.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
       if (timestampCurrentMonthGrouped.value.length > 0) {
         expanded.value = [timestampCurrentMonthGrouped.value[0].Date.toString()];

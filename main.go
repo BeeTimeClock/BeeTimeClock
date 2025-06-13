@@ -273,6 +273,8 @@ func main() {
 			{
 				timestamp.GET("", timestampHandler.TimestampGetAll)
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
+				timestamp.GET("query/suspicious", timestampHandler.TimestampQuerySuspicious)
+				timestamp.GET("query/suspicious/count", timestampHandler.TimestampQuerySuspiciousCount)
 				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampCurrentUserQueryCurrentMonthGrouped)
 				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampCurrentUserQueryCurrentMonthOvertime)
 				timestamp.GET("query/year/:year/month/:month/grouped", timestampHandler.TimestampQueryMonthGrouped)

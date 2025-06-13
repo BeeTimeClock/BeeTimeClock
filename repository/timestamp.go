@@ -97,6 +97,21 @@ func (r *Timestamp) FindLastByUserID(userID uint) (model.Timestamp, error) {
 	return item, result.Error
 }
 
+func (r *Timestamp) FindSuspiciousTimestampsByUserID(userId uint) ([]model.Timestamp, error) {
+	var items []model.Timestamp
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Preload(clause.Associations).Find(&items, "user_id = ? and (date_part('year', coming_timestamp) < 1999 or date_part('year', going_timestamp) < 1999)", userId)
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
 func (r *Timestamp) FindByUserIDAndDate(userID uint, from, till time.Time) ([]model.Timestamp, error) {
 	db, err := r.env.DatabaseManager.GetConnection()
 	if err != nil {

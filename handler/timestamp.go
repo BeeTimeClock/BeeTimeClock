@@ -69,6 +69,40 @@ func (h *Timestamp) TimestampQueryLast(c *gin.Context) {
 	c.JSON(http.StatusOK, lastTimestamp)
 }
 
+func (h *Timestamp) TimestampQuerySuspicious(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamps))
+}
+
+func (h *Timestamp) TimestampQuerySuspiciousCount(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(model.CountResult{
+		Count: len(timestamps),
+	}))
+}
+
 func (h *Timestamp) TimestampActionCheckIn(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
