@@ -1,4 +1,4 @@
-FROM alpine:3.18 AS BUILD
+FROM alpine:3.22 AS BUILD
 
 RUN apk add --no-cache go yarn make
 
@@ -10,7 +10,7 @@ ENV VUE_APP_COMMIT=${VUE_APP_COMMIT}
 
 RUN make all
 
-FROM alpine:3.18
+FROM alpine:3.22
 ENV PORT=8080
 COPY --from=BUILD /build/beetimeclock /beetimeclock
 
