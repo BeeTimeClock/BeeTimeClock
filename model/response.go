@@ -59,6 +59,10 @@ type SumResult struct {
 	Total float64
 }
 
+type CountResult struct {
+	Count int
+}
+
 type OvertimeResult struct {
 	Total      float64
 	Subtracted float64
