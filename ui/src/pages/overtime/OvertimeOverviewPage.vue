@@ -34,7 +34,7 @@ const columns = [
 function loadOvertimeQuotas() {
   BeeTimeClock.overtimeMonthQuotas().then((result) => {
     if (result.status === 200) {
-      overtimeQuotas.value = result.data.Data.map((s) =>
+      overtimeQuotas.value = result.data.Data.sort((a, b) => b.Year - a.Year || b.Month - a.Month).map((s) =>
         OvertimeMonthQuota.fromApi(s)
       );
     }
