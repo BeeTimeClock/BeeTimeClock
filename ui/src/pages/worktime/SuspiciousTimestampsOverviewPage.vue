@@ -66,6 +66,7 @@ onMounted(() => {
       :pagination="emptyPagination"
       hide-pagination
       :title="$t('LABEL_SUSPICIOUS_TIMESTAMPS')"
+      row-key="ID"
     >
       <template v-slot:body="props">
         <q-tr :props="props">

@@ -13,7 +13,7 @@ const columns = [
     required: true,
     label: t('LABEL_DATE'),
     align: 'left',
-    format: (val: never, row: OvertimeMonthQuota) => `${row.Year}/${row.Month}`,
+    field: 'identifier',
     sortable: true,
   },
   {
@@ -64,7 +64,7 @@ onMounted(() => {
       bordered
       :rows="overtimeQuotas"
       :columns="columns"
-      row-key="name"
+      row-key="identifier"
     >
       <template v-slot:header="props">
         <q-tr :props="props">

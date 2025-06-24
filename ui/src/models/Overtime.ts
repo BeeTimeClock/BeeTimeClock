@@ -19,4 +19,8 @@ export class OvertimeMonthQuota extends autoImplement<ApiOvertimeMonthQuota>() {
   static fromApi(item: ApiOvertimeMonthQuota) : OvertimeMonthQuota {
     return new OvertimeMonthQuota(item);
   }
+
+  get identifier() {
+    return `${this.Year}/${this.Month}`
+  }
 }
