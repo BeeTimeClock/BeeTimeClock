@@ -293,7 +293,7 @@ func (h *Timestamp) TimestampUserQueryMonthGrouped(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result.TimestampGroups))
 }
 
 func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
