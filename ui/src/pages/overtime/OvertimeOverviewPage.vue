@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { OvertimeMonthQuota } from 'src/models/Overtime';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
+import { emptyPagination } from 'src/helper/objects';
 
 const { t } = useI18n();
 const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
@@ -65,6 +66,8 @@ onMounted(() => {
       :rows="overtimeQuotas"
       :columns="columns"
       row-key="identifier"
+      :pagination="emptyPagination"
+      hide-pagination
     >
       <template v-slot:header="props">
         <q-tr :props="props">
