@@ -15,6 +15,7 @@ const externalWorkExpanse = defineModel('externalworkexpanse', {
   type: ExternalWorkExpanse,
   required: true,
 });
+const allowEdit = defineModel('allow_edit', { type: Boolean, default: true });
 const editMode = ref(false);
 const emits = defineEmits(['updated']);
 const isNew = computed(() => {
@@ -98,7 +99,7 @@ function createExternalWorkExpanse() {
         {{ date.formatDate(externalWorkExpanse.Date, 'ddd. DD.MM.YYYY') }}
       </div>
       <div class="col-auto">
-        <template v-if="allow_edit">
+        <template v-if="allowEdit">
           <q-btn
             v-if="!editMode"
             color="secondary"

@@ -86,7 +86,7 @@ func (r Overtime) OvertimeMonthQuotaUpdate(item *model.OvertimeMonthQuota) error
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	result := db.Updates(item)
+	result := db.Debug().Updates(item)
 	return result.Error
 }
 

@@ -57,11 +57,13 @@ func (h *Overtime) OvertimeTotal(c *gin.Context) {
 		return
 	}
 
-	result := model.SumResult{
-		Total: 0,
-	}
+	total := 0.0
 	for _, overtimeQuota := range overtimeMonths {
-		result.Total += overtimeQuota.Hours
+		total += *overtimeQuota.Hours
+	}
+
+	result := model.SumResult{
+		Total: total,
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))

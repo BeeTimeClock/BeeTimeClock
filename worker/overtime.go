@@ -34,11 +34,12 @@ func NewOvertime(env *core.Environment, user *repository.User, externalWork *rep
 }
 
 func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.OvertimeMonthQuota, bool, error) {
+	hours := 0.0
 	result := model.OvertimeMonthQuota{
 		UserID:  userID,
 		Year:    year,
 		Month:   month,
-		Hours:   0,
+		Hours:   &hours,
 		Summary: model.OvertimeSummary{},
 	}
 

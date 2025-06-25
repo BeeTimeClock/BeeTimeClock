@@ -31,7 +31,7 @@ type OvertimeMonthQuota struct {
 	User    User
 	Year    int `gorm:"index:idx_month_quota,unique"`
 	Month   int `gorm:"index:idx_month_quota,unique"`
-	Hours   float64
+	Hours   *float64
 	Summary OvertimeSummary `gorm:"type:jsonb" sql:"json"`
 }
 
@@ -44,10 +44,11 @@ func (o *OvertimeMonthQuota) InsertSummary(source string, identifier *uint, valu
 }
 
 func (o *OvertimeMonthQuota) Calculate() {
-	o.Hours = 0
+	hours := 0.0
 	for _, entry := range o.Summary {
-		o.Hours += entry.Value
+		hours += entry.Value
 	}
+	o.Hours = &hours
 }
 
 func (o *OvertimeSummary) Scan(value interface{}) error {
