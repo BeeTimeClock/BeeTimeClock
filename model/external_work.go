@@ -8,6 +8,7 @@ import (
 	"log"
 	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -269,12 +270,32 @@ type ExternalWorkExpenseCalculated struct {
 	AdditionalOptionsUsed          ExternalWorkCompensationAdditionalOptions
 	TravelPrivateKmCosts           float64
 }
+type DayDate struct {
+	time.Time
+}
+
+func (t DayDate) MarshalJSON() ([]byte, error) {
+	date := t.Time.Format("2006-01-02")
+	date = fmt.Sprintf(`"%s"`, date)
+	return []byte(date), nil
+}
+
+func (t *DayDate) UnmarshalJSON(b []byte) (err error) {
+	s := strings.Trim(string(b), "\"")
+
+	date, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return err
+	}
+	t.Time = date
+	return
+}
 
 type ExternalWorkCreateRequest struct {
-	From                       time.Time `binding:"required,ltefield=Till"`
-	Till                       time.Time `binding:"required"`
-	Description                string    `binding:"required"`
-	ExternalWorkCompensationID uint      `binding:"required"`
+	From                       DayDate `binding:"required,ltefield=Till" time_format:"2006-01-02"`
+	Till                       DayDate `binding:"required" time_format:"2006-01-02"`
+	Description                string  `binding:"required"`
+	ExternalWorkCompensationID uint    `binding:"required"`
 }
 
 type ExternalWorkExpenseCreateRequest struct {

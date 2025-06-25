@@ -12,7 +12,8 @@ import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import { useI18n } from 'vue-i18n';
 import { AxiosError } from 'axios';
 import { BaseResponse } from 'src/models/Base';
-import { useQuasar } from 'quasar';
+import { date, useQuasar } from 'quasar';
+import formatDate = date.formatDate;
 
 const route = useRoute();
 const router = useRouter();
@@ -128,11 +129,11 @@ onMounted(() => {
             <q-item>
               <q-item-section>
                 <q-item-label caption>{{ $t('LABEL_FROM') }}</q-item-label>
-                <q-item-label>{{ externalWork.From }}</q-item-label>
+                <q-item-label>{{ date.formatDate(externalWork.From, 'DD.MM.YYYY') }}</q-item-label>
               </q-item-section>
               <q-item-section>
                 <q-item-label caption>{{ $t('LABEL_TILL') }}</q-item-label>
-                <q-item-label>{{ externalWork.Till }}</q-item-label>
+                <q-item-label>{{ date.formatDate(externalWork.Till, 'DD.MM.YYYY') }}</q-item-label>
               </q-item-section>
             </q-item>
             <q-item-label header>{{ $t('LABEL_CALCULATED') }}</q-item-label>

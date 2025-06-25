@@ -211,8 +211,8 @@ func (h *ExternalWork) ExternalWorkCreate(c *gin.Context) {
 	externalWork := model.ExternalWork{
 		User:                       user,
 		ExternalWorkCompensationID: externalWorkCreateRequest.ExternalWorkCompensationID,
-		From:                       externalWorkCreateRequest.From,
-		Till:                       externalWorkCreateRequest.Till,
+		From:                       externalWorkCreateRequest.From.Time,
+		Till:                       externalWorkCreateRequest.Till.Time,
 		Description:                externalWorkCreateRequest.Description,
 		Identifier:                 uuid.New(),
 	}

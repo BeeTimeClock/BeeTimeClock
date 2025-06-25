@@ -263,13 +263,13 @@ onMounted(() => {
               class="q-mb-md"
               :label="$t('LABEL_DESCRIPTION')"
             />
-            <DateTimePickerComponent
+            <q-input
+              type="date"
               v-model="externalWorkCreateRequest.From"
               class="q-mb-md"
               :label="$t('LABEL_FROM')"
-              :has-time="false"
             />
-            <DateTimePickerComponent
+            <q-input
               type="date"
               v-model="externalWorkCreateRequest.Till"
               :label="$t('LABEL_TILL')"

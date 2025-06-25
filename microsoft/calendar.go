@@ -49,8 +49,8 @@ func CreateCalendarEntryFromAbsence(username string, absence *model.Absence) (st
 }
 
 func CreateCalendarEntryFromExternalWork(username string, externalWork *model.ExternalWork) (string, error) {
-	from := externalWork.From.Format("2006-01-02T15:04:05")
-	till := externalWork.Till.Format("2006-01-02T15:04:05")
+	from := externalWork.From.Format("2006-01-02T00:00:00")
+	till := fmt.Sprintf("%sT00:00:00", externalWork.Till.Add(24*time.Hour).Format(time.DateOnly))
 	identifier := externalWork.Identifier.String()
 
 	return CreateCalendarEntry(username, identifier, externalWork.Description, from, till, graphmodels.PRIVATE_SENSITIVITY)
