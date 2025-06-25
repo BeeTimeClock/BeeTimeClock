@@ -18,6 +18,7 @@ const externalWorkItemsInvoiced = ref<ApiExternalWorkInvoicedInfo[]>();
 const promptCreateExternalWork = ref(false);
 const externalWorkCreateRequest = ref<ApiExternalWorkCreateRequest>();
 const externalWorkCompensations = ref<ExternalWorkCompensation[]>([]);
+const creating = ref(false);
 
 const externalWorkItemsFiltered = computed(() => {
   if (externalWorkItems.value == null) return []
@@ -104,6 +105,7 @@ function openCreateExternalWorkDialog() {
 
 function saveExternalWork() {
   if (!externalWorkCreateRequest.value) return;
+  creating.value = true;
   BeeTimeClock.createExternalWork(externalWorkCreateRequest.value).then(
     (result) => {
       if (result.status === 201) {
@@ -114,7 +116,9 @@ function saveExternalWork() {
         loadExternalWorkItems();
       }
     }
-  );
+  ).finally(() => {
+    creating.value = false;
+  });
 }
 
 function downloadPdf() {
@@ -283,6 +287,7 @@ onMounted(() => {
                 icon="save"
                 color="positive"
                 type="submit"
+                :loading="creating"
               />
             </q-card-actions>
           </q-card-section>
