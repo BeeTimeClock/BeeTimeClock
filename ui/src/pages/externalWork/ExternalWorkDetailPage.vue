@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ApiExternalWorkStatus,
   ExternalWork,
   ExternalWorkExpanse,
 } from 'src/models/ExternalWork';

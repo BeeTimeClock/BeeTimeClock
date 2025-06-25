@@ -9,8 +9,8 @@ export interface AbsenceCreateRequest {
 }
 
 export enum AbsenceReasonImpact {
-  Duration = "duration",
-  Hours = "hours"
+  Duration = 'duration',
+  Hours = 'hours'
 }
 
 export interface ApiAbsenceReason {

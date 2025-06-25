@@ -2,7 +2,7 @@
 import {
   ExternalWorkExpanse,
 } from 'src/models/ExternalWork';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { formatCurrency } from 'src/helper/formatter';
 
 const externalWorkExpanse = defineModel({

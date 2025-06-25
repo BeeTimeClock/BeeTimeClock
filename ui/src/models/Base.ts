@@ -1,4 +1,4 @@
-import {AxiosError} from "axios";
+import {AxiosError} from 'axios';
 
 export interface BaseResponse<T> {
   Status: string;
@@ -7,7 +7,7 @@ export interface BaseResponse<T> {
   Error: string|undefined;
   Data: T;
 }
-export interface ErrorResponse extends AxiosError<BaseResponse<undefined>>{}
+export type ErrorResponse = AxiosError<BaseResponse<undefined>>
 
 export interface BackendStatus {
   Commit: string;

@@ -164,7 +164,7 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
       </q-tr>
     </template>
   </q-table>
-  <TimestampCorrectionDialog v-model:model-show="promptNewTimestampCorrection" v-model="selectedTimestamp"
+  <TimestampCorrectionDialog v-model:show="promptNewTimestampCorrection" v-model="selectedTimestamp"
                              @refresh="emits('create')" />
   <q-dialog v-model="isTimestampCorrentViewVisible" persistent>
     <q-card class="q-dialog-plugin full-width">

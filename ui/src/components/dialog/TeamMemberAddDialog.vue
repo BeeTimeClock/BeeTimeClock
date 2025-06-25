@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  ApiTeamMemberCreateRequest, Team, TeamMember } from 'src/models/Team';
+import {  ApiTeamMemberCreateRequest, Team } from 'src/models/Team';
 import { User } from 'src/models/Authentication';
 import { ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';

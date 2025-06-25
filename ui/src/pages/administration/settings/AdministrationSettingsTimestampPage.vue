@@ -3,8 +3,6 @@ import { OfficeIPAddress, Settings } from 'src/models/Settings';
 import { onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
-import AbsenceReasonAdministrationTable from 'components/AbsenceReasonAdministrationTable.vue';
-import { showInfoMessage } from 'src/helper/message';
 
 const { t } = useI18n();
 

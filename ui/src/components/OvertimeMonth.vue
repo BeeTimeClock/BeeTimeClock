@@ -2,7 +2,6 @@
 import { onMounted, ref, watch } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
-import OvertimeTotal from 'components/OvertimeTotal.vue';
 import { OvertimeResponse } from 'src/models/Timestamp';
 
 const overtimeResponse = ref<OvertimeResponse | null>(null);

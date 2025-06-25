@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { date } from 'quasar';
-import { ExternalWork, ExternalWorkExpanse } from 'src/models/ExternalWork';
+import { ExternalWorkExpanse } from 'src/models/ExternalWork';
 import { computed, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import ExternalWorkExpanseItemTravel from 'components/external_work/ExternalWorkExpanseItemTravel.vue';
@@ -8,7 +8,6 @@ import ExternalWorkExpanseItemOnSite from 'components/external_work/ExternalWork
 import ExternalWorkExpanseItemSummaryItem from 'components/external_work/ExternalWorkExpanseItemSummaryItem.vue';
 import { useI18n } from 'vue-i18n';
 import ExternalWorkExpanseItemOptions from 'components/external_work/ExternalWorkExpanseItemOptions.vue';
-import { all } from 'axios';
 
 const { t } = useI18n();
 
@@ -16,7 +15,6 @@ const externalWorkExpanse = defineModel('externalworkexpanse', {
   type: ExternalWorkExpanse,
   required: true,
 });
-const allowEdit = defineModel('allow_edit', { type: Boolean, default: true });
 const editMode = ref(false);
 const emits = defineEmits(['updated']);
 const isNew = computed(() => {
@@ -25,10 +23,6 @@ const isNew = computed(() => {
 
 const showTravelInput = ref(false);
 const showOnSiteInput = ref(false);
-
-const externalWork = computed(() => {
-  return externalWorkExpanse.value.ExternalWork;
-});
 
 const hasTravelData = computed(() => {
   return (

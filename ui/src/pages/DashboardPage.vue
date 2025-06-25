@@ -2,10 +2,10 @@
 import {onMounted, ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {User} from 'src/models/Authentication';
-import {AbsenceSummaryItem} from "src/models/Absence";
-import AbsenceSummaryTableComponent from "components/AbsenceSummaryTableComponent.vue";
-import OvertimeTotal from "components/OvertimeTotal.vue";
-import OvertimeCurrentMonth from "components/OvertimeMonth.vue";
+import {AbsenceSummaryItem} from 'src/models/Absence';
+import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
+import OvertimeTotal from 'components/OvertimeTotal.vue';
+import OvertimeCurrentMonth from 'components/OvertimeMonth.vue';
 
 const user = ref(null as User | null);
 const absenceSummaryItems = ref([] as AbsenceSummaryItem[])

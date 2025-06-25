@@ -9,7 +9,6 @@ import { ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { showInfoMessage } from 'src/helper/message';
 import { useI18n } from 'vue-i18n';
-import { time } from 'console';
 
 const { t } = useI18n();
 const timestamp = defineModel<Timestamp>();

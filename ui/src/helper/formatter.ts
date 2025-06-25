@@ -11,7 +11,7 @@ export function formatIndustryHourMinutes(hourMinutes: number) : string {
 }
 
 export function formatCurrency(value: number) {
-  if (typeof value !== "number") {
+  if (typeof value !== 'number') {
     return value;
   }
 
