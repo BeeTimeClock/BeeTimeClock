@@ -5,17 +5,22 @@ import {
 } from 'src/models/ExternalWork';
 import { computed, onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ExternalWorkExpanseItem from 'components/external_work/ExternalWorkExpanseItem.vue';
 import { formatCurrency } from 'src/helper/formatter';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import { useI18n } from 'vue-i18n';
+import { AxiosError } from 'axios';
+import { BaseResponse } from 'src/models/Base';
+import { useQuasar } from 'quasar';
 
 const route = useRoute();
+const router = useRouter();
 const externalWork = ref<ExternalWork>();
 const loading = ref(true);
 const expanses = ref<ExternalWorkExpanse[]>();
 const {t} = useI18n();
+const q = useQuasar();
 
 const externalWorkId = computed(() => {
   return parseInt(route.params.externalWorkId as string);
@@ -51,6 +56,36 @@ function submit() {
   })
 }
 
+function deleteExternalWork() {
+  if (externalWork.value == null) return;
+
+  q.dialog({
+    title: t('LABEL_DELETE'),
+    message: t('MSG_DELETE', {
+      item: t('LABEL_EXTERNAL_WORK'),
+      identifier: externalWork.value.Description,
+    }),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    BeeTimeClock.deleteExternalWorkById(externalWork.value!.ID)
+      .then((result) => {
+        if (result.status === 204) {
+          showInfoMessage(
+            t('MSG_DELETE_SUCCESS', {
+              item: t('LABEL_EXTERNAL_WORK'),
+              identifier: externalWork.value!.Description,
+            }),
+          );
+          router.push({name: 'ExternalWorkOverview'})
+        }
+      })
+      .catch((error: AxiosError<BaseResponse<never>>) => {
+        showErrorMessage(error.response?.data.Message);
+      });
+  });
+}
+
 onMounted(() => {
   loadExternalWork();
 });
@@ -63,6 +98,12 @@ onMounted(() => {
         <q-card-section class="bg-primary text-h6 text-white">
           {{ $t('LABEL_INFORMATION') }}
           <div class="float-right">
+            <q-btn
+              v-if="(externalWork.NeedsUserInput)"
+              :label="$t('LABEL_DELETE')"
+              color="negative"
+              class="q-mr-md"
+              @click="deleteExternalWork"/>
             <q-btn
               v-if="(externalWork.NeedsUserInput)"
               :label="$t('LABEL_SUBMIT')"

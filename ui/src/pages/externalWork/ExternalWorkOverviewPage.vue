@@ -39,7 +39,9 @@ const columns = [
     label: t('LABEL_FROM'),
     align: 'left',
     field: 'From',
-    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`
+    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`,
+    sortable: true,
+    sortOrder: 'ad'
   },
   {
     name: 'Till',
@@ -47,7 +49,8 @@ const columns = [
     label: t('LABEL_TILL'),
     align: 'left',
     field: 'Till',
-    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`
+    format: (val: Date) => `${formatDate(val, 'ddd. DD.MM.YYYY')}`,
+    sortable: true,
   },
   {
     name: 'Status',

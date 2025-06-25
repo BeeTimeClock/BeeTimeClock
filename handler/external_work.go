@@ -93,6 +93,53 @@ func (h *ExternalWork) ExternalWorkGetInvoiced(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(invoicedMapped))
 }
 
+func (h *ExternalWork) ExternalWorkDelete(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	idParam := c.Param("externalWorkId")
+	id, err := strconv.ParseInt(idParam, 10, 32)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	externalWorkItem, err := h.externalWork.ExternalWorkFindById(uint(id), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if externalWorkItem.UserID != user.ID {
+		c.Status(http.StatusForbidden)
+		return
+	}
+
+	if !externalWorkItem.IsEditable() {
+		c.Status(http.StatusForbidden)
+		return
+	}
+
+	for _, item := range externalWorkItem.WorkExpanses {
+		err = h.externalWork.ExternalWorkExpenseDelete(&item)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+	}
+
+	err = h.externalWork.ExternalWorkDelete(&externalWorkItem)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 func (h *ExternalWork) ExternalWorkGetById(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {

@@ -196,6 +196,12 @@ class BeeTimeClock {
     return api.get(`/api/v1/external_work/${id}`);
   }
 
+  deleteExternalWorkById(
+    id: number
+  ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
+    return api.delete(`/api/v1/external_work/${id}`);
+  }
+
   submitExternalWork(
     externalWorkId: number,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {

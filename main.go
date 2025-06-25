@@ -324,6 +324,7 @@ func main() {
 				externalWorkDetail := externalWork.Group(":externalWorkId")
 				{
 					externalWorkDetail.GET("", externalWorkHandler.ExternalWorkGetById)
+					externalWorkDetail.DELETE("", externalWorkHandler.ExternalWorkDelete)
 					externalWorkDetail.POST("expanse", externalWorkHandler.ExternalWorkExpanseCreate)
 					externalWorkDetail.PUT("expanse/:externalWorkExpanseId", externalWorkHandler.ExternalWorkExpanseUpdate)
 					externalWorkDetail.POST("action/submit", externalWorkHandler.ExternalWorkSubmit)
