@@ -54,7 +54,9 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 	if err != nil {
 		return model.OvertimeMonthQuota{}, false, err
 	}
-	result.InsertSummary("timestamp", nil, timestampOvertime.OvertimeHours)
+	result.InsertSummary("timestamp_raw", nil, timestampOvertime.OvertimeHours, 1.0)
+	result.InsertSummary("timestamp_subtracted", nil, timestampOvertime.SubtractedHours*-1.0, 1.0)
+	result.InsertSummary("timestamp_final", nil, timestampOvertime.OvertimeHours-timestampOvertime.SubtractedHours, 0)
 
 	externalWorks, err := w.externalWork.ExternalWorkFindByUserIDAndEndBetween(userID, firstOfMonth, lastOfMonth)
 	if err != nil {
@@ -63,7 +65,7 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 
 	for _, externalWork := range externalWorks {
 		calculated := externalWork.Calculate(holidays)
-		result.InsertSummary("external_work", &externalWork.ID, calculated.TotalOvertimeHours)
+		result.InsertSummary("external_work", &externalWork.ID, calculated.TotalOvertimeHours, 1.0)
 	}
 
 	absences, err := w.absence.AbsenceFindByUserIDAndBetweenDates(userID, firstOfMonth, lastOfMonth)
@@ -75,7 +77,7 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 		case model.ABESENCE_REASON_OVERTIME_IMPACT_DURATION:
 			duration := absence.AbsenceTill.Sub(absence.AbsenceFrom).Hours()
 
-			result.InsertSummary("absence", &absence.ID, duration)
+			result.InsertSummary("absence", &absence.ID, duration, 1.0)
 			break
 		}
 	}

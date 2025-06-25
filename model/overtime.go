@@ -21,6 +21,7 @@ type OvertimeSummaryEntry struct {
 	Source     string
 	Identifier *uint
 	Value      float64
+	Factor     float64
 }
 
 type OvertimeSummary []OvertimeSummaryEntry
@@ -35,18 +36,19 @@ type OvertimeMonthQuota struct {
 	Summary OvertimeSummary `gorm:"type:jsonb" sql:"json"`
 }
 
-func (o *OvertimeMonthQuota) InsertSummary(source string, identifier *uint, value float64) {
+func (o *OvertimeMonthQuota) InsertSummary(source string, identifier *uint, value float64, factor float64) {
 	o.Summary = append(o.Summary, OvertimeSummaryEntry{
 		Source:     source,
 		Identifier: identifier,
 		Value:      value,
+		Factor:     factor,
 	})
 }
 
 func (o *OvertimeMonthQuota) Calculate() {
 	hours := 0.0
 	for _, entry := range o.Summary {
-		hours += entry.Value
+		hours += entry.Value * entry.Factor
 	}
 	o.Hours = &hours
 }

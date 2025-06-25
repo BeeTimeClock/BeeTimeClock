@@ -62,6 +62,7 @@ type TimestampMonthCalculated struct {
 	TimestampGroups []TimestampGroup
 	OvertimeHours   float64
 	WorkingHours    float64
+	SubtractedHours float64
 }
 
 type TimestampYearMonthGrouped struct {
