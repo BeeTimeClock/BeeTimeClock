@@ -42,6 +42,11 @@ func (r *ExternalWork) Migrate() error {
 		return err
 	}
 
+	err = db.AutoMigrate(&model.ExternalWorkExternalEvent{})
+	if err != nil {
+		return err
+	}
+
 	externalWorkCompensation := model.ExternalWorkCompensation{
 		IsoCountryCodeA2:         "DE",
 		PrivateCarKmCompensation: 0.3,
