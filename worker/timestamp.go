@@ -91,10 +91,17 @@ func (w *Timestamp) CalculateMonth(userID uint, year int, month int) (model.Time
 	if result.OvertimeHours > 0 {
 		switch user.OvertimeSubtractionModel {
 		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-			subtractedHours = min(user.OvertimeSubtractionAmount, result.OvertimeHours)
+			subtractedHours = user.OvertimeSubtractionAmount
+			if result.OvertimeHours < user.OvertimeSubtractionAmount {
+				subtractedHours = result.OvertimeHours
+			}
 			break
 		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-			subtractedHours = min(neededHours/100*user.OvertimeSubtractionAmount, result.OvertimeHours)
+			subtractionAmount := (neededHours / 100 * user.OvertimeSubtractionAmount)
+			subtractedHours = subtractionAmount
+			if result.OvertimeHours < subtractionAmount {
+				subtractedHours = result.OvertimeHours
+			}
 			break
 		}
 	}
