@@ -502,6 +502,12 @@ func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 		return
 	}
 
+	settings, err := h.settings.SettingsFind()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
 	timestampIdParam := c.Param("timestampID")
 	timestampId, err := strconv.ParseUint(timestampIdParam, 10, 64)
 	if err != nil {
@@ -514,6 +520,12 @@ func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	changeReasonLength := len(strings.TrimSpace(timestampCorrectionCreateRequest.ChangeReason))
+	if settings.TimestampChangeReasonMinimumLength > 0 && changeReasonLength < int(settings.TimestampChangeReasonMinimumLength) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(fmt.Errorf("change reason is not long enough (given: %d, needed: %d)", changeReasonLength, settings.TimestampChangeReasonMinimumLength)))
 		return
 	}
 
