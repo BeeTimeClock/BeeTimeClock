@@ -449,9 +449,11 @@ class BeeTimeClock {
     return api.get('/api/v1/overtime/total');
   }
 
-  administrationExternalWorkCompensation(): Promise<
-    AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>
-  > {
+  externalWorkCompensation(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>> {
+    return api.get('/api/v1/external_work/compensation');
+  }
+
+  administrationExternalWorkCompensation(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>> {
     return api.get('/api/v1/administration/external_work/compensation');
   }
 

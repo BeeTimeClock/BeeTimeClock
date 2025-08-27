@@ -91,7 +91,7 @@ function loadExternalWorkItemsInvoiced() {
 }
 
 function loadExternalWorkCompensation() {
-  BeeTimeClock.administrationExternalWorkCompensation().then(result => {
+  BeeTimeClock.externalWorkCompensation().then(result => {
     if (result.status === 200) {
       externalWorkCompensations.value = result.data.Data.map(s => ExternalWorkCompensation.fromApi(s))
     }

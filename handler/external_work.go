@@ -411,6 +411,16 @@ func (h *ExternalWork) ExternalWorkSubmit(c *gin.Context) {
 	c.JSON(http.StatusOK, externalWorkItem)
 }
 
+func (h *ExternalWork) ExternalWorkCompensationGetAll(c *gin.Context) {
+	compensations, err := h.externalWork.ExternalWorkCompensationFindAll()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(compensations))
+}
+
 func (h *ExternalWork) AdministrationExternalWorkCompensationGetAll(c *gin.Context) {
 	compensations, err := h.externalWork.ExternalWorkCompensationFindAll()
 	if err != nil {

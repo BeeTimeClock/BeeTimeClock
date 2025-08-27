@@ -315,6 +315,7 @@ func main() {
 
 			externalWork := v1.Group("external_work")
 			{
+				externalWork.GET("compensation", externalWorkHandler.ExternalWorkCompensationGetAll)
 				externalWork.GET("", externalWorkHandler.ExternalWorkGetAll)
 				externalWork.POST("", externalWorkHandler.ExternalWorkCreate)
 				externalWork.GET("invoiced", externalWorkHandler.ExternalWorkGetInvoiced)
