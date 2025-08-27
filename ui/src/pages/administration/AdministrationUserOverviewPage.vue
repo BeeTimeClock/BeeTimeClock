@@ -3,10 +3,11 @@ import { computed, onMounted, ref } from 'vue';
 import { User } from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import UserAbsenceSummary from 'components/UserAbsenceSummary.vue';
-import { AbsenceReason } from 'src/models/Absence';
+import type { AbsenceReason } from 'src/models/Absence';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import type { ErrorResponse } from 'src/models/Base';
 
 const q = useQuasar();
 const { t } = useI18n();
@@ -16,16 +17,22 @@ const absenceReasons = ref([] as AbsenceReason[]);
 const needle = ref('');
 
 function loadUsers() {
-  BeeTimeClock.administrationGetUsers(true).then((result) => {
-    if (result.status === 200) {
-      users.value = result.data.Data;
-    }
-  });
+  BeeTimeClock.administrationGetUsers(true)
+    .then((result) => {
+      if (result.status === 200) {
+        users.value = result.data.Data.map(s => User.fromApi(s));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function loadAbsenceReasons() {
   BeeTimeClock.absenceReasons().then((result) => {
     absenceReasons.value = result.data.Data;
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
   });
 }
 
@@ -55,9 +62,11 @@ function deleteUser(user: User) {
           t('MSG_DELETE_SUCCESS', {
             item: t('LABEL_USER'),
             identifier: user.Username,
-          })
+          }),
         );
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   });
 }

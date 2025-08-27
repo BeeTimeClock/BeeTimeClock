@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
-import { computed, PropType, ref } from 'vue';
-import { Timestamp, TimestampGroup } from 'src/models/Timestamp';
+import type { PropType} from 'vue';
+import { computed, ref } from 'vue';
+import type { Timestamp, TimestampGroup } from 'src/models/Timestamp';
 import formatDate = date.formatDate;
 import { date } from 'quasar';
 import { useI18n } from 'vue-i18n';

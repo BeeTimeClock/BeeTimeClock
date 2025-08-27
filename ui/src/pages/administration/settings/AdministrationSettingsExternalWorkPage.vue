@@ -7,6 +7,8 @@ import { date } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import ExternalWorkCompensationAddtionalOptionsList
   from 'components/external_work/ExternalWorkCompensationAddtionalOptionsList.vue';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const { t } = useI18n();
 const externalWorkCompensations = ref<ExternalWorkCompensation[]>([]);
@@ -42,7 +44,9 @@ function loadExternalWorkCompensation() {
           ExternalWorkCompensation.fromApi(s)
         );
       }
-    })
+    }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  })
     .finally(() => {
       isLoading.value = false;
     });
@@ -58,6 +62,8 @@ function save() {
     if (result.status === 200) {
       loadExternalWorkCompensation()
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
   })
 }
 
@@ -117,7 +123,7 @@ onMounted(() => {
           />
         </q-item-section>
       </q-item>
-      <q-expansion-item :label="$t('LABEL_WITHOUT_SOCIAL_INSURANCE')"  content-inset-level="0.5">
+      <q-expansion-item :label="$t('LABEL_WITHOUT_SOCIAL_INSURANCE')" :content-inset-level="0.5">
         <q-list>
           <q-item v-for="(item, index) in selectedWorkCompensation.WithoutSocialInsuranceSlots" :key="index">
             <q-item-section>
@@ -134,7 +140,7 @@ onMounted(() => {
           </q-item>
         </q-list>
       </q-expansion-item>
-      <q-expansion-item :label="$t('LABEL_WITH_SOCIAL_INSURANCE')"  content-inset-level="0.5">
+      <q-expansion-item :label="$t('LABEL_WITH_SOCIAL_INSURANCE')"  :content-inset-level="0.5">
         <q-list>
           <q-item v-for="(item, index) in selectedWorkCompensation.WithSocialInsuranceSlots" :key="index">
             <q-item-section>
@@ -151,7 +157,7 @@ onMounted(() => {
           </q-item>
         </q-list>
       </q-expansion-item>
-      <q-expansion-item :label="$t('LABEL_OPTION', 2)" content-inset-level="0.5">
+      <q-expansion-item :label="$t('LABEL_OPTION', 2)" :content-inset-level="0.5">
        <ExternalWorkCompensationAddtionalOptionsList v-model="selectedWorkCompensation"/>
       </q-expansion-item>
       <q-item>

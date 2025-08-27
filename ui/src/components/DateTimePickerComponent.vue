@@ -2,21 +2,14 @@
 import {computed, ref, watch} from 'vue';
 import {date} from 'quasar';
 
-const props = defineProps({
-  modelValue: {
-    type: Date,
-    required: true
-  },
-  label: {
-    type: String
-  },
-});
+const modelValue = defineModel<Date|undefined>({required: true});
+const label = defineModel('label', {type: String});
 const emit = defineEmits(['update:modelValue']);
 
 const dateFormat = 'DD.MM.YYYY HH:mm';
 const value = computed({
-  get(): Date {
-    return props.modelValue;
+  get(): Date|undefined {
+    return modelValue.value;
   },
   set(value: Date) {
     emit('update:modelValue', value);

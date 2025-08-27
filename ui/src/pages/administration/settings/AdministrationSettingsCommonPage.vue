@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import type { ErrorResponse } from 'src/models/Base';
 
-const logoFile = ref<File|Blob>();
+const logoFile = ref<File | Blob>();
 
 function loadLogo() {
-  BeeTimeClock.getLogo().then(result => {
-    if (result.status === 200) {
-      logoFile.value = result.data;
-    }
-  })
+  BeeTimeClock.getLogo()
+    .then((result) => {
+      if (result.status === 200) {
+        logoFile.value = result.data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
-
 
 const imageUrl = computed(() => {
   if (logoFile.value) {
     return URL.createObjectURL(logoFile.value);
   }
   return '';
-})
-
+});
 
 function save() {
   if (logoFile.value) {
@@ -28,13 +31,15 @@ function save() {
       if (result.status === 204) {
         showInfoMessage('Saved');
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   }
 }
 
 onMounted(() => {
-  loadLogo()
-})
+  loadLogo();
+});
 </script>
 
 <template>
@@ -47,7 +52,13 @@ onMounted(() => {
         <q-img :src="imageUrl" height="100px" :fit="'contain'" />
       </div>
     </div>
-    <q-btn :label="$t('LABEL_SAVE')" class="full-width" color="positive" icon="save" @click="save" />
+    <q-btn
+      :label="$t('LABEL_SAVE')"
+      class="full-width"
+      color="positive"
+      icon="save"
+      @click="save"
+    />
   </q-page>
 </template>
 

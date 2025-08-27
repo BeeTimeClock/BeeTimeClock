@@ -1,4 +1,5 @@
-import { ApiUser, User } from 'src/models/Authentication';
+import type { ApiUser} from 'src/models/Authentication';
+import { User } from 'src/models/Authentication';
 import { autoImplement } from 'src/helper/functions';
 
 export interface ApiTeam {

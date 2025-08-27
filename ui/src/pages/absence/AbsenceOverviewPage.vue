@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import {
-  Absence,
+import type {
   AbsenceCreateRequest,
   AbsenceReason,
   AbsenceSummaryItem,
   AbsenceUserSummary,
   AbsenceUserSummaryYear,
 } from 'src/models/Absence';
+import { Absence } from 'src/models/Absence';
 import BeeTimeClock from 'src/service/BeeTimeClock';
+import type { QTableColumn} from 'quasar';
 import { date, useQuasar } from 'quasar';
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
 import { useI18n } from 'vue-i18n';
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
-import { AxiosError } from 'axios';
-import { BaseResponse } from 'src/models/Base';
+import type { AxiosError } from 'axios';
+import type { BaseResponse } from 'src/models/Base';
+import { type ErrorResponse } from 'src/models/Base';
 
 const { t } = useI18n();
 const q = useQuasar();
@@ -58,7 +60,7 @@ const myAbsencesColumns = [
     name: 'absenceActions',
     label: t('LABEL_ACTION', 2),
   },
-];
+] as QTableColumn[];
 
 const pagination = {
   rowsPerPage: 10,
@@ -87,43 +89,63 @@ const myAbsences = computed(() => {
 });
 
 function loadAbsenceReasons() {
-  BeeTimeClock.absenceReasons().then((result) => {
-    if (result.status === 200) {
-      absenceReasons = result.data.Data;
-    }
-  });
+  BeeTimeClock.absenceReasons()
+    .then((result) => {
+      if (result.status === 200) {
+        absenceReasons = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function createAbsence() {
-  BeeTimeClock.createAbsence(absenceCreateRequest.value).then((result) => {
-    if (result.status === 201) {
-      refresh();
-    }
-  });
+  BeeTimeClock.createAbsence(absenceCreateRequest.value)
+    .then((result) => {
+      if (result.status === 201) {
+        refresh();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function loadAbsenceSummary() {
-  BeeTimeClock.queryAbsenceSummary().then((result) => {
-    if (result.status === 200) {
-      absenceSummaryItems.value = result.data.Data;
-    }
-  });
+  BeeTimeClock.queryAbsenceSummary()
+    .then((result) => {
+      if (result.status === 200) {
+        absenceSummaryItems.value = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function loadAbsences() {
-  BeeTimeClock.getAbsences().then((result) => {
-    if (result.status === 200) {
-      absences.value = result.data.Data.map(s => Absence.fromApi(s));
-    }
-  });
+  BeeTimeClock.getAbsences()
+    .then((result) => {
+      if (result.status === 200) {
+        absences.value = result.data.Data.map((s) => Absence.fromApi(s));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function loadMySummary() {
-  BeeTimeClock.queryMyAbsenceSummary().then((result) => {
-    if (result.status === 200) {
-      mySummary.value = result.data.Data;
-    }
-  });
+  BeeTimeClock.queryMyAbsenceSummary()
+    .then((result) => {
+      if (result.status === 200) {
+        mySummary.value = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function getCurrentYearSummary(): AbsenceUserSummaryYear | null {
@@ -148,7 +170,7 @@ function getAbsenceReasonDescriptionById(id: number): string {
   const res = absenceReasons.filter((s) => s.ID == id);
   if (res.length == 0) return '';
 
-  return res[0].Description;
+  return res[0]!.Description;
 }
 
 function deleteAbsence(absence: Absence) {
@@ -186,9 +208,9 @@ function refresh() {
   loadMySummary();
 }
 
-onMounted(async () => {
-  await loadAbsenceReasons();
-  await refresh();
+onMounted(() => {
+  loadAbsenceReasons();
+  refresh();
 });
 </script>
 
@@ -199,7 +221,7 @@ onMounted(async () => {
       <div class="row q-mt-sm">
         <div
           class="col bg-primary q-mr-xl text-white text-center rounded-borders"
-          v-for="(absenceSummary, absenceReason) in getCurrentYearSummary()
+          v-for="(absenceSummary, absenceReason) in getCurrentYearSummary()!
             .ByAbsenceReason"
           :key="absenceReason"
         >

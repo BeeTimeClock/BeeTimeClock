@@ -1,5 +1,6 @@
 import {boot} from 'quasar/wrappers'
-import {InteractionRequiredAuthError, IPublicClientApplication, PublicClientApplication} from '@azure/msal-browser';
+import type { IPublicClientApplication} from '@azure/msal-browser';
+import {InteractionRequiredAuthError, PublicClientApplication} from '@azure/msal-browser';
 import {useAuthStore} from 'stores/microsoft-auth';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {getCurrentInstance} from 'vue';
@@ -37,7 +38,7 @@ class MsalProvider {
       .catch(function (error) {
         console.log(error);
         if (error instanceof InteractionRequiredAuthError) {
-          msalInstance.acquireTokenRedirect(accessTokenRequest);
+          void msalInstance.acquireTokenRedirect(accessTokenRequest);
         }
       });
   }

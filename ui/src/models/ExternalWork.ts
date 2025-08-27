@@ -118,8 +118,8 @@ export interface ApiExternalWork {
 }
 
 export interface ApiExternalWorkCreateRequest {
-  From: Date;
-  Till: Date;
+  From: string;
+  Till: string;
   Description: string;
   ExternalWorkCompensationID: number;
 }

@@ -15,12 +15,15 @@ const newAdditionalOptionKey = ref<string>();
 const newAdditionalOptionValue = ref<number>();
 
 function submit() {
+  if (!newAdditionalOptionValue.value) return;
+  if (newAdditionalOptionKey.value == undefined) return;
+
   workCompensation.value.AdditionalOptions[newAdditionalOptionKey.value] =
     newAdditionalOptionValue.value;
   showDialog.value = false;
 }
 
-function deleteEntry(key: string) {
+function deleteEntry(key: string|number) {
   q.dialog({
     title: t('LABEL_DELETE'),
     message: t('MSG_DELETE', {

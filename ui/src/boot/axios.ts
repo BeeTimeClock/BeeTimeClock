@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers';
-import axios, { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
 import {ACCESS_TOKEN_STORE_KEY, AUTH_PROVIDER_STORE_KEY} from 'stores/microsoft-auth';
 
 declare module '@vue/runtime-core' {
@@ -14,12 +15,13 @@ declare module '@vue/runtime-core' {
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-const api = axios.create({
-  baseURL: process.env.VUE_APP_BACKEND_ADDRESS,
+const options = {
+  baseURL: process.env.VUE_APP_BACKEND_ADDRESS || 'http://localhost:8085',
   headers: {
     'Content-Type': 'application/json',
   }
-});
+};
+const api = axios.create(options);
 
 api.interceptors.request.use(request => {
   const token = localStorage.getItem(ACCESS_TOKEN_STORE_KEY);

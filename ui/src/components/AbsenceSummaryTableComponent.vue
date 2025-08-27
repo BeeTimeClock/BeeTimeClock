@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {date} from 'quasar';
-import {AbsenceSummaryItem} from 'src/models/Absence';
-import {User} from 'src/models/Authentication';
-import {computed, PropType} from 'vue';
+import type {AbsenceSummaryItem} from 'src/models/Absence';
+import type {User} from 'src/models/Authentication';
+import type { PropType} from 'vue';
+import {computed} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {useAuthStore} from 'stores/microsoft-auth';
 

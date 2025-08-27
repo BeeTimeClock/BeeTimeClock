@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import {AuthProviders, ErrorResponse} from 'src/models/Base';
+import type {AuthProviders, ErrorResponse} from 'src/models/Base';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import {useAuthStore} from 'stores/microsoft-auth';
 import {onMounted, ref} from 'vue';
@@ -63,7 +63,7 @@ async function loadAuthProviders() {
   });
 }
 
-async function loginLocal() {
+function loginLocal() {
   BeeTimeClock.login(email.value, password.value).then((result) => {
     if (result.status === 200) {
       auth.setAccessToken(result.data.Data.Token);
@@ -89,9 +89,13 @@ function loginWithMicrosoft() {
       auth.setAccessToken(result.idToken);
       auth.setAuthProvider('microsoft');
 
-      msal.msalInstance.setActiveAccount(msal.msalInstance.getAllAccounts()[0])
+      msal.msalInstance.setActiveAccount(msal.msalInstance.getAllAccounts()[0]!)
     } catch (e) {
-      showErrorMessage('Cant set active account: ' + e);
+      let message = 'Unknown error';
+      if (e instanceof Error) {
+        message = e.message;
+      }
+      showErrorMessage(`Cant set active account: ${message}`);
     } finally {
       gotoDashboard();
     }
@@ -102,7 +106,7 @@ function loginWithMicrosoft() {
 }
 
 function gotoDashboard() {
-  router.push({name: 'Dashboard'})
+  void router.push({name: 'Dashboard'})
 }
 
 onMounted(async () => {

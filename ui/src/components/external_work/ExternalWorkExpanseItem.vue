@@ -8,6 +8,8 @@ import ExternalWorkExpanseItemOnSite from 'components/external_work/ExternalWork
 import ExternalWorkExpanseItemSummaryItem from 'components/external_work/ExternalWorkExpanseItemSummaryItem.vue';
 import { useI18n } from 'vue-i18n';
 import ExternalWorkExpanseItemOptions from 'components/external_work/ExternalWorkExpanseItemOptions.vue';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const { t } = useI18n();
 
@@ -76,7 +78,9 @@ function updateExternalWorkExpanse() {
       editMode.value = false;
       emits('updated');
     }
-  });
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });;
 }
 
 function createExternalWorkExpanse() {
@@ -88,7 +92,9 @@ function createExternalWorkExpanse() {
       editMode.value = false;
       emits('updated');
     }
-  });
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });;
 }
 </script>
 

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { Timestamp } from 'src/models/Timestamp';
+import type { Timestamp } from 'src/models/Timestamp';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
-import { date } from 'quasar';
+import { date, type QTableColumn } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import formatDate = date.formatDate;
 import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const timestamps = ref<Timestamp[]>([]);
 const selectedTimestamp = ref<Timestamp>();
@@ -37,18 +39,22 @@ const columns = [
     name: 'actions',
     label: t('LABEL_ACTION', 2),
   },
-];
+] as QTableColumn[];
 
 function loadTimestamps() {
-  BeeTimeClock.timestampQuerySuspicious().then((result) => {
-    if (result.status === 200) {
-      timestamps.value = result.data.Data;
-    }
-  });
+  BeeTimeClock.timestampQuerySuspicious()
+    .then((result) => {
+      if (result.status === 200) {
+        timestamps.value = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
 }
 
 function editTimestamp(timestamp: Timestamp) {
-  console.log('Timestamp: ', timestamp)
+  console.log('Timestamp: ', timestamp);
   selectedTimestamp.value = timestamp;
   showTimestampCreateDialog.value = true;
 }
@@ -83,7 +89,11 @@ onMounted(() => {
               />
             </q-td>
             <div v-else-if="col.name == 'actions'">
-              <q-btn icon="edit" color="primary" @click="editTimestamp(props.row)" />
+              <q-btn
+                icon="edit"
+                color="primary"
+                @click="editTimestamp(props.row)"
+              />
             </div>
             <div v-else-if="col.name == 'hasCorrections'">
               <q-icon
@@ -118,7 +128,7 @@ onMounted(() => {
                     >{{
                       date.formatDate(
                         correction.OldComingTimestamp,
-                        'DD.MM.YYYY HH:mm:ss'
+                        'DD.MM.YYYY HH:mm:ss',
                       )
                     }}
                   </q-item-label>
@@ -131,7 +141,7 @@ onMounted(() => {
                     >{{
                       date.formatDate(
                         correction.OldGoingTimestamp,
-                        'DD.MM.YYYY HH:mm:ss'
+                        'DD.MM.YYYY HH:mm:ss',
                       )
                     }}
                   </q-item-label>

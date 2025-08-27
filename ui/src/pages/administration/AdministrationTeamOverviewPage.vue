@@ -3,9 +3,11 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import { onMounted, ref } from 'vue';
 import { Team } from 'src/models/Team';
 import TeamCreateDialog from 'components/dialog/TeamCreateDialog.vue';
-import { QTableColumn } from 'quasar';
+import type { QTableColumn } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import { useI18n } from 'vue-i18n';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const {t} = useI18n();
 const teams = ref<Team[]>([]);
@@ -42,6 +44,8 @@ function loadTeams() {
     if (result.status === 200) {
       teams.value = result.data.Data.map((s) => Team.fromApi(s));
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
   });
 }
 

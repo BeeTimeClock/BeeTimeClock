@@ -2,6 +2,8 @@
 import {ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const value = ref(0);
 
@@ -9,7 +11,9 @@ BeeTimeClock.overtimeTotal().then(result => {
   if (result.status === 200) {
     value.value = result.data.Data.Total;
   }
-})
+}).catch((error: ErrorResponse) => {
+  showErrorMessage(error.message);
+});
 
 </script>
 

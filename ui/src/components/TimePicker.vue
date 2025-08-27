@@ -13,8 +13,8 @@ const time = computed({
   set(val) {
     const parts = val.split(':')
     const newDate = new Date(value.value)
-    newDate.setHours(parseInt(parts[0]))
-    newDate.setMinutes(parseInt(parts[1]))
+    newDate.setHours(parseInt(parts[0]!))
+    newDate.setMinutes(parseInt(parts[1]!))
 
     value.value = newDate.toISOString();
   }

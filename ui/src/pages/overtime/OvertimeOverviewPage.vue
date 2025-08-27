@@ -4,6 +4,9 @@ import { OvertimeMonthQuota } from 'src/models/Overtime';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
 import { emptyPagination } from 'src/helper/objects';
+import { type ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
+import { type QTableColumn } from 'quasar';
 
 const { t } = useI18n();
 const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
@@ -13,7 +16,7 @@ const columns = [
     name: 'Date',
     required: true,
     label: t('LABEL_DATE'),
-    align: 'left',
+    align: "left",
     field: 'identifier',
     sortable: true,
   },
@@ -22,7 +25,7 @@ const columns = [
     required: true,
     label: t('LABEL_HOUR', 2),
     field: 'Hours',
-    align: 'right',
+    align: "right",
     sortable: true,
     format: (val: number) => `${val.toFixed(2)}`,
   },
@@ -30,7 +33,7 @@ const columns = [
     name: 'actions',
     label: t('LABEL_ACTION', 2),
   },
-];
+] as QTableColumn[];
 
 function loadOvertimeQuotas() {
   BeeTimeClock.overtimeMonthQuotas().then((result) => {
@@ -39,6 +42,8 @@ function loadOvertimeQuotas() {
         OvertimeMonthQuota.fromApi(s)
       );
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
   });
 }
 
@@ -50,6 +55,8 @@ function calculateOvertimeMonth(overtimeMonthQuota: OvertimeMonthQuota) {
     if (result.status === 200) {
       loadOvertimeQuotas();
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
   });
 }
 

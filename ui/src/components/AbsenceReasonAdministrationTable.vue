@@ -3,7 +3,8 @@ import { computed, onMounted, ref } from 'vue';
 import { AbsenceReason, AbsenceReasonImpact } from 'src/models/Absence';
 import { useI18n } from 'vue-i18n';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import type { ErrorResponse } from 'src/models/Base';
 
 const { t } = useI18n();
 const absenceReasons = ref<AbsenceReason[]>([]);
@@ -16,13 +17,17 @@ const isNewReason = computed(() => {
 });
 
 function loadAbsenceReasons() {
-  BeeTimeClock.absenceReasons().then((result) => {
-    if (result.status === 200) {
-      absenceReasons.value = result.data.Data.map((s) =>
-        AbsenceReason.fromApi(s)
-      );
-    }
-  });
+  BeeTimeClock.absenceReasons()
+    .then((result) => {
+      if (result.status === 200) {
+        absenceReasons.value = result.data.Data.map((s) =>
+          AbsenceReason.fromApi(s),
+        );
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function saveAbsenceReason() {
@@ -30,22 +35,26 @@ function saveAbsenceReason() {
 
   if (isNewReason.value) {
     BeeTimeClock.administrationCreateAbsenceReason(
-      selectedAbsenceReason.value
+      selectedAbsenceReason.value,
     ).then((result) => {
       if (result.status === 201) {
         showInfoMessage(t('MSG_CREATE_SUCCESS', { item: t('LABEL_REASON') }));
         showDialog.value = false;
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   } else {
     BeeTimeClock.administrationUpdateAbsenceReason(
       selectedAbsenceReason.value.ID,
-      selectedAbsenceReason.value
+      selectedAbsenceReason.value,
     ).then((result) => {
       if (result.status === 200) {
         showInfoMessage(t('MSG_UPDATE_SUCCESS'));
         showDialog.value = false;
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   }
 }
@@ -76,7 +85,8 @@ onMounted(() => {
         <q-item-label
           caption
           v-if="absenceReason.Impact == AbsenceReasonImpact.Hours"
-          >{{ absenceReason.ImpactHours }}{{$t('LABEL_HOUR', absenceReason.ImpactHours)}}</q-item-label
+          >{{ absenceReason.ImpactHours
+          }}{{ $t('LABEL_HOUR', absenceReason.ImpactHours) }}</q-item-label
         >
       </q-item-section>
       <q-item-section side>

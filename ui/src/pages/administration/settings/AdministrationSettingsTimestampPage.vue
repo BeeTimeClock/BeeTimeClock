@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { OfficeIPAddress, Settings } from 'src/models/Settings';
+import type { OfficeIPAddress, Settings } from 'src/models/Settings';
 import { onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const { t } = useI18n();
 
@@ -15,6 +17,8 @@ function loadSettings() {
     if (result.status === 200) {
       applicationSettings.value = result.data.Data;
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
   });
 }
 
@@ -27,7 +31,9 @@ function updateSettings() {
         applicationSettings.value = result.data.Data;
       }
     }
-  );
+  ).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });
 }
 
 function addNewIpAddress() {

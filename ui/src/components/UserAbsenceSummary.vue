@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, PropType, ref } from 'vue';
+import type { PropType} from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { AbsenceReason, AbsenceUserSummary } from 'src/models/Absence';
+import type { AbsenceReason, AbsenceUserSummary } from 'src/models/Absence';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const props = defineProps({
   userId: {
@@ -28,7 +31,9 @@ function loadUserSummary() {
     if (response.status === 200) {
       userSummary.value = response.data.Data;
     }
-  });
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });;
 }
 
 function getAbsenceReason(absenceReasonId: number) : string|undefined {
