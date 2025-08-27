@@ -1,0 +1,17 @@
+meta {
+  name: Check In
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/timestamp/action/checkin
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "IsHomeoffice": false
+  }
+}

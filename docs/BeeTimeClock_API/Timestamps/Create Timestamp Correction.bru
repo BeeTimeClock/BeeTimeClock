@@ -1,0 +1,24 @@
+meta {
+  name: Create Timestamp Correction
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/timestamp/:timestampID/correction
+  body: json
+  auth: inherit
+}
+
+params:path {
+  timestampID: 1
+}
+
+body:json {
+  {
+    "ChangeReason": "hallo das ist",
+    "NewComingTimestamp": "2025-08-27T08:00:00Z",
+    "NewGoingTimestamp": null,
+    "IsHomeoffice": false
+  }
+}

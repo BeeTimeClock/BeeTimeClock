@@ -1,0 +1,19 @@
+meta {
+  name: Create User
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/administration/user
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "Username": "testuser",
+    "Password": "testpasswort",
+    "AccessLevel": "user"
+  }
+}
