@@ -48,7 +48,7 @@ function loadUsers() {
   <q-dialog v-model="show" @before-show="loadUsers">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_CREATE', { item: $t('LABEL_TEAM_MEMBER') }) }}
+        {{ t('LABEL_CREATE', { item: t('LABEL_TEAM_MEMBER') }) }}
       </q-card-section>
       <q-form @submit="createMember">
         <q-card-section>
@@ -59,17 +59,17 @@ function loadUsers() {
             emit-value
             option-label="displayName"
             option-value="ID"
-            :label="$t('LABEL_USER')"
+            :label="t('LABEL_USER')"
           />
         </q-card-section>
         <q-card-section>
           <q-card-actions>
-            <q-btn color="negative" v-close-popup :label="$t('LABEL_CANCEL')" />
+            <q-btn color="negative" v-close-popup :label="t('LABEL_CANCEL')" />
             <q-btn
               color="positive"
               v-close-popup
               type="submit"
-              :label="$t('LABEL_CREATE')"
+              :label="t('LABEL_CREATE')"
             />
           </q-card-actions>
         </q-card-section>

@@ -57,7 +57,7 @@ onMounted(() => {
 <template>
   <q-page padding>
     <q-btn
-      :label="$t('LABEL_CREATE', {item: $t('LABEL_TEAM')})"
+      :label="t('LABEL_CREATE', {item: t('LABEL_TEAM')})"
       class="full-width" color="positive" icon="add" @click="showTeamCreateDialog = true;"/>
     <q-table class="q-mt-md" :rows="teams" :columns="columns" hide-pagination :pagination="emptyPagination">
       <template v-slot:header="props">

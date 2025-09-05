@@ -194,14 +194,14 @@ onMounted(() => {
 <template>
   <q-page padding>
     <q-table
-      :title="$t('LABEL_EXTERNAL_WORK', 2)"
+      :title="t('LABEL_EXTERNAL_WORK', 2)"
       :rows="externalWorkItemsFiltered"
       :columns="columns"
       :pagination="emptyPagination"
     >
       <template v-slot:top>
         <div class="col-2 q-table__title">
-          {{ $t('LABEL_EXTERNAL_WORK', 2) }}
+          {{ t('LABEL_EXTERNAL_WORK', 2) }}
         </div>
         <q-space />
         <q-btn
@@ -213,7 +213,7 @@ onMounted(() => {
         <q-btn
           color="secondary"
           icon="post_add"
-          :label="$t('LABEL_GENERATE_REPORTS_FROM_ACCEPTED')"
+          :label="t('LABEL_GENERATE_REPORTS_FROM_ACCEPTED')"
           @click="downloadPdf"
         />
       </template>
@@ -244,7 +244,7 @@ onMounted(() => {
       </template>
     </q-table>
     <q-table v-if="externalWorkItemsInvoiced"
-      :title="$t('LABEL_EXTERNAL_WORK_INVOICED', 2)"
+      :title="t('LABEL_EXTERNAL_WORK_INVOICED', 2)"
       :rows="externalWorkItemsInvoiced"
       :columns="columnsInvoiced"
       :pagination="emptyPagination"
@@ -252,7 +252,7 @@ onMounted(() => {
     >
       <template v-slot:top>
         <div class="col-2 q-table__title">
-          {{ $t('LABEL_EXTERNAL_WORK_INVOICED', 2) }}
+          {{ t('LABEL_EXTERNAL_WORK_INVOICED', 2) }}
         </div>
       </template>
       <template v-slot:header="props">
@@ -284,7 +284,7 @@ onMounted(() => {
     >
       <q-card>
         <q-card-section class="text-h6 bg-primary text-white">
-          {{ $t('LABEL_CREATE', { item: $t('LABEL_EXTERNAL_WORK') }) }}
+          {{ t('LABEL_CREATE', { item: t('LABEL_EXTERNAL_WORK') }) }}
         </q-card-section>
         <q-form @submit="saveExternalWork">
           <q-card-section>
@@ -295,30 +295,30 @@ onMounted(() => {
               map-options
               option-value="ID"
               option-label="IsoCountryCodeA2"
-              :label="$t('LABEL_EXTERNAL_WORK_COMPENSATION')"
+              :label="t('LABEL_EXTERNAL_WORK_COMPENSATION')"
             />
             <q-input
               v-model="externalWorkCreateRequest.Description"
               class="q-mb-md"
-              :label="$t('LABEL_DESCRIPTION')"
+              :label="t('LABEL_DESCRIPTION')"
             />
             <q-input
               type="date"
               v-model="externalWorkCreateRequest.From"
               class="q-mb-md"
-              :label="$t('LABEL_FROM')"
+              :label="t('LABEL_FROM')"
             />
             <q-input
               type="date"
               v-model="externalWorkCreateRequest.Till"
-              :label="$t('LABEL_TILL')"
+              :label="t('LABEL_TILL')"
               :has-time="false"
             />
           </q-card-section>
           <q-card-section>
             <q-card-actions>
               <q-btn
-                :label="$t('BTN_SAVE')"
+                :label="t('BTN_SAVE')"
                 icon="save"
                 color="positive"
                 type="submit"

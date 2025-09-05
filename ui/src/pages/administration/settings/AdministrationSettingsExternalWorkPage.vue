@@ -117,52 +117,52 @@ onMounted(() => {
       <q-item>
         <q-item-section>
           <q-input
-            :label="$t('LABEL_PRIVATE_CAR_COMPENSATION_EURO')"
+            :label="t('LABEL_PRIVATE_CAR_COMPENSATION_EURO')"
             type="number"
             v-model.number="selectedWorkCompensation.PrivateCarKmCompensation"
           />
         </q-item-section>
       </q-item>
-      <q-expansion-item :label="$t('LABEL_WITHOUT_SOCIAL_INSURANCE')" :content-inset-level="0.5">
+      <q-expansion-item :label="t('LABEL_WITHOUT_SOCIAL_INSURANCE')" :content-inset-level="0.5">
         <q-list>
           <q-item v-for="(item, index) in selectedWorkCompensation.WithoutSocialInsuranceSlots" :key="index">
             <q-item-section>
-              <q-input v-model.number="item.Hours" :label="$t('LABEL_HOUR', 2)"/>
+              <q-input v-model.number="item.Hours" :label="t('LABEL_HOUR', 2)"/>
             </q-item-section>
             <q-item-section>
-              <q-input v-model.number="item.Compensation" :label="$t('LABEL_COMPENSATION_IN_EURO')"/>
+              <q-input v-model.number="item.Compensation" :label="t('LABEL_COMPENSATION_IN_EURO')"/>
             </q-item-section>
           </q-item>
           <q-item>
             <q-item-section>
-              <q-btn class="full-width" color="positive" icon="add" :label="$t('LABEL_ADD')"/>
+              <q-btn class="full-width" color="positive" icon="add" :label="t('LABEL_ADD')"/>
             </q-item-section>
           </q-item>
         </q-list>
       </q-expansion-item>
-      <q-expansion-item :label="$t('LABEL_WITH_SOCIAL_INSURANCE')"  :content-inset-level="0.5">
+      <q-expansion-item :label="t('LABEL_WITH_SOCIAL_INSURANCE')"  :content-inset-level="0.5">
         <q-list>
           <q-item v-for="(item, index) in selectedWorkCompensation.WithSocialInsuranceSlots" :key="index">
             <q-item-section>
-              <q-input v-model.number="item.Hours" :label="$t('LABEL_HOUR', 2)"/>
+              <q-input v-model.number="item.Hours" :label="t('LABEL_HOUR', 2)"/>
             </q-item-section>
             <q-item-section>
-              <q-input v-model.number="item.Compensation" :label="$t('LABEL_COMPENSATION_IN_EURO')"/>
+              <q-input v-model.number="item.Compensation" :label="t('LABEL_COMPENSATION_IN_EURO')"/>
             </q-item-section>
           </q-item>
           <q-item>
             <q-item-section>
-              <q-btn class="full-width" color="positive" icon="add" :label="$t('LABEL_ADD')"/>
+              <q-btn class="full-width" color="positive" icon="add" :label="t('LABEL_ADD')"/>
             </q-item-section>
           </q-item>
         </q-list>
       </q-expansion-item>
-      <q-expansion-item :label="$t('LABEL_OPTION', 2)" :content-inset-level="0.5">
+      <q-expansion-item :label="t('LABEL_OPTION', 2)" :content-inset-level="0.5">
        <ExternalWorkCompensationAddtionalOptionsList v-model="selectedWorkCompensation"/>
       </q-expansion-item>
       <q-item>
         <q-item-section>
-          <q-btn class="full-width" icon="save" :label="$t('LABEL_SAVE')" color="positive" @click="save"/>
+          <q-btn class="full-width" icon="save" :label="t('LABEL_SAVE')" color="positive" @click="save"/>
         </q-item-section>
       </q-item>
     </q-list>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const {t} = useI18n();
 
 const value = defineModel('value', {type: Date, required: true})
 const label = defineModel('label', {type: String})
@@ -28,7 +31,7 @@ const time = computed({
         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
           <q-time v-model="time">
             <div class="row items-center justify-end">
-              <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat />
+              <q-btn v-close-popup :label="t('BTN_CLOSE')" color="primary" flat />
             </div>
           </q-time>
         </q-popup-proxy>

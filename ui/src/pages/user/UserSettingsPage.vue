@@ -40,12 +40,12 @@ onMounted(() => {
   <q-page padding>
     <q-form v-if="user" @submit="save">
       <q-input
-        :label="$t('LABEL_STAFF_NUMBER')"
+        :label="t('LABEL_STAFF_NUMBER')"
         v-model.number="user.StaffNumber"
       />
       <q-btn
         class="full-width q-mt-lg"
-        :label="$t('LABEL_SAVE')"
+        :label="t('LABEL_SAVE')"
         icon="save"
         color="positive"
         type="submit"

@@ -45,12 +45,12 @@ function deleteEntry(key: string|number) {
       :key="key"
     >
       <q-item-section>
-        <q-input readonly :model-value="key" :label="$t('LABEL_NAME')" />
+        <q-input readonly :model-value="key" :label="t('LABEL_NAME')" />
       </q-item-section>
       <q-item-section>
         <q-input
           v-model.number="workCompensation.AdditionalOptions[key]"
-          :label="$t('LABEL_COMPENSATION_IN_EURO')"
+          :label="t('LABEL_COMPENSATION_IN_EURO')"
         />
       </q-item-section>
       <q-item-section side>
@@ -63,7 +63,7 @@ function deleteEntry(key: string|number) {
           class="full-width"
           color="positive"
           icon="add"
-          :label="$t('LABEL_ADD')"
+          :label="t('LABEL_ADD')"
           @click="showDialog = true"
         />
       </q-item-section>
@@ -72,26 +72,26 @@ function deleteEntry(key: string|number) {
   <q-dialog v-model="showDialog" persistent>
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_ADD') }}
+        {{ t('LABEL_ADD') }}
       </q-card-section>
       <q-form @submit="submit">
         <q-card-section>
-          <q-input v-model="newAdditionalOptionKey" :label="$t('LABEL_NAME')" />
+          <q-input v-model="newAdditionalOptionKey" :label="t('LABEL_NAME')" />
           <q-input
             v-model.number="newAdditionalOptionValue"
-            :label="$t('LABEL_COMPENSATION_IN_EURO')"
+            :label="t('LABEL_COMPENSATION_IN_EURO')"
           />
         </q-card-section>
         <q-card-section>
           <q-card-actions>
             <q-btn
-              :label="$t('LABEL_CANCEL')"
+              :label="t('LABEL_CANCEL')"
               color="negative"
               v-close-popup
               type="reset"
             />
             <q-btn
-              :label="$t('LABEL_CREATE')"
+              :label="t('LABEL_CREATE')"
               color="positive"
               type="submit"
             />

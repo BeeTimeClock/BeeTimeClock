@@ -1,9 +1,11 @@
-import {boot} from 'quasar/wrappers'
-import type { IPublicClientApplication} from '@azure/msal-browser';
-import {InteractionRequiredAuthError, PublicClientApplication} from '@azure/msal-browser';
-import {useAuthStore} from 'stores/microsoft-auth';
+import { boot } from 'quasar/wrappers';
+import type { IPublicClientApplication } from '@azure/msal-browser';
+import {
+  InteractionRequiredAuthError,
+  PublicClientApplication,
+} from '@azure/msal-browser';
+import { useAuthStore } from 'stores/microsoft-auth';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import {getCurrentInstance} from 'vue';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -12,20 +14,18 @@ declare module '@vue/runtime-core' {
 }
 
 class MsalProvider {
-  msalInstance: IPublicClientApplication;
+  _msalInstance?: IPublicClientApplication;
 
-  constructor(msalInstance: IPublicClientApplication) {
-    this.msalInstance = msalInstance;
+  set msalInstance(msalInstance: IPublicClientApplication) {
+    this._msalInstance = msalInstance;
+  }
+  get msalInstance() {
+    return this._msalInstance!;
   }
 
   refresh() {
     const accessTokenRequest = {
-      scopes: [
-        'openid',
-        'profile',
-        'email',
-        'Calendars.ReadWrite',
-      ],
+      scopes: ['openid', 'profile', 'email', 'Calendars.ReadWrite'],
     };
 
     const msalInstance = this.msalInstance;
@@ -44,16 +44,18 @@ class MsalProvider {
   }
 }
 
-export default boot(async ({app}) => {
+const msalProvider = new MsalProvider();
+
+export default boot(async({ app }) => {
+  const authStore = useAuthStore();
   const microsoftSettings = await BeeTimeClock.getMicrosoftAuthSettings();
 
-  useAuthStore().setMicrosoftClientId(microsoftSettings.data.Data.ClientID);
-  useAuthStore().setMicrosoftAuthority(microsoftSettings.data.Data.TenantID);
+  authStore.setMicrosoftClientId(microsoftSettings.data.Data.ClientID);
+  authStore.setMicrosoftAuthority(microsoftSettings.data.Data.TenantID);
 
-  app.config.globalProperties.$msalProvider = new MsalProvider(await PublicClientApplication.createPublicClientApplication(useAuthStore().getMsalConfig));
-})
+  msalProvider.msalInstance = await PublicClientApplication.createPublicClientApplication(useAuthStore().getMsalConfig)
 
-export function useMicrosoftAuth() {
-  const app = getCurrentInstance();
-  return app?.appContext.config.globalProperties.$msalProvider;
-}
+  app.config.globalProperties.$msalProvider = msalProvider;
+});
+
+export { msalProvider };

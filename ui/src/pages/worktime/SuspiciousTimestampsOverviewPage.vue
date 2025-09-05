@@ -71,7 +71,7 @@ onMounted(() => {
       :columns="columns"
       :pagination="emptyPagination"
       hide-pagination
-      :title="$t('LABEL_SUSPICIOUS_TIMESTAMPS')"
+      :title="t('LABEL_SUSPICIOUS_TIMESTAMPS')"
       row-key="ID"
     >
       <template v-slot:body="props">
@@ -117,12 +117,12 @@ onMounted(() => {
                 :key="correction.ID"
               >
                 <q-item-section>
-                  <q-item-label caption>{{ $t('LABEL_REASON') }}</q-item-label>
+                  <q-item-label caption>{{ t('LABEL_REASON') }}</q-item-label>
                   <q-item-label>{{ correction.ChangeReason }}</q-item-label>
                 </q-item-section>
                 <q-item-section>
                   <q-item-label caption>{{
-                    $t('LABEL_OLD_COMING')
+                    t('LABEL_OLD_COMING')
                   }}</q-item-label>
                   <q-item-label
                     >{{
@@ -135,7 +135,7 @@ onMounted(() => {
                 </q-item-section>
                 <q-item-section>
                   <q-item-label caption>{{
-                    $t('LABEL_OLD_GOING')
+                    t('LABEL_OLD_GOING')
                   }}</q-item-label>
                   <q-item-label
                     >{{

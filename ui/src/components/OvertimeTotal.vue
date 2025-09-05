@@ -4,6 +4,9 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
 import type { ErrorResponse } from 'src/models/Base';
 import { showErrorMessage } from 'src/helper/message';
+import { useI18n } from 'vue-i18n';
+
+const {t} = useI18n()
 
 const value = ref(0);
 
@@ -20,7 +23,7 @@ BeeTimeClock.overtimeTotal().then(result => {
 <template>
   <q-card>
     <q-card-section class="bg-primary text-white text-subtitle">
-      {{ $t('LABEL_OVERTIME_TOTAL') }}
+      {{ t('LABEL_OVERTIME_TOTAL') }}
     </q-card-section>
     <q-card-section class="text-h6 text-center">
       {{ formatIndustryHourMinutes(value) }}

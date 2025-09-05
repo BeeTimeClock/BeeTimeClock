@@ -11,7 +11,7 @@
           <q-btn
             class="full-width"
             color="positive"
-            :label="$t('BTN_CHECK_IN')"
+            :label="t('BTN_CHECK_IN')"
             @click="actionCheckIn()"
           />
         </div>
@@ -19,7 +19,7 @@
           <q-btn
             class="full-width"
             color="negative"
-            :label="$t('BTN_CHECK_OUT')"
+            :label="t('BTN_CHECK_OUT')"
             @click="actionCheckOut()"
           />
         </div>
@@ -27,7 +27,7 @@
           <q-btn
             class="full-width"
             color="primary"
-            :label="$t('BTN_ADD', { item: $t('LABEL_TIMESTAMP') })"
+            :label="t('BTN_ADD', { item: t('LABEL_TIMESTAMP') })"
             @click="promptTimestampCorrectionCreate = true"
           />
         </div>
@@ -37,7 +37,7 @@
           <q-select
             v-model="selectedYear"
             :options="timestampYears"
-            :label="$t('LABEL_YEAR')"
+            :label="t('LABEL_YEAR')"
           />
         </div>
         <div class="col">
@@ -45,7 +45,7 @@
             class="q-ml-md"
             v-model="selectedMonth"
             :options="timestampMonths"
-            :label="$t('LABEL_MONTH')"
+            :label="t('LABEL_MONTH')"
           />
         </div>
       </div>

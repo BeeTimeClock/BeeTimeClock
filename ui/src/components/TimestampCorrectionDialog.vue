@@ -94,7 +94,7 @@ function createTimestampCorrection() {
       v-if="timestampCorrectionCreateRequest"
     >
       <q-card-section>
-        <div class="text-h6">{{ $t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
+        <div class="text-h6">{{ t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
       </q-card-section>
       <q-form
         @submit.prevent.stop="createTimestampCorrection"
@@ -103,16 +103,16 @@ function createTimestampCorrection() {
         <q-card-section>
           <DateTimePickerComponent
             v-model="timestampCorrectionCreateRequest.NewComingTimestamp"
-            :label="$t('LABEL_COMING_TIMESTAMP')"
+            :label="t('LABEL_COMING_TIMESTAMP')"
           />
           <DateTimePickerComponent
             class="q-mt-md"
             v-model="timestampCorrectionCreateRequest.NewGoingTimestamp"
-            :label="$t('LABEL_GOING_TIMESTAMP')"
+            :label="t('LABEL_GOING_TIMESTAMP')"
           />
           <q-checkbox
             v-model="timestampCorrectionCreateRequest.IsHomeoffice"
-            :label="$t('LABEL_HOMEOFFICE')"
+            :label="t('LABEL_HOMEOFFICE')"
           />
           <q-input
             :rules="[
@@ -132,11 +132,11 @@ function createTimestampCorrection() {
         <q-card-actions>
           <q-btn
             v-close-popup
-            :label="$t('BTN_CANCEL')"
+            :label="t('BTN_CANCEL')"
             color="negative"
             type="reset"
           />
-          <q-btn :label="$t('BTN_CREATE')" color="positive" type="submit" />
+          <q-btn :label="t('BTN_CREATE')" color="positive" type="submit" />
         </q-card-actions>
       </q-form>
     </q-card>

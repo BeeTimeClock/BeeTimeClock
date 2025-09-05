@@ -68,8 +68,8 @@ onMounted(() => {
     <q-markup-table>
       <thead>
         <tr>
-          <th>{{ $t('LABEL_DESCRIPTION') }}</th>
-          <th>{{ $t('LABEL_VALID_TILL') }}</th>
+          <th>{{ t('LABEL_DESCRIPTION') }}</th>
+          <th>{{ t('LABEL_VALID_TILL') }}</th>
           <th>
             <q-btn color="primary" icon="add" @click="showApikeyAdd" />
           </th>
@@ -87,26 +87,26 @@ onMounted(() => {
   <q-dialog persistent v-model="promptApikeyAdd" v-if="apikeyCreateRequest">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_CREATE', { item: $t('LABEL_APIKEY') }) }}
+        {{ t('LABEL_CREATE', { item: t('LABEL_APIKEY') }) }}
       </q-card-section>
       <q-card-section>
         <q-input
           v-model="apikeyCreateRequest.Description"
-          :label="$t('LABEL_DESCRIPTION')"
+          :label="t('LABEL_DESCRIPTION')"
         />
         <q-input
           type="date"
           v-model="apikeyCreateRequest.ValidTill"
-          :label="$t('LABEL_VALID_TILL') + '(optional)'"
+          :label="t('LABEL_VALID_TILL') + '(optional)'"
         />
       </q-card-section>
       <q-card-section>
         <q-card-actions>
-          <q-btn color="negative" v-close-popup :label="$t('BTN_CANCEL')" />
+          <q-btn color="negative" v-close-popup :label="t('BTN_CANCEL')" />
           <q-btn
             color="positive"
             v-close-popup
-            :label="$t('BTN_CREATE')"
+            :label="t('BTN_CREATE')"
             @click="createApikey"
           />
         </q-card-actions>
@@ -116,10 +116,10 @@ onMounted(() => {
   <q-dialog persistent v-model="promptApikeySuccess" v-if="apikeySuccessResponse">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('MSG_CREATE_SUCCESS', { item: $t('LABEL_APIKEY') }) }}
+        {{ t('MSG_CREATE_SUCCESS', { item: t('LABEL_APIKEY') }) }}
       </q-card-section>
       <q-card-section>
-        {{ $t('MSG_APIKEY_SHOW_WARNING') }}
+        {{ t('MSG_APIKEY_SHOW_WARNING') }}
         <pre>{{ apikeySuccessResponse.Apikey }}</pre>
       </q-card-section>
       <q-card-section>
@@ -127,7 +127,7 @@ onMounted(() => {
           <q-btn
             color="negative"
             v-close-popup
-            :label="$t('BTN_CLOSE')"
+            :label="t('BTN_CLOSE')"
             @click="closeApikey"
           />
         </q-card-actions>

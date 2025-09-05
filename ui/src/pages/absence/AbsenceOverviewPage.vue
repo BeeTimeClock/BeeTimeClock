@@ -71,10 +71,10 @@ let absenceReasons = [] as AbsenceReason[];
 const conflictingAbsences = computed(() => {
   return absenceSummaryItems.value.filter(
     (s) =>
-      (s.AbsenceFrom > absenceCreateRequest.value.AbsenceFrom &&
-        s.AbsenceFrom < absenceCreateRequest.value.AbsenceTill) ||
-      (s.AbsenceTill < absenceCreateRequest.value.AbsenceTill &&
-        s.AbsenceTill > absenceCreateRequest.value.AbsenceFrom),
+      (s.AbsenceFrom >  new Date(absenceCreateRequest.value.AbsenceFrom) &&
+        s.AbsenceFrom < new Date(absenceCreateRequest.value.AbsenceTill)) ||
+      (s.AbsenceTill < new Date(absenceCreateRequest.value.AbsenceTill) &&
+        s.AbsenceTill > new Date(absenceCreateRequest.value.AbsenceFrom)),
   );
 });
 
@@ -238,13 +238,13 @@ onMounted(() => {
       </div>
     </div>
     <q-table
-      :title="$t('LABEL_MY_ABSENCES')"
+      :title="t('LABEL_MY_ABSENCES')"
       :rows="myAbsences"
       :columns="myAbsencesColumns"
       :pagination="pagination"
     >
       <template v-slot:top>
-        <div class="col-2 q-table__title">{{ $t('LABEL_MY_ABSENCES') }}</div>
+        <div class="col-2 q-table__title">{{ t('LABEL_MY_ABSENCES') }}</div>
         <q-space />
         <q-btn
           color="positive"
@@ -280,16 +280,16 @@ onMounted(() => {
       <q-card-section>
         <q-input
           type="date"
-          :label="$t('LABEL_FROM')"
+          :label="t('LABEL_FROM')"
           v-model="absenceCreateRequest.AbsenceFrom"
         />
         <q-input
           type="date"
-          :label="$t('LABEL_TILL')"
+          :label="t('LABEL_TILL')"
           v-model="absenceCreateRequest.AbsenceTill"
         />
         <q-select
-          :label="$t('LABEL_REASON')"
+          :label="t('LABEL_REASON')"
           emit-value
           :options="absenceReasons"
           map-options
@@ -303,14 +303,14 @@ onMounted(() => {
           v-if="conflictingAbsences.length > 0"
           v-model="conflictingAbsences"
           flat
-          :title="$t('LABEL_ABSENCE_CONFLICTING')"
+          :title="t('LABEL_ABSENCE_CONFLICTING')"
         />
       </q-card-section>
       <q-card-actions>
-        <q-btn v-close-popup :label="$t('BTN_CANCEL')" color="negative" />
+        <q-btn v-close-popup :label="t('BTN_CANCEL')" color="negative" />
         <q-btn
           v-close-popup
-          :label="$t('BTN_CREATE')"
+          :label="t('BTN_CREATE')"
           color="positive"
           @click="createAbsence"
         />

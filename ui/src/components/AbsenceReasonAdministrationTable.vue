@@ -86,7 +86,7 @@ onMounted(() => {
           caption
           v-if="absenceReason.Impact == AbsenceReasonImpact.Hours"
           >{{ absenceReason.ImpactHours
-          }}{{ $t('LABEL_HOUR', absenceReason.ImpactHours) }}</q-item-label
+          }}{{ t('LABEL_HOUR', absenceReason.ImpactHours) }}</q-item-label
         >
       </q-item-section>
       <q-item-section side>
@@ -102,7 +102,7 @@ onMounted(() => {
         <q-btn
           class="full-width"
           icon="add"
-          :label="$t('BTN_ADD')"
+          :label="t('BTN_ADD')"
           color="positive"
           @click="createAbsenceReason"
         />
@@ -113,25 +113,25 @@ onMounted(() => {
     <q-card>
       <q-card-section class="bg-primary text-h6 text-white">
         <div v-if="isNewReason">
-          {{ $t('TITLE_CREATE', { item: $t('LABEL_REASON') }) }}
+          {{ t('TITLE_CREATE', { item: t('LABEL_REASON') }) }}
         </div>
         <div v-else>
-          {{ $t('TITLE_UPDATE', { item: $t('LABEL_REASON') }) }}
+          {{ t('TITLE_UPDATE', { item: t('LABEL_REASON') }) }}
         </div>
       </q-card-section>
       <q-form @submit="saveAbsenceReason">
         <q-card-section>
           <q-input
             v-model="selectedAbsenceReason.Description"
-            :label="$t('LABEL_DESCRIPTION')"
+            :label="t('LABEL_DESCRIPTION')"
           />
         </q-card-section>
         <q-card-section>
           <q-card-actions>
-            <q-btn color="negative" :label="$t('BTN_CANCEL')" v-close-popup />
+            <q-btn color="negative" :label="t('BTN_CANCEL')" v-close-popup />
             <q-btn
               color="positive"
-              :label="isNewReason ? $t('BTN_CREATE') : $t('BTN_SAVE')"
+              :label="isNewReason ? t('BTN_CREATE') : t('BTN_SAVE')"
               type="submit"
             />
           </q-card-actions>

@@ -102,23 +102,23 @@ onMounted(() => {
   <q-page padding>
     <q-card v-if="team">
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_INFORMATION') }}
+        {{ t('LABEL_INFORMATION') }}
       </q-card-section>
       <q-card-section>
         <q-list>
           <q-item>
             <q-item-section side>
-              <q-item-label caption>{{ $t('LABEL_ID') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_ID') }}</q-item-label>
               <q-item-label>{{ team.ID }}</q-item-label>
             </q-item-section>
             <q-item-section>
-              <q-item-label caption>{{ $t('LABEL_CREATED_AT') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_CREATED_AT') }}</q-item-label>
               <q-item-label>{{ team.CreatedAt }}</q-item-label>
             </q-item-section>
           </q-item>
           <q-item>
             <q-item-section>
-              <q-item-label caption>{{ $t('LABEL_TEAM_LEAD') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_TEAM_LEAD') }}</q-item-label>
               <q-item-label
                 >{{ team.teamOwnerMapped.displayName }}
               </q-item-label>
@@ -129,10 +129,11 @@ onMounted(() => {
     </q-card>
     <q-card class="q-mt-md q-pa-none">
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_TEAM_MEMBER', 2) }}
+        {{ t('LABEL_TEAM_MEMBER', 2) }}
       </q-card-section>
       <q-card-section class="q-pa-none">
         <q-table
+          v-if="members != undefined"
           :pagination="emptyPagination"
           hide-pagination
           :columns="columns"

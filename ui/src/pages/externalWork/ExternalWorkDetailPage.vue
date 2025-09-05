@@ -107,18 +107,18 @@ onMounted(() => {
     <div v-if="externalWork && !loading">
       <q-card>
         <q-card-section class="bg-primary text-h6 text-white">
-          {{ $t('LABEL_INFORMATION') }}
+          {{ t('LABEL_INFORMATION') }}
           <div class="float-right">
             <q-btn
               v-if="externalWork.NeedsUserInput"
-              :label="$t('LABEL_DELETE')"
+              :label="t('LABEL_DELETE')"
               color="negative"
               class="q-mr-md"
               @click="deleteExternalWork"
             />
             <q-btn
               v-if="externalWork.NeedsUserInput"
-              :label="$t('LABEL_SUBMIT')"
+              :label="t('LABEL_SUBMIT')"
               color="secondary"
               @click="submit"
             />
@@ -129,46 +129,46 @@ onMounted(() => {
             <q-item>
               <q-item-section>
                 <q-item-label caption
-                  >{{ $t('LABEL_DESCRIPTION') }}
+                  >{{ t('LABEL_DESCRIPTION') }}
                 </q-item-label>
                 <q-item-label>{{ externalWork.Description }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-chip color="secondary" square>{{
-                  $t(externalWork.StatusLabel)
+                  t(externalWork.StatusLabel)
                 }}</q-chip>
               </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
-                <q-item-label caption>{{ $t('LABEL_FROM') }}</q-item-label>
+                <q-item-label caption>{{ t('LABEL_FROM') }}</q-item-label>
                 <q-item-label>{{
                   date.formatDate(externalWork.From, 'DD.MM.YYYY')
                 }}</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-item-label caption>{{ $t('LABEL_TILL') }}</q-item-label>
+                <q-item-label caption>{{ t('LABEL_TILL') }}</q-item-label>
                 <q-item-label>{{
                   date.formatDate(externalWork.Till, 'DD.MM.YYYY')
                 }}</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item-label header>{{ $t('LABEL_CALCULATED') }}</q-item-label>
+            <q-item-label header>{{ t('LABEL_CALCULATED') }}</q-item-label>
             <q-item>
               <q-item-section>
                 <q-item-label caption>{{
-                  $t('LABEL_TOTAL_OVERTIME_HOURS')
+                  t('LABEL_TOTAL_OVERTIME_HOURS')
                 }}</q-item-label>
                 <q-item-label
                   >{{ externalWork.TotalOvertimeHours }}
-                  {{ $t('LABEL_HOUR', externalWork.TotalOvertimeHours) }}
+                  {{ t('LABEL_HOUR', externalWork.TotalOvertimeHours) }}
                 </q-item-label>
               </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
                 <q-item-label caption>{{
-                  $t('LABEL_TOTAL_EXPENSE_WITH_SOCIAL_INSURANCE')
+                  t('LABEL_TOTAL_EXPENSE_WITH_SOCIAL_INSURANCE')
                 }}</q-item-label>
                 <q-item-label>{{
                   formatCurrency(externalWork.TotalExpensesWithSocialInsurance)
@@ -176,7 +176,7 @@ onMounted(() => {
               </q-item-section>
               <q-item-section>
                 <q-item-label caption>{{
-                  $t('LABEL_TOTAL_EXPENSE_WITHOUT_SOCIAL_INSURANCE')
+                  t('LABEL_TOTAL_EXPENSE_WITHOUT_SOCIAL_INSURANCE')
                 }}</q-item-label>
                 <q-item-label>{{
                   formatCurrency(
@@ -186,7 +186,7 @@ onMounted(() => {
               </q-item-section>
               <q-item-section>
                 <q-item-label caption>{{
-                  $t('LABEL_TOTAL_ADDITION_HAIRCUT')
+                  t('LABEL_TOTAL_ADDITION_HAIRCUT')
                 }}</q-item-label>
                 <q-item-label
                   v-for="(value, key) in externalWork.TotalOptions"

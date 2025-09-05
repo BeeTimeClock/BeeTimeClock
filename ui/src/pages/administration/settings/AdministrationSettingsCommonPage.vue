@@ -3,14 +3,16 @@ import { computed, onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { ErrorResponse } from 'src/models/Base';
+import { useI18n } from 'vue-i18n';
 
-const logoFile = ref<File | Blob>();
+const {t} = useI18n();
+const logoFile = ref<File>();
 
 function loadLogo() {
   BeeTimeClock.getLogo()
     .then((result) => {
       if (result.status === 200) {
-        logoFile.value = result.data;
+        logoFile.value = new File([result.data], 'logo');
       }
     })
     .catch((error: ErrorResponse) => {
@@ -46,14 +48,14 @@ onMounted(() => {
   <q-page padding>
     <div class="row">
       <div class="col-3">
-        <q-file v-model="logoFile" :label="$t('LABEL_LOGO')" />
+        <q-file v-model="logoFile" :label="t('LABEL_LOGO')" />
       </div>
       <div class="col q-pa-md">
         <q-img :src="imageUrl" height="100px" :fit="'contain'" />
       </div>
     </div>
     <q-btn
-      :label="$t('LABEL_SAVE')"
+      :label="t('LABEL_SAVE')"
       class="full-width"
       color="positive"
       icon="save"

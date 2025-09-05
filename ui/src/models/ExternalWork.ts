@@ -42,14 +42,14 @@ export interface ApiExternalWorkExpanse {
   ExternalWorkID: number;
   ExternalWork: ApiExternalWork;
   Date: Date;
-  DepartureTime?: Date;
-  ArrivalTime?: Date;
+  DepartureTime?: Date | undefined;
+  ArrivalTime?: Date | undefined;
   TravelDurationHours: number;
   PauseDurationHours: number;
   RestDurationHours: number;
   TravelWithPrivateCarKm: number;
-  OnSiteFrom?: Date;
-  OnSiteTill?: Date;
+  OnSiteFrom?: Date|undefined;
+  OnSiteTill?: Date|undefined;
   OnSiteDuration: number;
   Place: string;
   TotalWorkingHours: number;

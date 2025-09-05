@@ -83,10 +83,10 @@ onMounted(() => {
     <q-markup-table class="q-mt-lg">
       <thead>
         <tr class="bg-primary text-white">
-          <th class="text-left">{{ $t('LABEL_USER') }}</th>
-          <th class="text-left">{{ $t('LABEL_FIRST_NAME') }}</th>
-          <th class="text-left">{{ $t('LABEL_LAST_NAME') }}</th>
-          <th class="text-left">{{ $t('LABEL_ABSENCE', 2) }}</th>
+          <th class="text-left">{{ t('LABEL_USER') }}</th>
+          <th class="text-left">{{ t('LABEL_FIRST_NAME') }}</th>
+          <th class="text-left">{{ t('LABEL_LAST_NAME') }}</th>
+          <th class="text-left">{{ t('LABEL_ABSENCE', 2) }}</th>
           <th></th>
         </tr>
       </thead>

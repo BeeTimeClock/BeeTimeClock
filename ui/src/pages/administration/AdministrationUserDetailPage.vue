@@ -270,42 +270,42 @@ function deleteUserAbsence(absence: Absence) {
             <q-card-section>
               <q-input
                 readonly
-                :label="$t('LABEL_USERNAME')"
+                :label="t('LABEL_USERNAME')"
                 v-model="user.Username"
               />
               <q-input
-                :label="$t('LABEL_FIRST_NAME')"
+                :label="t('LABEL_FIRST_NAME')"
                 v-model="user.FirstName"
               />
-              <q-input :label="$t('LABEL_LAST_NAME')" v-model="user.LastName" />
+              <q-input :label="t('LABEL_LAST_NAME')" v-model="user.LastName" />
               <q-select
-                :label="$t('LABEL_ACCESS_LEVEL')"
+                :label="t('LABEL_ACCESS_LEVEL')"
                 :options="accessLevelOptions"
                 v-model="user.AccessLevel"
                 map-options
                 emit-value
               />
               <q-select
-                :label="$t('LABEL_OVERTIME_SUBTRACTION_MODEL')"
+                :label="t('LABEL_OVERTIME_SUBTRACTION_MODEL')"
                 :options="overtimeSubtractions"
                 v-model="user.OvertimeSubtractionModel"
                 map-options
                 emit-value
               />
               <q-input
-                :label="$t('LABEL_OVERTIME_SUBTRACTION_AMOUNT')"
+                :label="t('LABEL_OVERTIME_SUBTRACTION_AMOUNT')"
                 v-model.number="user.OvertimeSubtractionAmount"
                 type="number"
               />
               <q-input
-                :label="$t('LABEL_STAFF_NUMBER')"
+                :label="t('LABEL_STAFF_NUMBER')"
                 v-model.number="user.StaffNumber"
                 type="number"
               />
             </q-card-section>
             <q-card-actions>
               <q-btn
-                :label="$t('BTN_SAVE')"
+                :label="t('BTN_SAVE')"
                 color="primary"
                 @click="saveUser"
               />
@@ -318,7 +318,7 @@ function deleteUserAbsence(absence: Absence) {
               <q-select
                 v-model="selectedYear"
                 :options="timestampYears"
-                :label="$t('LABEL_YEAR')"
+                :label="t('LABEL_YEAR')"
               />
             </div>
             <div class="col">
@@ -326,7 +326,7 @@ function deleteUserAbsence(absence: Absence) {
                 class="q-ml-md"
                 v-model="selectedMonth"
                 :options="timestampMonths"
-                :label="$t('LABEL_MONTH')"
+                :label="t('LABEL_MONTH')"
               />
             </div>
           </div>

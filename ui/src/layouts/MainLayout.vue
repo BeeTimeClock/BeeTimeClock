@@ -30,7 +30,7 @@
         <q-btn
           class="q-ml-lg"
           color="secondary"
-          :label="$t('BTN_LOG_OUT')"
+          :label="t('BTN_LOG_OUT')"
           @click="logout"
         />
       </q-toolbar>
@@ -46,58 +46,58 @@
       >
         <q-list>
           <q-item-label header>
-            {{ $t('LABEL_MENU') }}
+            {{ t('LABEL_MENU') }}
           </q-item-label>
           <q-item clickable v-ripple :to="{ name: 'Dashboard' }">
-            {{ $t('MENU_DASHBOARD') }}
+            {{ t('MENU_DASHBOARD') }}
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'WorktimeOverview' }">
-            {{ $t('MENU_WORKTIME') }}
+            {{ t('MENU_WORKTIME') }}
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'AbsenceOverview' }">
-            {{ $t('MENU_ABSENCE') }}
+            {{ t('MENU_ABSENCE') }}
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'ExternalWorkOverview' }">
-            {{ $t('MENU_EXTERNAL_WORK') }}
+            {{ t('MENU_EXTERNAL_WORK') }}
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'OvertimeOverview' }">
-            {{ $t('MENU_OVERTIME') }}
+            {{ t('MENU_OVERTIME') }}
           </q-item>
           <q-item
             clickable
             v-ripple
             :to="{ name: 'SuspiciousTimestampsOverview' }"
           >
-            {{ $t('MENU_SUSPICIOUS_TIMESTAMPS') }}
+            {{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}
           </q-item>
-          <q-item-label header> {{ $t('LABEL_ME') }}</q-item-label>
+          <q-item-label header> {{ t('LABEL_ME') }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'UserApikeyOverview' }">
-            {{ $t('MENU_APIKEY') }}
+            {{ t('MENU_APIKEY') }}
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'UserSettings' }">
-            {{ $t('MENU_SETTINGS') }}
+            {{ t('MENU_SETTINGS') }}
           </q-item>
           <div v-if="isAdministrator">
             <q-item-label header>
-              {{ $t('LABEL_ADMINISTRATION') }}
+              {{ t('LABEL_ADMINISTRATION') }}
             </q-item-label>
             <q-item
               clickable
               v-ripple
               :to="{ name: 'AdministrationUserOverview' }"
             >
-              {{ $t('MENU_USERS') }}
+              {{ t('MENU_USERS') }}
             </q-item>
             <q-item
               clickable
               v-ripple
               :to="{ name: 'AdministrationTeamOverview' }"
             >
-              {{ $t('MENU_TEAMS') }}
+              {{ t('MENU_TEAMS') }}
             </q-item>
             <q-expansion-item
-              content-inset-level="0.5"
-              :label="$t('MENU_SETTINGS')"
+              :content-inset-level="0.5"
+              :label="t('MENU_SETTINGS')"
             >
               <q-list>
                 <q-item
@@ -105,35 +105,35 @@
                   v-ripple
                   :to="{ name: 'AdministrationSettingsCommon' }"
                 >
-                  {{ $t('MENU_COMMON') }}
+                  {{ t('MENU_COMMON') }}
                 </q-item>
                 <q-item
                   clickable
                   v-ripple
                   :to="{ name: 'AdministrationSettingsTimestamp' }"
                 >
-                  {{ $t('MENU_TIMESTAMP') }}
+                  {{ t('MENU_TIMESTAMP') }}
                 </q-item>
                 <q-item
                   clickable
                   v-ripple
                   :to="{ name: 'AdministrationSettingsAbsence' }"
                 >
-                  {{ $t('MENU_ABSENCE') }}
+                  {{ t('MENU_ABSENCE') }}
                 </q-item>
                 <q-item
                   clickable
                   v-ripple
                   :to="{ name: 'AdministrationSettingsNotify' }"
                 >
-                  {{ $t('MENU_NOTIFY') }}
+                  {{ t('MENU_NOTIFY') }}
                 </q-item>
                 <q-item
                   clickable
                   v-ripple
                   :to="{ name: 'AdministrationSettingsExternalWork' }"
                 >
-                  {{ $t('MENU_EXTERNAL_WORK') }}
+                  {{ t('MENU_EXTERNAL_WORK') }}
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -166,79 +166,72 @@
   </q-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script lang="ts" setup>
+import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from 'stores/microsoft-auth';
 import { useI18n } from 'vue-i18n';
 import type { User } from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import type { BackendStatus} from 'src/models/Base';
+import type { BackendStatus } from 'src/models/Base';
 import { type ErrorResponse } from 'src/models/Base';
 import { showErrorMessage } from 'src/helper/message';
+import { useRouter } from 'vue-router';
+import { msalProvider } from 'boot/microsoft-msal';
 
-export default defineComponent({
-  name: 'MainLayout',
-  data() {
-    return {
-      session: ref(null as User | null),
-      status: ref(null as BackendStatus | null),
-    };
-  },
-  methods: {
-    useAuthStore,
-    logout() {
-      useAuthStore().logout();
-      this.$router.push({ name: 'Login' });
-    },
-    async refresh() {
-      if (useAuthStore().getAuthProvider === 'microsoft') {
-        this.$msalProvider.refresh();
-      }
-      const isLoggedIn = await useAuthStore().loadSession();
-      if (!isLoggedIn) {
-        console.log('unauth');
-        this.logout();
-        return;
-      }
+const {t} = useI18n();
 
-      this.session = useAuthStore().getSession();
-      BeeTimeClock.getStatus()
-        .then((result) => {
-          if (result.status === 200) {
-            this.status = result.data.Data;
-          }
-        })
-        .catch((error: ErrorResponse) => {
-          showErrorMessage(error.message);
-        });
-      this.isAdministrator = useAuthStore().isAdministrator();
-    },
-  },
-  computed: {
-    commit() {
-      return process.env.VUE_APP_COMMIT;
-    },
-  },
-  async mounted() {
-    await this.refresh();
-  },
-  setup() {
-    const leftDrawerOpen = ref(false);
-    const { locale } = useI18n({ useScope: 'global' });
-    const isAdministrator = ref(false);
+const authStore = useAuthStore();
+const session = ref(null as User | null);
+const status = ref(null as BackendStatus | null);
+const router = useRouter();
+const leftDrawerOpen = ref(false);
+const { locale } = useI18n({ useScope: 'global' });
+const isAdministrator = ref(false);
 
-    return {
-      leftDrawerOpen,
-      locale,
-      localeOptions: [
-        { value: 'en-US', label: 'English' },
-        { value: 'de', label: 'Deutsch' },
-      ],
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
-      },
-      isAdministrator,
-    };
-  },
+const localeOptions = [
+  { value: 'en-US', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
+];
+
+const commit = computed(() => {
+  return process.env.VUE_APP_COMMIT;
 });
+
+function logout() {
+  authStore.logout();
+  void router.push({ name: 'Login' });
+}
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+onMounted(async () => {
+  await refresh();
+});
+
+async function refresh() {
+  if (authStore.getAuthProvider === 'microsoft') {
+    msalProvider.refresh();
+  }
+  const isLoggedIn = await authStore.loadSession();
+  if (!isLoggedIn) {
+    console.log('unauth');
+    logout();
+    return;
+  }
+
+  session.value = authStore.getSession();
+
+  BeeTimeClock.getStatus()
+    .then((result) => {
+      if (result.status === 200) {
+        status.value = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+  isAdministrator.value = authStore.isAdministrator();
+}
 </script>

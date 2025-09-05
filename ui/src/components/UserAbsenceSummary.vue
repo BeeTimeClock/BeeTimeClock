@@ -22,7 +22,7 @@ const userSummary = ref<AbsenceUserSummary | null>(null);
 const byAbsenceReason = computed(() => {
   if (!userSummary.value) return null;
   return Object.keys(userSummary.value.ByYear).map((year) => {
-    return userSummary.value?.ByYear[parseInt(year)].ByAbsenceReason
+    return userSummary.value?.ByYear[parseInt(year)]!.ByAbsenceReason
   })[0];
 })
 

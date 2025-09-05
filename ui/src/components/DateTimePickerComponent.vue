@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue';
 import {date} from 'quasar';
+import { useI18n } from 'vue-i18n';
 
 const modelValue = defineModel<Date|undefined>({required: true});
 const label = defineModel('label', {type: String});
 const emit = defineEmits(['update:modelValue']);
 
+const { t} = useI18n();
 const dateFormat = 'DD.MM.YYYY HH:mm';
 const value = computed({
   get(): Date|undefined {
@@ -38,7 +40,7 @@ watch(formattedDate, (newDateValue) => {
         <q-date v-model="formattedDate" :mask="dateFormat" today-btn square flat/>
         <q-time v-model="formattedDate" :mask="dateFormat" format24h now-btn square flat>
           <div class="row items-center justify-end">
-            <q-btn v-close-popup :label="$t('BTN_CLOSE')" color="primary" flat/>
+            <q-btn v-close-popup :label="t('BTN_CLOSE')" color="primary" flat/>
           </div>
         </q-time>
       </div>

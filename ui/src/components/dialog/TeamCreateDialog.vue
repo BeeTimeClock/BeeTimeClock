@@ -59,17 +59,17 @@ function loadUsers() {
   <q-dialog v-model="show" @before-show="loadData">
     <q-card>
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_CREATE', { item: $t('LABEL_TEAM') }) }}
+        {{ t('LABEL_CREATE', { item: t('LABEL_TEAM') }) }}
       </q-card-section>
       <q-form @submit="createTeam">
         <q-card-section>
           <q-input
             v-model="teamCreateRequest.Teamname"
-            :label="$t('LABEL_TEAM_NAME')"
+            :label="t('LABEL_TEAM_NAME')"
           />
           <q-select
             v-model="teamCreateRequest.TeamOwnerID"
-            :label="$t('LABEL_TEAM_LEAD')"
+            :label="t('LABEL_TEAM_LEAD')"
             :options="users"
             emit-value
             map-options
@@ -79,12 +79,12 @@ function loadUsers() {
         </q-card-section>
         <q-card-section>
           <q-card-actions>
-            <q-btn color="negative" v-close-popup :label="$t('LABEL_CANCEL')" />
+            <q-btn color="negative" v-close-popup :label="t('LABEL_CANCEL')" />
             <q-btn
               color="positive"
               v-close-popup
               type="submit"
-              :label="$t('LABEL_CREATE')"
+              :label="t('LABEL_CREATE')"
             />
           </q-card-actions>
         </q-card-section>
