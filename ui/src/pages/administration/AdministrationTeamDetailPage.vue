@@ -4,10 +4,12 @@ import { Team, TeamMember } from 'src/models/Team';
 import { useRoute } from 'vue-router';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { emptyPagination } from 'src/helper/objects';
-import { QTableColumn, useQuasar } from 'quasar';
+import type { QTableColumn } from 'quasar';
+import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import TeamMemberAddDialog from 'components/dialog/TeamMemberAddDialog.vue';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import type { ErrorResponse } from 'src/models/Base';
 
 const route = useRoute();
 const team = ref<Team>();
@@ -36,11 +38,15 @@ const teamId = computed(() => {
 });
 
 function loadTeam() {
-  BeeTimeClock.administrationGetTeam(teamId.value, true).then((result) => {
-    if (result.status === 200) {
-      team.value = Team.fromApi(result.data.Data);
-    }
-  });
+  BeeTimeClock.administrationGetTeam(teamId.value, true)
+    .then((result) => {
+      if (result.status === 200) {
+        team.value = Team.fromApi(result.data.Data);
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
 
 function loadMembers() {
@@ -49,8 +55,10 @@ function loadMembers() {
       if (result.status === 200) {
         members.value = result.data.Data.map((s) => TeamMember.fromApi(s));
       }
-    }
-  );
+    },
+  ).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });
 }
 
 function deleteTeamMember(teamMember: TeamMember) {
@@ -67,7 +75,7 @@ function deleteTeamMember(teamMember: TeamMember) {
     if (!team.value) return;
     BeeTimeClock.administrationDeleteTeamMember(
       team.value.ID,
-      teamMember.ID
+      teamMember.ID,
     ).then((result) => {
       if (result.status === 204) {
         loadMembers();
@@ -75,9 +83,11 @@ function deleteTeamMember(teamMember: TeamMember) {
           t('MSG_DELETE_SUCCESS', {
             item: t('LABEL_TEAM_MEMBER'),
             identifier: teamMember.userMapped.displayName,
-          })
+          }),
         );
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   });
 }
@@ -92,23 +102,23 @@ onMounted(() => {
   <q-page padding>
     <q-card v-if="team">
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_INFORMATION') }}
+        {{ t('LABEL_INFORMATION') }}
       </q-card-section>
       <q-card-section>
         <q-list>
           <q-item>
             <q-item-section side>
-              <q-item-label caption>{{ $t('LABEL_ID') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_ID') }}</q-item-label>
               <q-item-label>{{ team.ID }}</q-item-label>
             </q-item-section>
             <q-item-section>
-              <q-item-label caption>{{ $t('LABEL_CREATED_AT') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_CREATED_AT') }}</q-item-label>
               <q-item-label>{{ team.CreatedAt }}</q-item-label>
             </q-item-section>
           </q-item>
           <q-item>
             <q-item-section>
-              <q-item-label caption>{{ $t('LABEL_TEAM_LEAD') }}</q-item-label>
+              <q-item-label caption>{{ t('LABEL_TEAM_LEAD') }}</q-item-label>
               <q-item-label
                 >{{ team.teamOwnerMapped.displayName }}
               </q-item-label>
@@ -119,10 +129,11 @@ onMounted(() => {
     </q-card>
     <q-card class="q-mt-md q-pa-none">
       <q-card-section class="bg-primary text-white text-h6">
-        {{ $t('LABEL_TEAM_MEMBER', 2) }}
+        {{ t('LABEL_TEAM_MEMBER', 2) }}
       </q-card-section>
       <q-card-section class="q-pa-none">
         <q-table
+          v-if="members != undefined"
           :pagination="emptyPagination"
           hide-pagination
           :columns="columns"
@@ -151,7 +162,11 @@ onMounted(() => {
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
                 <div v-if="col.name == 'actions'">
-                  <q-btn icon="delete" color="negative" @click="deleteTeamMember(props.row)"/>
+                  <q-btn
+                    icon="delete"
+                    color="negative"
+                    @click="deleteTeamMember(props.row)"
+                  />
                 </div>
                 <div v-else>{{ col.value }}</div>
               </q-td>

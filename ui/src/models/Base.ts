@@ -1,4 +1,4 @@
-import {AxiosError} from 'axios';
+import type {AxiosError} from 'axios';
 
 export interface BaseResponse<T> {
   Status: string;
@@ -32,5 +32,5 @@ export interface UserApikey {
 
 export interface UserApikeyCreateRequest {
   Description: string;
-  ValidTill: Date;
+  ValidTill: string;
 }

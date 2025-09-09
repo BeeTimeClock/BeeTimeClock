@@ -1,8 +1,7 @@
-import {defineStore} from 'pinia';
-import {Configuration} from '@azure/msal-browser';
+import { defineStore } from 'pinia';
+import { type Configuration } from '@azure/msal-browser';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import {User} from 'src/models/Authentication';
-
+import { type User } from 'src/models/Authentication';
 
 export const ACCESS_TOKEN_STORE_KEY = 'accessToken';
 export const AUTH_PROVIDER_STORE_KEY = 'authProvider';
@@ -22,23 +21,23 @@ export const useAuthStore = defineStore('auth', {
         },
         system: {
           allowNativeBroker: false,
-        }
+        },
       } as Configuration,
-    }
+    };
   },
   getters: {
     getMsalConfig(state) {
       return state.msalConfig;
     },
     getAccessToken(): undefined | string {
-      return localStorage.getItem(ACCESS_TOKEN_STORE_KEY) ?? undefined
+      return localStorage.getItem(ACCESS_TOKEN_STORE_KEY) ?? undefined;
     },
     getAuthProvider(): string {
-      return localStorage.getItem(AUTH_PROVIDER_STORE_KEY) ?? ''
+      return localStorage.getItem(AUTH_PROVIDER_STORE_KEY) ?? '';
     },
     loggedIn(): boolean {
       const accessToken = this.getAccessToken;
-      return accessToken != undefined && accessToken != ''
+      return accessToken != undefined && accessToken != '';
     },
   },
 
@@ -72,17 +71,19 @@ export const useAuthStore = defineStore('auth', {
     setMicrosoftClientId(clientId: string) {
       this.$state.msalConfig.auth.clientId = clientId;
     },
-    async loadSession(): boolean {
+    async loadSession(): Promise<boolean> {
       try {
         const result = await BeeTimeClock.getMeUser();
 
-        localStorage.setItem(SESSION_STORE_KEY, JSON.stringify(result.data.Data));
+        localStorage.setItem(
+          SESSION_STORE_KEY,
+          JSON.stringify(result.data.Data),
+        );
         return true;
-
       } catch (err) {
         console.log(err);
         return false;
       }
     },
-  }
+  },
 });

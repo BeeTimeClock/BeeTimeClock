@@ -1,26 +1,31 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import type { ErrorResponse } from 'src/models/Base';
+import { useI18n } from 'vue-i18n';
 
-const logoFile = ref<File|Blob>();
+const {t} = useI18n();
+const logoFile = ref<File>();
 
 function loadLogo() {
-  BeeTimeClock.getLogo().then(result => {
-    if (result.status === 200) {
-      logoFile.value = result.data;
-    }
-  })
+  BeeTimeClock.getLogo()
+    .then((result) => {
+      if (result.status === 200) {
+        logoFile.value = new File([result.data], 'logo');
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
-
 
 const imageUrl = computed(() => {
   if (logoFile.value) {
     return URL.createObjectURL(logoFile.value);
   }
   return '';
-})
-
+});
 
 function save() {
   if (logoFile.value) {
@@ -28,26 +33,34 @@ function save() {
       if (result.status === 204) {
         showInfoMessage('Saved');
       }
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
     });
   }
 }
 
 onMounted(() => {
-  loadLogo()
-})
+  loadLogo();
+});
 </script>
 
 <template>
   <q-page padding>
     <div class="row">
       <div class="col-3">
-        <q-file v-model="logoFile" :label="$t('LABEL_LOGO')" />
+        <q-file v-model="logoFile" :label="t('LABEL_LOGO')" />
       </div>
       <div class="col q-pa-md">
         <q-img :src="imageUrl" height="100px" :fit="'contain'" />
       </div>
     </div>
-    <q-btn :label="$t('LABEL_SAVE')" class="full-width" color="positive" icon="save" @click="save" />
+    <q-btn
+      :label="t('LABEL_SAVE')"
+      class="full-width"
+      color="positive"
+      icon="save"
+      @click="save"
+    />
   </q-page>
 </template>
 

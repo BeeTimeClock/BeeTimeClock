@@ -5,8 +5,8 @@ import { date } from 'quasar';
 
 const label = defineModel('label', {type: String})
 const readonly = defineModel('readonly', {type: Boolean, default: false})
-const value = defineModel<Date|null>();
-const dayDate = defineModel('date', {type:String, required: true})
+const value = defineModel<Date|undefined>();
+const dayDate = defineModel<Date|string>('date', { required: true})
 
 const dateFormat = 'HH:mm';
 const time = computed({

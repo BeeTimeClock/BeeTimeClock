@@ -1,7 +1,6 @@
 <template>
   <q-page padding>
     <div v-if="!isLoading">
-
       <div class="row">
         <div class="col">
           <OvertimeTotal class="full-height" />
@@ -9,33 +8,66 @@
       </div>
       <div class="row">
         <div class="col q-pa-md">
-          <q-btn class="full-width" color="positive" :label="$t('BTN_CHECK_IN')"
-                 @click="actionCheckIn()" />
+          <q-btn
+            class="full-width"
+            color="positive"
+            :label="t('BTN_CHECK_IN')"
+            @click="actionCheckIn()"
+          />
         </div>
         <div class="col q-pa-md">
-          <q-btn class="full-width" color="negative" :label="$t('BTN_CHECK_OUT')" @click="actionCheckOut" />
+          <q-btn
+            class="full-width"
+            color="negative"
+            :label="t('BTN_CHECK_OUT')"
+            @click="actionCheckOut()"
+          />
         </div>
         <div class="col q-pa-md">
-          <q-btn class="full-width" color="primary" :label="$t('BTN_ADD', {item: $t('LABEL_TIMESTAMP')})" @click="promptTimestampCorrectionCreate = true"/>
+          <q-btn
+            class="full-width"
+            color="primary"
+            :label="t('BTN_ADD', { item: t('LABEL_TIMESTAMP') })"
+            @click="promptTimestampCorrectionCreate = true"
+          />
         </div>
       </div>
       <div class="row">
         <div class="col">
-          <q-select v-model="selectedYear" :options="timestampYears" :label="$t('LABEL_YEAR')" />
+          <q-select
+            v-model="selectedYear"
+            :options="timestampYears"
+            :label="t('LABEL_YEAR')"
+          />
         </div>
         <div class="col">
-          <q-select class="q-ml-md" v-model="selectedMonth" :options="timestampMonths" :label="$t('LABEL_MONTH')" />
+          <q-select
+            class="q-ml-md"
+            v-model="selectedMonth"
+            :options="timestampMonths"
+            :label="t('LABEL_MONTH')"
+          />
         </div>
       </div>
       <div class="row q-mt-md">
         <div class="col">
-          <OvertimeMonth v-model:model-month="selectedMonth" v-model:model-year="selectedYear" class="full-width" />
+          <OvertimeMonth
+            v-model:model-month="selectedMonth"
+            v-model:model-year="selectedYear"
+            class="full-width"
+          />
         </div>
       </div>
       <div class="q-pt-lg">
-        <WorktimeOverviewTable v-model="timestampCurrentMonthGrouped" @create="loadTimestampGrouped()"/>
+        <WorktimeOverviewTable
+          v-model="timestampCurrentMonthGrouped"
+          @create="loadTimestampGrouped()"
+        />
       </div>
-      <TimestampCorrectionDialog v-model:show="promptTimestampCorrectionCreate" @refresh="loadTimestampGrouped()"/>
+      <TimestampCorrectionDialog
+        v-model:show="promptTimestampCorrectionCreate"
+        @refresh="loadTimestampGrouped()"
+      />
     </div>
     <q-inner-loading :showing="isLoading" />
   </q-page>
@@ -44,12 +76,12 @@
 <script lang="ts" setup>
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import {
-  TimestampGroup,
-  TimestampYearMonthGrouped
+  type TimestampGroup,
+  type TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { computed, onMounted, ref, watch } from 'vue';
-import { ErrorResponse } from 'src/models/Base';
+import { type ErrorResponse } from 'src/models/Base';
 import OvertimeTotal from 'components/OvertimeTotal.vue';
 import WorktimeOverviewTable from 'components/WorktimeOverviewTable.vue';
 import OvertimeMonth from 'components/OvertimeMonth.vue';
@@ -75,39 +107,52 @@ const timestampYears = computed(() => {
 const timestampMonths = computed(() => {
   if (!timestampYearMonths.value) return [];
   const months = timestampYearMonths.value[selectedYear.value];
-  return months.sort();
+  return months != undefined ? months.sort() : months;
 });
 
 function actionCheckIn(isHomeoffice?: boolean) {
-  BeeTimeClock.timestampActionCheckin(isHomeoffice).then((result) => {
-    if (result.status === 201) {
-      showInfoMessage(t('MSG_CHECK_IN_SUCCESS'));
-      loadTimestampGrouped();
-    }
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.response?.data.Message);
-  });
+  BeeTimeClock.timestampActionCheckin(isHomeoffice)
+    .then((result) => {
+      if (result.status === 201) {
+        showInfoMessage(t('MSG_CHECK_IN_SUCCESS'));
+        loadTimestampGrouped();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
 }
 
 function actionCheckOut(isHomeoffice?: boolean) {
-  BeeTimeClock.timestampActionCheckout(isHomeoffice).then((result) => {
-    if (result.status === 200) {
-      showInfoMessage(t('MSG_CHECK_OUT_SUCCESS'));
-      loadTimestampGrouped();
-    }
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.response?.data.Message);
-  });
+  BeeTimeClock.timestampActionCheckout(isHomeoffice ?? false)
+    .then((result) => {
+      if (result.status === 200) {
+        showInfoMessage(t('MSG_CHECK_OUT_SUCCESS'));
+        loadTimestampGrouped();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
 }
 
 function loadTimestampGrouped() {
-  BeeTimeClock.timestampQueryMonthGrouped(selectedYear.value, selectedMonth.value).then((result) => {
+  BeeTimeClock.timestampQueryMonthGrouped(
+    selectedYear.value,
+    selectedMonth.value,
+  ).then((result) => {
     if (result.status === 200) {
-      timestampCurrentMonthGrouped.value = result.data.Data.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+      timestampCurrentMonthGrouped.value = result.data.Data.sort(
+        (a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime(),
+      );
       if (timestampCurrentMonthGrouped.value.length > 0) {
-        expanded.value = [timestampCurrentMonthGrouped.value[0].Date.toString()];
+        expanded.value = [
+          timestampCurrentMonthGrouped.value[0]!.Date.toString(),
+        ];
       }
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
   });
 }
 
@@ -129,11 +174,14 @@ onMounted(async () => {
 });
 
 watch(selectedYear, () => {
-  if (timestampYearMonths.value[selectedYear.value].includes(selectedMonth.value)) {
+  if (selectedYear.value == undefined || timestampYearMonths.value == undefined) return;
+  if (timestampYearMonths.value[selectedYear.value] == undefined) return;
+
+  if (timestampYearMonths.value[selectedYear.value]!.includes(selectedMonth.value)) {
     loadTimestampGrouped();
     return;
   } else {
-    selectedMonth.value = timestampYearMonths.value[selectedYear.value][0];
+    selectedMonth.value = timestampYearMonths.value[selectedYear.value]![0]!;
   }
 });
 
@@ -141,6 +189,4 @@ watch(selectedMonth, () => {
   console.log('month changed');
   loadTimestampGrouped();
 });
-
-
 </script>

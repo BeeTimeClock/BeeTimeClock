@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import DateTimePickerComponent from 'components/DateTimePickerComponent.vue';
-import {
+import type {
   Timestamp,
   TimestampCorrectionCreateRequest,
   TimestampCreateRequest,
 } from 'src/models/Timestamp';
 import { ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showInfoMessage } from 'src/helper/message';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import { useI18n } from 'vue-i18n';
+import type { ErrorResponse } from 'src/models/Base';
 
 const { t } = useI18n();
 const timestamp = defineModel<Timestamp>();
@@ -43,18 +44,20 @@ function createTimestampCorrection() {
   if (timestamp.value != undefined) {
     BeeTimeClock.timestampCorrectionCreate(
       timestamp.value,
-      timestampCorrectionCreateRequest.value
+      timestampCorrectionCreateRequest.value,
     ).then((result) => {
       if (result.status === 200) {
         showInfoMessage(t('MSG_CREATE_SUCCESS'));
         emits('refresh');
         show.value = false;
       }
-    });
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });;
   } else {
     const timestampCreateRequest = {
       ComingTimestamp: new Date(
-        timestampCorrectionCreateRequest.value.NewComingTimestamp
+        timestampCorrectionCreateRequest.value.NewComingTimestamp,
       ),
       ChangeReason: timestampCorrectionCreateRequest.value.ChangeReason,
       IsHomeoffice: timestampCorrectionCreateRequest.value.IsHomeoffice,
@@ -65,17 +68,21 @@ function createTimestampCorrection() {
       timestampCorrectionCreateRequest.value.NewGoingTimestamp.getTime() > 0
     ) {
       timestampCreateRequest.GoingTimestamp = new Date(
-        timestampCorrectionCreateRequest.value.NewGoingTimestamp
+        timestampCorrectionCreateRequest.value.NewGoingTimestamp,
       );
     }
 
-    BeeTimeClock.timestampCreate(timestampCreateRequest).then((result) => {
-      if (result.status === 201) {
-        showInfoMessage(t('MSG_CREATE_SUCCESS'));
-        emits('refresh');
-        show.value = false;
-      }
-    });
+    BeeTimeClock.timestampCreate(timestampCreateRequest)
+      .then((result) => {
+        if (result.status === 201) {
+          showInfoMessage(t('MSG_CREATE_SUCCESS'));
+          emits('refresh');
+          show.value = false;
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
   }
 }
 </script>
@@ -87,7 +94,7 @@ function createTimestampCorrection() {
       v-if="timestampCorrectionCreateRequest"
     >
       <q-card-section>
-        <div class="text-h6">{{ $t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
+        <div class="text-h6">{{ t('LABEL_TIMESTAMP_CORRECTION_CREATE') }}</div>
       </q-card-section>
       <q-form
         @submit.prevent.stop="createTimestampCorrection"
@@ -96,16 +103,16 @@ function createTimestampCorrection() {
         <q-card-section>
           <DateTimePickerComponent
             v-model="timestampCorrectionCreateRequest.NewComingTimestamp"
-            :label="$t('LABEL_COMING_TIMESTAMP')"
+            :label="t('LABEL_COMING_TIMESTAMP')"
           />
           <DateTimePickerComponent
             class="q-mt-md"
             v-model="timestampCorrectionCreateRequest.NewGoingTimestamp"
-            :label="$t('LABEL_GOING_TIMESTAMP')"
+            :label="t('LABEL_GOING_TIMESTAMP')"
           />
           <q-checkbox
             v-model="timestampCorrectionCreateRequest.IsHomeoffice"
-            :label="$t('LABEL_HOMEOFFICE')"
+            :label="t('LABEL_HOMEOFFICE')"
           />
           <q-input
             :rules="[
@@ -125,11 +132,11 @@ function createTimestampCorrection() {
         <q-card-actions>
           <q-btn
             v-close-popup
-            :label="$t('BTN_CANCEL')"
+            :label="t('BTN_CANCEL')"
             color="negative"
             type="reset"
           />
-          <q-btn :label="$t('BTN_CREATE')" color="positive" type="submit" />
+          <q-btn :label="t('BTN_CREATE')" color="positive" type="submit" />
         </q-card-actions>
       </q-form>
     </q-card>

@@ -4,6 +4,9 @@ import {
 } from 'src/models/ExternalWork';
 import { computed } from 'vue';
 import { formatCurrency } from 'src/helper/formatter';
+import { useI18n } from 'vue-i18n';
+
+const {t} = useI18n();
 
 const externalWorkExpanse = defineModel({
   type: ExternalWorkExpanse,
@@ -30,7 +33,7 @@ const editMode = defineModel('editmode', {
 const options = computed(() => {
   return Object.keys(externalWorkExpanse.value.ExternalWork.ExternalWorkCompensation.AdditionalOptions).map(s => {
     return {
-      label: `${s} (${formatCurrency(externalWorkExpanse.value.ExternalWork.ExternalWorkCompensation.AdditionalOptions[s])})`,
+      label: `${s} (${formatCurrency(externalWorkExpanse.value.ExternalWork.ExternalWorkCompensation.AdditionalOptions[s]!)})`,
       value: s
     }
   })
@@ -40,7 +43,7 @@ const options = computed(() => {
 <template>
   <q-card v-if="externalWorkExpanse" class="q-mb-lg">
     <q-card-section class="bg-secondary">{{
-      $t('LABEL_OPTION', 2)
+      t('LABEL_OPTION', 2)
     }}</q-card-section>
     <q-card-section>
       <q-option-group

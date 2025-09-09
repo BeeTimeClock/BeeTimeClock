@@ -3,9 +3,11 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import { onMounted, ref } from 'vue';
 import { Team } from 'src/models/Team';
 import TeamCreateDialog from 'components/dialog/TeamCreateDialog.vue';
-import { QTableColumn } from 'quasar';
+import type { QTableColumn } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import { useI18n } from 'vue-i18n';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const {t} = useI18n();
 const teams = ref<Team[]>([]);
@@ -42,6 +44,8 @@ function loadTeams() {
     if (result.status === 200) {
       teams.value = result.data.Data.map((s) => Team.fromApi(s));
     }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
   });
 }
 
@@ -53,7 +57,7 @@ onMounted(() => {
 <template>
   <q-page padding>
     <q-btn
-      :label="$t('LABEL_CREATE', {item: $t('LABEL_TEAM')})"
+      :label="t('LABEL_CREATE', {item: t('LABEL_TEAM')})"
       class="full-width" color="positive" icon="add" @click="showTeamCreateDialog = true;"/>
     <q-table class="q-mt-md" :rows="teams" :columns="columns" hide-pagination :pagination="emptyPagination">
       <template v-slot:header="props">

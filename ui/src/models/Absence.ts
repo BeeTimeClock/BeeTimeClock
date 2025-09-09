@@ -1,10 +1,10 @@
-import {User} from 'src/models/Authentication';
+import type {User} from 'src/models/Authentication';
 import { autoImplement } from 'src/helper/functions';
 import { date } from 'quasar';
 
 export interface AbsenceCreateRequest {
-  AbsenceFrom: Date;
-  AbsenceTill: Date;
+  AbsenceFrom: string;
+  AbsenceTill: string;
   AbsenceReasonID: number;
 }
 

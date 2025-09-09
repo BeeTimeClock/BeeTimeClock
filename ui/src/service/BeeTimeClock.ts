@@ -1,10 +1,10 @@
-import {
+import type {
   ApiUser,
   AuthRequest,
   AuthResponse,
   User,
 } from 'src/models/Authentication';
-import {
+import type {
   AuthProviders,
   BackendStatus,
   BaseResponse,
@@ -13,8 +13,8 @@ import {
   UserApikeyCreateRequest,
 } from 'src/models/Base';
 import { api } from 'boot/axios';
-import { AxiosResponse } from 'axios';
-import {
+import type { AxiosResponse } from 'axios';
+import type {
   OvertimeResponse,
   SumResponse,
   Timestamp,
@@ -23,33 +23,34 @@ import {
   TimestampGroup,
   TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
-import {
+import type {
   AbsenceCreateRequest,
   AbsenceSummaryItem,
   AbsenceUserSummary,
   ApiAbsence,
   ApiAbsenceReason,
 } from 'src/models/Absence';
-import { Settings } from 'src/models/Settings';
-import {
+import type { Settings } from 'src/models/Settings';
+import type {
   ApiTeam,
   ApiTeamCreateRequest,
   ApiTeamMember,
   ApiTeamMemberCreateRequest,
 } from 'src/models/Team';
-import {
+import type {
   ApiExternalWork,
   ApiExternalWorkCompensation,
   ApiExternalWorkCreateRequest,
-  ApiExternalWorkExpanse, ApiExternalWorkInvoicedInfo,
-  ExternalWorkCompensation
+  ApiExternalWorkExpanse,
+  ApiExternalWorkInvoicedInfo,
+  ExternalWorkCompensation,
 } from 'src/models/ExternalWork';
-import { ApiOvertimeMonthQuota } from 'src/models/Overtime';
+import type { ApiOvertimeMonthQuota } from 'src/models/Overtime';
 
 class BeeTimeClock {
   login(
     username: string,
-    password: string
+    password: string,
   ): Promise<AxiosResponse<BaseResponse<AuthResponse>>> {
     const authRequest = {
       Username: username,
@@ -67,10 +68,10 @@ class BeeTimeClock {
 
   timestampQueryMonthGrouped(
     year: number,
-    month: number
+    month: number,
   ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
     return api.get(
-      `/api/v1/timestamp/query/year/${year}/month/${month}/grouped`
+      `/api/v1/timestamp/query/year/${year}/month/${month}/grouped`,
     );
   }
 
@@ -81,7 +82,7 @@ class BeeTimeClock {
   }
 
   timestampActionCheckin(
-    isHomeoffice = false
+    isHomeoffice = false,
   ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     const timestampCreateRequest = {
       IsHomeoffice: isHomeoffice,
@@ -92,22 +93,22 @@ class BeeTimeClock {
 
   timestampCorrectionCreate(
     timestamp: Timestamp,
-    timestampCorrectionCreateRequest: TimestampCorrectionCreateRequest
+    timestampCorrectionCreateRequest: TimestampCorrectionCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     return api.post(
       `/api/v1/timestamp/${timestamp.ID}/correction`,
-      timestampCorrectionCreateRequest
+      timestampCorrectionCreateRequest,
     );
   }
 
   timestampCreate(
-    timestampCreateRequest: TimestampCreateRequest
+    timestampCreateRequest: TimestampCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     return api.post('/api/v1/timestamp', timestampCreateRequest);
   }
 
   timestampActionCheckout(
-    isHomeoffice: false
+    isHomeoffice: boolean,
   ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
     const timestampCheckoutRequest = {
       IsHomeoffice: isHomeoffice,
@@ -124,35 +125,28 @@ class BeeTimeClock {
 
   administrationUpdateAbsenceReason(
     absenceReasonId: number,
-    absenceReason: ApiAbsenceReason
+    absenceReason: ApiAbsenceReason,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
     return api.put(
       `/api/v1/administration/absence/reasons/${absenceReasonId}`,
-      absenceReason
+      absenceReason,
     );
   }
 
   administrationCreateAbsenceReason(
-    absenceReason: ApiAbsenceReason
+    absenceReason: ApiAbsenceReason,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsenceReason>>> {
     return api.post('/api/v1/administration/absence/reasons', absenceReason);
   }
 
   createAbsence(
-    absenceCreateRequest: AbsenceCreateRequest
+    absenceCreateRequest: AbsenceCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
-    absenceCreateRequest.AbsenceFrom = new Date(
-      absenceCreateRequest.AbsenceFrom
-    );
-    absenceCreateRequest.AbsenceTill = new Date(
-      absenceCreateRequest.AbsenceTill
-    );
-
     return api.post('/api/v1/absence', absenceCreateRequest);
   }
 
   deleteAbsence(
-    absenceId: number
+    absenceId: number,
   ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(`/api/v1/absence/${absenceId}`);
   }
@@ -168,7 +162,6 @@ class BeeTimeClock {
   updateMeUser(user: User): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.put('/api/v1/user/me', user);
   }
-
 
   queryAbsenceSummary(): Promise<
     AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
@@ -186,18 +179,20 @@ class BeeTimeClock {
     return api.get('/api/v1/external_work');
   }
 
-  getExternalWorkInvoiced(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkInvoicedInfo[]>>> {
+  getExternalWorkInvoiced(): Promise<
+    AxiosResponse<BaseResponse<ApiExternalWorkInvoicedInfo[]>>
+  > {
     return api.get('/api/v1/external_work/invoiced');
   }
 
   getExternalWorkById(
-    id: number
+    id: number,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
     return api.get(`/api/v1/external_work/${id}`);
   }
 
   deleteExternalWorkById(
-    id: number
+    id: number,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
     return api.delete(`/api/v1/external_work/${id}`);
   }
@@ -209,34 +204,34 @@ class BeeTimeClock {
   }
 
   createExternalWork(
-    externalWorkCreateRequest: ApiExternalWorkCreateRequest
+    externalWorkCreateRequest: ApiExternalWorkCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWork>>> {
     return api.post('/api/v1/external_work', externalWorkCreateRequest);
   }
 
   createExternalWorkExpanse(
     externalWorkId: number,
-    externalWorkExpanse: ApiExternalWorkExpanse
+    externalWorkExpanse: ApiExternalWorkExpanse,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
     return api.post(
       `/api/v1/external_work/${externalWorkId}/expanse`,
-      externalWorkExpanse
+      externalWorkExpanse,
     );
   }
 
   updateExternalWorkExpanse(
     externalWorkId: number,
     externalWorkExpanseId: number,
-    externalWorkExpanse: ApiExternalWorkExpanse
+    externalWorkExpanse: ApiExternalWorkExpanse,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkExpanse>>> {
     return api.put(
       `/api/v1/external_work/${externalWorkId}/expanse/${externalWorkExpanseId}`,
-      externalWorkExpanse
+      externalWorkExpanse,
     );
   }
 
   administrationGetUsers(
-    withData?: boolean
+    withData?: boolean,
   ): Promise<AxiosResponse<BaseResponse<ApiUser[]>>> {
     const params = {
       with_data: withData,
@@ -246,7 +241,7 @@ class BeeTimeClock {
   }
 
   administrationGetTeams(
-    withData?: boolean
+    withData?: boolean,
   ): Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
     const params = {
       with_data: withData,
@@ -256,14 +251,14 @@ class BeeTimeClock {
   }
 
   administrationCreateTeam(
-    teamCreateRequest: ApiTeamCreateRequest
+    teamCreateRequest: ApiTeamCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
     return api.post('/api/v1/administration/team', teamCreateRequest);
   }
 
   administrationGetTeam(
     teamId: number,
-    withData?: boolean
+    withData?: boolean,
   ): Promise<AxiosResponse<BaseResponse<ApiTeam>>> {
     const params = {
       with_data: withData,
@@ -273,7 +268,7 @@ class BeeTimeClock {
 
   administrationGetTeamMembers(
     teamId: number,
-    withData?: boolean
+    withData?: boolean,
   ): Promise<AxiosResponse<BaseResponse<ApiTeamMember[]>>> {
     const params = {
       with_data: withData,
@@ -286,47 +281,47 @@ class BeeTimeClock {
 
   administrationCreateTeamMember(
     teamId: number,
-    teamMemberCreateRequest: ApiTeamMemberCreateRequest
+    teamMemberCreateRequest: ApiTeamMemberCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<ApiTeamMember>>> {
     return api.post(
       `/api/v1/administration/team/${teamId}/member`,
-      teamMemberCreateRequest
+      teamMemberCreateRequest,
     );
   }
 
   administrationDeleteTeamMember(
     teamId: number,
-    teamMemberId: number
+    teamMemberId: number,
   ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(
-      `/api/v1/administration/team/${teamId}/member/${teamMemberId}`
+      `/api/v1/administration/team/${teamId}/member/${teamMemberId}`,
     );
   }
 
   administrationGetUserById(
-    userId: string
+    userId: string,
   ): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.get(`/api/v1/administration/user/${userId}`);
   }
 
   administrationUpdateUser(
-    user: User
+    user: User,
   ): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.put(`/api/v1/administration/user/${user.ID}`, user);
   }
 
   administrationDeleteUser(
-    user: User
+    user: User,
   ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(`/api/v1/administration/user/${user.ID}`);
   }
 
   administrationSummaryUserCurrentYear(
     userId: number,
-    year: number
+    year: number,
   ): Promise<AxiosResponse<BaseResponse<AbsenceUserSummary>>> {
     return api.get(
-      `/api/v1/administration/user/${userId}/absence/year/${year}/summary`
+      `/api/v1/administration/user/${userId}/absence/year/${year}/summary`,
     );
   }
 
@@ -349,7 +344,7 @@ class BeeTimeClock {
   }
 
   createUserApikey(
-    userApikeyCreateRequest: UserApikeyCreateRequest
+    userApikeyCreateRequest: UserApikeyCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<UserApikey>>> {
     return api.post('/api/v1/user/me/apikey', userApikeyCreateRequest);
   }
@@ -367,7 +362,7 @@ class BeeTimeClock {
   }
 
   administrationTimestampUserMonths(
-    userId: string
+    userId: string,
   ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
     return api.get(`/api/v1/administration/user/${userId}/timestamp/months`);
   }
@@ -375,44 +370,44 @@ class BeeTimeClock {
   administrationTimestampQueryMonthGrouped(
     userId: string,
     year: number,
-    month: number
+    month: number,
   ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
     return api.get(
-      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`
+      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/grouped`,
     );
   }
 
   administrationTimestampQueryMonthOvertime(
-    userId: string,
+    userId: number,
     year: number,
-    month: number
+    month: number,
   ): Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
     return api.get(
-      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/overtime`
+      `/api/v1/administration/user/${userId}/timestamp/year/${year}/month/${month}/overtime`,
     );
   }
 
   administrationAbsenceYears(
-    userId: string
+    userId: string,
   ): Promise<AxiosResponse<BaseResponse<number[]>>> {
     return api.get(`/api/v1/administration/user/${userId}/absence/years`);
   }
 
   administrationAbsencesByYear(
     userId: string,
-    year: number
+    year: number,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
     return api.get(
-      `/api/v1/administration/user/${userId}/absence/year/${year}`
+      `/api/v1/administration/user/${userId}/absence/year/${year}`,
     );
   }
 
   timestampQueryMonthOvertime(
     year: number,
-    month: number
+    month: number,
   ): Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
     return api.get(
-      `/api/v1/timestamp/query/year/${year}/month/${month}/overtime`
+      `/api/v1/timestamp/query/year/${year}/month/${month}/overtime`,
     );
   }
 
@@ -421,7 +416,7 @@ class BeeTimeClock {
   }
 
   administrationSettingsSave(
-    settings: Settings
+    settings: Settings,
   ): Promise<AxiosResponse<BaseResponse<Settings>>> {
     return api.put('/api/v1/administration/settings', settings);
   }
@@ -440,7 +435,7 @@ class BeeTimeClock {
 
   calculateOvertimeMonthQuota(
     year: number,
-    month: number
+    month: number,
   ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
     return api.post(`/api/v1/overtime/action/calculate/${year}/${month}`, {});
   }
@@ -449,21 +444,25 @@ class BeeTimeClock {
     return api.get('/api/v1/overtime/total');
   }
 
-  externalWorkCompensation(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>> {
+  externalWorkCompensation(): Promise<
+    AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>
+  > {
     return api.get('/api/v1/external_work/compensation');
   }
 
-  administrationExternalWorkCompensation(): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>> {
+  administrationExternalWorkCompensation(): Promise<
+    AxiosResponse<BaseResponse<ApiExternalWorkCompensation[]>>
+  > {
     return api.get('/api/v1/administration/external_work/compensation');
   }
 
   administrationExternalWorkCompensationUpdate(
     id: number,
-    externalWorkCompensation: ExternalWorkCompensation
+    externalWorkCompensation: ExternalWorkCompensation,
   ): Promise<AxiosResponse<BaseResponse<ApiExternalWorkCompensation>>> {
     return api.put(
       `/api/v1/administration/external_work/compensation/${id}`,
-      externalWorkCompensation
+      externalWorkCompensation,
     );
   }
 
@@ -473,15 +472,16 @@ class BeeTimeClock {
     });
   }
 
-  externalWorkDownloadInvoicedPdf(identifier: string): Promise<AxiosResponse<Blob>> {
+  externalWorkDownloadInvoicedPdf(
+    identifier: string,
+  ): Promise<AxiosResponse<Blob>> {
     return api.get(`/api/v1/external_work/action/export/pdf/${identifier}`, {
       responseType: 'blob',
     });
   }
 
-
   administrationUploadLogoFile(
-    file: File|Blob
+    file: File | Blob,
   ): Promise<AxiosResponse<BaseResponse<never>>> {
     const fileData = new FormData();
     fileData.append('file', file);

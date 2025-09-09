@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import {date} from 'quasar';
-import {AbsenceSummaryItem} from 'src/models/Absence';
-import {User} from 'src/models/Authentication';
-import {computed, PropType} from 'vue';
-import {useI18n} from 'vue-i18n';
-import {useAuthStore} from 'stores/microsoft-auth';
+import { date, type QTableColumn } from 'quasar';
+import type { AbsenceSummaryItem } from 'src/models/Absence';
+import type { User } from 'src/models/Authentication';
+import type { PropType } from 'vue';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useAuthStore } from 'stores/microsoft-auth';
 
-const {t} = useI18n();
+const { t } = useI18n();
 const auth = useAuthStore();
 
 const props = defineProps({
@@ -20,35 +21,38 @@ const props = defineProps({
   },
   title: {
     type: String,
-  }
-})
+  },
+});
 
 const getTitle = computed(() => {
   if (props.title) {
     return props.title;
   }
-  return t('LABEL_EMPLOYEE_ABSENCES')
-})
+  return t('LABEL_EMPLOYEE_ABSENCES');
+});
 
 const rows = computed(() => {
   if (!props.modelValue) return [];
 
   const data = props.modelValue;
-  return data.sort((a, b) => new Date(a.AbsenceFrom).getTime() - new Date(b.AbsenceFrom).getTime());
-})
+  return data.sort(
+    (a, b) =>
+      new Date(a.AbsenceFrom).getTime() - new Date(b.AbsenceFrom).getTime(),
+  );
+});
 
 const columns = [
   {
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
     field: 'AbsenceFrom',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY')
+    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
     field: 'AbsenceTill',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY')
+    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   },
   {
     name: 'absenceNettoDays',
@@ -59,28 +63,32 @@ const columns = [
     name: 'user',
     label: t('LABEL_USER'),
     field: 'User',
-    format: (val: User) => `${val.FirstName} ${val.LastName}`
+    format: (val: User) => `${val.FirstName} ${val.LastName}`,
   },
-  ]
+] as QTableColumn[];
 
-  const pagination = {
-    rowsPerPage: 10,
-  }
+const pagination = {
+  rowsPerPage: 10,
+};
 
 if (auth.isAdministrator()) {
   columns.push({
     name: 'absenceReason',
     label: t('LABEL_REASON'),
     field: 'Reason',
-    format: (val: string) => val,
-  })
+    format: (val: Date) => val.toDateString(),
+  } as QTableColumn);
 }
 </script>
 
 <template>
-  <q-table :title="getTitle" :rows="rows" :columns="columns" :flat="flat" :pagination="pagination"/>
+  <q-table
+    :title="getTitle"
+    :rows="rows"
+    :columns="columns"
+    :flat="flat"
+    :pagination="pagination"
+  />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

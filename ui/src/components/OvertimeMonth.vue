@@ -2,7 +2,12 @@
 import { onMounted, ref, watch } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
-import { OvertimeResponse } from 'src/models/Timestamp';
+import type { OvertimeResponse } from 'src/models/Timestamp';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
+import { useI18n } from 'vue-i18n';
+
+const {t} = useI18n()
 
 const overtimeResponse = ref<OvertimeResponse | null>(null);
 
@@ -16,23 +21,27 @@ const props = defineProps({
     default: new Date().getMonth() + 1
   },
   modelUserId: {
-    type: String,
+    type: Number,
   }
 });
 
 function loadOvertime() {
-  if (props.modelUserId && props.modelUserId != '') {
+  if (props.modelUserId && props.modelUserId != 0) {
     BeeTimeClock.administrationTimestampQueryMonthOvertime(props.modelUserId, props.modelYear, props.modelMonth).then(result => {
       if (result.status === 200) {
         overtimeResponse.value = result.data.Data;
       }
-    });
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });;
   } else {
     BeeTimeClock.timestampQueryMonthOvertime(props.modelYear, props.modelMonth).then(result => {
       if (result.status === 200) {
         overtimeResponse.value = result.data.Data;
       }
-    });
+    }).catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });;
   }
 }
 
@@ -49,7 +58,7 @@ onMounted(() => {
 <template>
   <q-card>
     <q-card-section class="bg-primary text-white text-subtitle">
-      {{ $t('LABEL_OVERTIME_MONTH', {
+      {{ t('LABEL_OVERTIME_MONTH', {
       year: modelYear,
       month: new Date(modelYear, modelMonth - 1).toLocaleString('default', { month: 'long' })
     }) }}

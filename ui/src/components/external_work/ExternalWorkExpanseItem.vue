@@ -8,6 +8,8 @@ import ExternalWorkExpanseItemOnSite from 'components/external_work/ExternalWork
 import ExternalWorkExpanseItemSummaryItem from 'components/external_work/ExternalWorkExpanseItemSummaryItem.vue';
 import { useI18n } from 'vue-i18n';
 import ExternalWorkExpanseItemOptions from 'components/external_work/ExternalWorkExpanseItemOptions.vue';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
 
 const { t } = useI18n();
 
@@ -27,14 +29,14 @@ const showOnSiteInput = ref(false);
 
 const hasTravelData = computed(() => {
   return (
-    externalWorkExpanse.value.DepartureTime ||
-    externalWorkExpanse.value.ArrivalTime
+    externalWorkExpanse.value.DepartureTime != undefined ||
+    externalWorkExpanse.value.ArrivalTime != undefined
   );
 });
 
 const hasOnSiteData = computed(() => {
   return (
-    externalWorkExpanse.value.OnSiteFrom || externalWorkExpanse.value.OnSiteTill
+    externalWorkExpanse.value.OnSiteFrom != undefined || externalWorkExpanse.value.OnSiteTill != undefined
   );
 });
 
@@ -76,7 +78,9 @@ function updateExternalWorkExpanse() {
       editMode.value = false;
       emits('updated');
     }
-  });
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });;
 }
 
 function createExternalWorkExpanse() {
@@ -88,7 +92,9 @@ function createExternalWorkExpanse() {
       editMode.value = false;
       emits('updated');
     }
-  });
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.message);
+  });;
 }
 </script>
 
@@ -125,20 +131,20 @@ function createExternalWorkExpanse() {
             class="col"
             v-model="hasTravelTime"
             :disable="hasTravelData"
-            :label="$t('LABEL_TRAVEL_TIME')"
+            :label="t('LABEL_TRAVEL_TIME')"
           />
           <q-toggle
             class="col"
             v-model="hasOnSiteTime"
             :disable="hasOnSiteData"
-            :label="$t('LABEL_ON_SITE_TIME')"
+            :label="t('LABEL_ON_SITE_TIME')"
           />
         </q-card-section>
         <q-card-section>
           <q-input
             class="q-mb-lg"
             v-model="externalWorkExpanse.Place"
-            :label="$t('LABEL_PLACE')"
+            :label="t('LABEL_PLACE')"
             :readonly="!editMode"
           />
           <ExternalWorkExpanseItemTravel
@@ -160,42 +166,42 @@ function createExternalWorkExpanse() {
       <q-separator vertical />
       <q-card-section class="col-3">
         <q-list>
-          <q-item-label header>{{ $t('LABEL_TIME', 2) }}</q-item-label>
+          <q-item-label header>{{ t('LABEL_TIME', 2) }}</q-item-label>
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_TOTAL_AWAY_HOURS')"
+            :caption="t('LABEL_TOTAL_AWAY_HOURS')"
             :label="`${externalworkexpanse.TotalAwayHours} ${t(
               'LABEL_HOUR',
               externalworkexpanse.TotalAwayHours
             )}`"
           />
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_TOTAL_WORKING_HOURS')"
+            :caption="t('LABEL_TOTAL_WORKING_HOURS')"
             :label="`${externalworkexpanse.TotalWorkingHours} ${t(
               'LABEL_HOUR',
               externalworkexpanse.TotalAwayHours
             )}`"
           />
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_TOTAL_OPERATION_HOURS')"
+            :caption="t('LABEL_TOTAL_OPERATION_HOURS')"
             :label="`${externalworkexpanse.TotalOperationHours} ${t(
               'LABEL_HOUR',
               externalworkexpanse.TotalAwayHours
             )}`"
           />
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_TOTAL_OVERTIME_HOURS')"
+            :caption="t('LABEL_TOTAL_OVERTIME_HOURS')"
             :label="`${externalworkexpanse.TotalOvertimeHours} ${t(
               'LABEL_HOUR',
               externalworkexpanse.TotalAwayHours
             )}`"
           />
-          <q-item-label header>{{ $t('LABEL_EXPENSE', 2) }}</q-item-label>
+          <q-item-label header>{{ t('LABEL_EXPENSE', 2) }}</q-item-label>
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_EXPENSES_WITHOUT_SOCIAL_INSURANCE')"
+            :caption="t('LABEL_EXPENSES_WITHOUT_SOCIAL_INSURANCE')"
             :label="`${externalworkexpanse.ExpensesWithoutSocialInsurance} Euro`"
           />
           <ExternalWorkExpanseItemSummaryItem
-            :caption="$t('LABEL_EXPENSES_WITH_SOCIAL_INSURANCE')"
+            :caption="t('LABEL_EXPENSES_WITH_SOCIAL_INSURANCE')"
             :label="`${externalworkexpanse.ExpensesWithSocialInsurance} Euro`"
           />
         </q-list>

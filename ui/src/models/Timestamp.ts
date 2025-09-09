@@ -1,3 +1,5 @@
+import { autoImplement } from 'src/helper/functions';
+
 export interface Timestamp {
   ID: number;
   UserID: number;
@@ -8,13 +10,21 @@ export interface Timestamp {
   Corrections: TimestampCorrection[];
 }
 
-export interface TimestampGroup {
+export interface ApiTimestampGroup {
   Date: Date,
   IsHomeoffice: boolean,
   Timestamps: Timestamp[],
   WorkingHours: number,
   SubtractedHours: number,
   OvertimeHours: number,
+}
+
+export class TimestampGroup extends autoImplement<ApiTimestampGroup>() {
+  public expanded: boolean = false;
+
+  static fromApi(apiItem: ApiTimestampGroup) : TimestampGroup {
+    return new TimestampGroup(apiItem);
+  }
 }
 
 export interface TimestampCreateRequest {
