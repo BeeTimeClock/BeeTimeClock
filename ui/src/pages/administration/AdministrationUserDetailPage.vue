@@ -20,7 +20,9 @@ import type { ErrorResponse } from 'src/models/Base';
 const { t } = useI18n();
 
 const route = useRoute();
-const userId = route.params.userId as string;
+const userId = computed(() => {
+  return parseInt(route.params.userId as string);
+})
 const user = ref(null as User | null);
 const selectedTab = ref('common');
 const timestampYearMonths = ref<TimestampYearMonthGrouped>({});
@@ -57,7 +59,7 @@ const overtimeSubtractions = [
 ];
 
 function loadUser() {
-  BeeTimeClock.administrationGetUserById(userId)
+  BeeTimeClock.administrationGetUserById(userId.value)
     .then((result) => {
       if (result.status === 200) {
         user.value = result.data.Data;
@@ -94,7 +96,7 @@ const timestampMonths = computed(() => {
 });
 
 async function loadTimestampMonths() {
-  const result = await BeeTimeClock.administrationTimestampUserMonths(userId);
+  const result = await BeeTimeClock.administrationTimestampUserMonths(userId.value);
 
   if (result.status === 200) {
     timestampYearMonths.value = result.data.Data;
@@ -103,7 +105,7 @@ async function loadTimestampMonths() {
 
 function loadTimestampGrouped() {
   BeeTimeClock.administrationTimestampQueryMonthGrouped(
-    userId,
+    userId.value,
     selectedYear.value,
     selectedMonth.value,
   )
@@ -125,7 +127,7 @@ function loadTimestampGrouped() {
 }
 
 function loadAbsenceYears() {
-  BeeTimeClock.administrationAbsenceYears(userId)
+  BeeTimeClock.administrationAbsenceYears(userId.value)
     .then((result) => {
       if (result.status === 200) {
         absenceYears.value = result.data.Data;
@@ -137,7 +139,7 @@ function loadAbsenceYears() {
 }
 
 function loadAbsences() {
-  BeeTimeClock.administrationAbsencesByYear(userId, selectedAbsenceYear.value)
+  BeeTimeClock.administrationAbsencesByYear(userId.value, selectedAbsenceYear.value)
     .then((result) => {
       if (result.status === 200) {
         absences.value = result.data.Data.map((s) => Absence.fromApi(s));

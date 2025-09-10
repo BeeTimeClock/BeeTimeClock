@@ -1,4 +1,5 @@
 import { autoImplement } from 'src/helper/functions';
+import type {  AbsenceUserSummary } from 'src/models/Absence';
 
 export interface AuthRequest {
   Username: string;
@@ -30,3 +31,6 @@ export class User extends autoImplement<ApiUser>() {
   }
 }
 
+export class UserWithAbsenceSummary extends User {
+  public absenceSummary?: AbsenceUserSummary;
+}

@@ -299,7 +299,7 @@ class BeeTimeClock {
   }
 
   administrationGetUserById(
-    userId: string,
+    userId: number,
   ): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.get(`/api/v1/administration/user/${userId}`);
   }
@@ -362,13 +362,13 @@ class BeeTimeClock {
   }
 
   administrationTimestampUserMonths(
-    userId: string,
+    userId: number,
   ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
     return api.get(`/api/v1/administration/user/${userId}/timestamp/months`);
   }
 
   administrationTimestampQueryMonthGrouped(
-    userId: string,
+    userId: number,
     year: number,
     month: number,
   ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
@@ -388,13 +388,13 @@ class BeeTimeClock {
   }
 
   administrationAbsenceYears(
-    userId: string,
+    userId: number,
   ): Promise<AxiosResponse<BaseResponse<number[]>>> {
     return api.get(`/api/v1/administration/user/${userId}/absence/years`);
   }
 
   administrationAbsencesByYear(
-    userId: string,
+    userId: number,
     year: number,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
     return api.get(

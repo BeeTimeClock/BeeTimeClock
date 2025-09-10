@@ -49,7 +49,7 @@ export interface AbsenceSummaryItem {
   User: User;
 }
 
-type AbsenceUserSummaryYearReason = {
+export type AbsenceUserSummaryYearReason = {
   Upcoming: number;
   Past: number;
 }

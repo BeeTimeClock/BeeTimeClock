@@ -1,26 +1,43 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { User } from 'src/models/Authentication';
+import { User, UserWithAbsenceSummary } from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import UserAbsenceSummary from 'components/UserAbsenceSummary.vue';
-import type { AbsenceReason } from 'src/models/Absence';
-import { useQuasar } from 'quasar';
+import type {
+  AbsenceReason,
+  AbsenceUserSummaryYearReason,
+} from 'src/models/Absence';
+import { type QTableColumn, useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { ErrorResponse } from 'src/models/Base';
+import { emptyPagination } from 'src/helper/objects';
 
 const q = useQuasar();
 const { t } = useI18n();
 
-const users = ref([] as User[]);
+const users = ref([] as UserWithAbsenceSummary[]);
 const absenceReasons = ref([] as AbsenceReason[]);
 const needle = ref('');
+
+const selectedAbsenceReasons = ref<number[]>([]);
 
 function loadUsers() {
   BeeTimeClock.administrationGetUsers(true)
     .then((result) => {
       if (result.status === 200) {
-        users.value = result.data.Data.map(s => User.fromApi(s));
+        users.value = result.data.Data.map(
+          (s) => new UserWithAbsenceSummary(User.fromApi(s)),
+        );
+
+        users.value.forEach((s) => {
+          void BeeTimeClock.administrationSummaryUserCurrentYear(
+            s.ID,
+            new Date().getFullYear(),
+          ).then((absenceResult) => {
+            const userIndex = users.value.indexOf(s);
+            users.value[userIndex]!.absenceSummary = absenceResult.data.Data;
+          });
+        });
       }
     })
     .catch((error: ErrorResponse) => {
@@ -29,12 +46,57 @@ function loadUsers() {
 }
 
 function loadAbsenceReasons() {
-  BeeTimeClock.absenceReasons().then((result) => {
-    absenceReasons.value = result.data.Data;
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.message);
-  });
+  BeeTimeClock.absenceReasons()
+    .then((result) => {
+      absenceReasons.value = result.data.Data;
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
 }
+
+const columns = computed(() => {
+  const result = [
+    {
+      name: 'username',
+      label: t('LABEL_USERNAME'),
+      field: 'Username',
+      align: 'left',
+    },
+    {
+      name: 'firstName',
+      label: t('LABEL_FIRST_NAME'),
+      field: 'FirstName',
+      align: 'left',
+    },
+    {
+      name: 'lastName',
+      label: t('LABEL_LAST_NAME'),
+      field: 'LastName',
+      align: 'left',
+    },
+  ] as QTableColumn[];
+
+  result.push(
+    ...absenceReasons.value
+      .filter((s) => selectedAbsenceReasons.value.includes(s.ID))
+      .map((s) => {
+        return {
+          name: s.ID.toString(),
+          label: s.Description,
+          field: (row: UserWithAbsenceSummary) => {
+            const year = row.absenceSummary?.ByYear[2025];
+            if (year == undefined) return null;
+            return year.ByAbsenceReason[s.ID] ?? null;
+          },
+          align: 'right',
+          format: (val: AbsenceUserSummaryYearReason | null) =>
+            `${val?.Past ?? 0} ${(val?.Upcoming ?? 0) > 0 ? `/ ${val?.Upcoming ?? 0}` : ''}`,
+        } as QTableColumn;
+      }),
+  );
+  return result;
+});
 
 const sortedFilteredUsers = computed(() => {
   const search = needle.value.toLowerCase();
@@ -55,19 +117,21 @@ function deleteUser(user: User) {
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    BeeTimeClock.administrationDeleteUser(user).then((result) => {
-      if (result.status === 204) {
-        loadUsers();
-        showInfoMessage(
-          t('MSG_DELETE_SUCCESS', {
-            item: t('LABEL_USER'),
-            identifier: user.Username,
-          }),
-        );
-      }
-    }).catch((error: ErrorResponse) => {
-      showErrorMessage(error.message);
-    });
+    BeeTimeClock.administrationDeleteUser(user)
+      .then((result) => {
+        if (result.status === 204) {
+          loadUsers();
+          showInfoMessage(
+            t('MSG_DELETE_SUCCESS', {
+              item: t('LABEL_USER'),
+              identifier: user.Username,
+            }),
+          );
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
   });
 }
 
@@ -79,48 +143,74 @@ onMounted(() => {
 
 <template>
   <q-page padding>
-    <q-input :label="t('LABEL_SEARCH')" v-model="needle" />
-    <q-markup-table class="q-mt-lg">
-      <thead>
-        <tr class="bg-primary text-white">
-          <th class="text-left">{{ t('LABEL_USER') }}</th>
-          <th class="text-left">{{ t('LABEL_FIRST_NAME') }}</th>
-          <th class="text-left">{{ t('LABEL_LAST_NAME') }}</th>
-          <th class="text-left">{{ t('LABEL_ABSENCE', 2) }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in sortedFilteredUsers" :key="user.Username">
-          <td>{{ user.Username }}</td>
-          <td>{{ user.FirstName }}</td>
-          <td>{{ user.LastName }}</td>
-          <td>
-            <UserAbsenceSummary
-              :user-id="user.ID"
-              :absence-reasons="absenceReasons"
+    <q-select
+      filled
+      v-model="selectedAbsenceReasons"
+      :options="absenceReasons"
+      :label="t('LABEL_ABSENCE_REASON', 2)"
+      multiple
+      emit-value
+      map-options
+      option-value="ID"
+      option-label="Description"
+      use-chips
+    >
+      <template v-slot:option="{ itemProps, opt, selected, toggleOption }">
+        <q-item v-bind="itemProps">
+          <q-item-section>
+            <q-item-label>{{ opt.Description }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-toggle
+              :model-value="selected"
+              @update:model-value="toggleOption(opt)"
             />
-          </td>
-          <td>
+          </q-item-section>
+        </q-item>
+      </template>
+    </q-select>
+    <q-input :label="t('LABEL_SEARCH')" v-model="needle" clearable @clear="needle = ''"/>
+    <q-table
+      class="q-mt-md"
+      :rows="sortedFilteredUsers"
+      :pagination="emptyPagination"
+      :columns="columns"
+      hide-pagination
+    >
+      <template v-slot:header="props">
+        <q-tr :props="props">
+          <q-th v-for="col in props.cols" :key="col.name" :props="props">
+            {{ col.label }}
+          </q-th>
+          <q-th auto-width />
+        </q-tr>
+      </template>
+
+      <template v-slot:body="props">
+        <q-tr :props="props">
+          <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            {{ col.value }}
+          </q-td>
+          <q-td auto-width>
             <q-btn
               class="q-ml-md"
               color="primary"
               icon="visibility"
               :to="{
                 name: 'AdministrationUserDetail',
-                params: { userId: user.ID },
+                params: { userId: props.row.ID },
               }"
             />
             <q-btn
               class="q-ml-md"
               color="negative"
               icon="delete"
-              @click="deleteUser(user)"
+              @click="deleteUser(props.row)"
             />
-          </td>
-        </tr>
-      </tbody>
-    </q-markup-table>
+          </q-td>
+        </q-tr>
+      </template>
+    </q-table>
   </q-page>
 </template>
 
