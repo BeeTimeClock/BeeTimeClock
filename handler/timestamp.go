@@ -69,6 +69,70 @@ func (h *Timestamp) TimestampQueryLast(c *gin.Context) {
 	c.JSON(http.StatusOK, lastTimestamp)
 }
 
+func (h *Timestamp) TimestampMissingEntries(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	result, err := h.timestampWorker.MissingDays(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampMissingEntriesCount(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	result, err := h.timestampWorker.MissingDays(user.ID)
+	if err != nil && err != repository.ErrTimestampNotFound {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(model.CountResult{
+		Count: len(result),
+	}))
+}
+
+func (h *Timestamp) TimestampMissingEntriesMonth(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	monthParam := c.Param("month")
+	month, err := strconv.Atoi(monthParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	result, err := h.timestampWorker.MissingDaysInMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
 func (h *Timestamp) TimestampQuerySuspicious(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {

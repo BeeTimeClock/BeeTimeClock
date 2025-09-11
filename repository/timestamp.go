@@ -6,6 +6,7 @@ import (
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -93,6 +94,10 @@ func (r *Timestamp) FindLastByUserID(userID uint) (model.Timestamp, error) {
 
 	var item model.Timestamp
 	result := db.Order("coming_timestamp DESC").Last(&item, "user_id = ?", userID)
+
+	if result.RowsAffected == 0 || errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return model.Timestamp{}, ErrTimestampNotFound
+	}
 
 	return item, result.Error
 }

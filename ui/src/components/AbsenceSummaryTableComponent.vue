@@ -76,7 +76,7 @@ if (auth.isAdministrator()) {
     name: 'absenceReason',
     label: t('LABEL_REASON'),
     field: 'Reason',
-    format: (val: Date) => val.toDateString(),
+    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   } as QTableColumn);
 }
 </script>

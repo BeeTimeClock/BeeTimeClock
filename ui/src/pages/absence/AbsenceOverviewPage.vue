@@ -1,17 +1,18 @@
+/** eslint-disable @typescript-eslint/consistent-type-imports */
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import type {
-  AbsenceCreateRequest,
-  AbsenceReason,
   AbsenceSummaryItem,
   AbsenceUserSummary,
   AbsenceUserSummaryYear,
 } from 'src/models/Absence';
+import { AbsenceReason } from 'src/models/Absence';
 import { Absence } from 'src/models/Absence';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import type { QTableColumn} from 'quasar';
+import type { QTableColumn } from 'quasar';
 import { date, useQuasar } from 'quasar';
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
+import AbsenceCreateDialog from 'src/components/absence/AbsenceCreateDialog.vue';
 import { useI18n } from 'vue-i18n';
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { AxiosError } from 'axios';
@@ -21,12 +22,11 @@ import { type ErrorResponse } from 'src/models/Base';
 const { t } = useI18n();
 const q = useQuasar();
 
-const promptCreateAbsence = ref(false);
-
-const absenceCreateRequest = ref({} as AbsenceCreateRequest);
 const absences = ref([] as Absence[]);
 const absenceSummaryItems = ref([] as AbsenceSummaryItem[]);
 const mySummary = ref(null as AbsenceUserSummary | null);
+const absenceReasons = ref<AbsenceReason[]>([]);
+const promptAbsenceCreationDialog = ref(false);
 
 const myAbsencesColumns = [
   {
@@ -66,18 +66,6 @@ const pagination = {
   rowsPerPage: 10,
 };
 
-let absenceReasons = [] as AbsenceReason[];
-
-const conflictingAbsences = computed(() => {
-  return absenceSummaryItems.value.filter(
-    (s) =>
-      (s.AbsenceFrom >  new Date(absenceCreateRequest.value.AbsenceFrom) &&
-        s.AbsenceFrom < new Date(absenceCreateRequest.value.AbsenceTill)) ||
-      (s.AbsenceTill < new Date(absenceCreateRequest.value.AbsenceTill) &&
-        s.AbsenceTill > new Date(absenceCreateRequest.value.AbsenceFrom)),
-  );
-});
-
 const myAbsences = computed(() => {
   if (!absences.value) return [];
 
@@ -92,7 +80,9 @@ function loadAbsenceReasons() {
   BeeTimeClock.absenceReasons()
     .then((result) => {
       if (result.status === 200) {
-        absenceReasons = result.data.Data;
+        absenceReasons.value = result.data.Data.map((s) =>
+          AbsenceReason.fromApi(s),
+        );
       }
     })
     .catch((error: ErrorResponse) => {
@@ -100,16 +90,8 @@ function loadAbsenceReasons() {
     });
 }
 
-function createAbsence() {
-  BeeTimeClock.createAbsence(absenceCreateRequest.value)
-    .then((result) => {
-      if (result.status === 201) {
-        refresh();
-      }
-    })
-    .catch((error: ErrorResponse) => {
-      showErrorMessage(error.message);
-    });
+function openAbsenceCreationDialog() {
+  promptAbsenceCreationDialog.value = true;
 }
 
 function loadAbsenceSummary() {
@@ -167,7 +149,7 @@ function getCurrentYearSummary(): AbsenceUserSummaryYear | null {
 }
 
 function getAbsenceReasonDescriptionById(id: number): string {
-  const res = absenceReasons.filter((s) => s.ID == id);
+  const res = absenceReasons.value.filter((s: AbsenceReason) => s.ID == id);
   if (res.length == 0) return '';
 
   return res[0]!.Description;
@@ -203,6 +185,7 @@ function deleteAbsence(absence: Absence) {
 }
 
 function refresh() {
+  loadAbsenceReasons();
   loadAbsences();
   loadAbsenceSummary();
   loadMySummary();
@@ -249,7 +232,7 @@ onMounted(() => {
         <q-btn
           color="positive"
           icon="add"
-          @click="promptCreateAbsence = true"
+          @click="openAbsenceCreationDialog()"
         />
       </template>
       <template v-slot:body="props">
@@ -274,49 +257,11 @@ onMounted(() => {
       class="q-mt-lg"
       v-model="absenceSummaryItems"
     />
+    <AbsenceCreateDialog
+      v-model:show="promptAbsenceCreationDialog"
+      @create="refresh()"
+    />
   </q-page>
-  <q-dialog persistent v-model="promptCreateAbsence">
-    <q-card class="q-dialog-plugin full-width">
-      <q-card-section>
-        <q-input
-          type="date"
-          :label="t('LABEL_FROM')"
-          v-model="absenceCreateRequest.AbsenceFrom"
-        />
-        <q-input
-          type="date"
-          :label="t('LABEL_TILL')"
-          v-model="absenceCreateRequest.AbsenceTill"
-        />
-        <q-select
-          :label="t('LABEL_REASON')"
-          emit-value
-          :options="absenceReasons"
-          map-options
-          option-value="ID"
-          option-label="Description"
-          v-model="absenceCreateRequest.AbsenceReasonID"
-        />
-      </q-card-section>
-      <q-card-section>
-        <AbsenceSummaryTableComponent
-          v-if="conflictingAbsences.length > 0"
-          v-model="conflictingAbsences"
-          flat
-          :title="t('LABEL_ABSENCE_CONFLICTING')"
-        />
-      </q-card-section>
-      <q-card-actions>
-        <q-btn v-close-popup :label="t('BTN_CANCEL')" color="negative" />
-        <q-btn
-          v-close-popup
-          :label="t('BTN_CREATE')"
-          color="positive"
-          @click="createAbsence"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
 </template>
 
 <style scoped></style>

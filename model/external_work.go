@@ -126,6 +126,10 @@ type ExternalWork struct {
 	InvoiceIdentifier          *uuid.UUID `gorm:"index"`
 }
 
+func (e *ExternalWork) IsDateInExternalWork(d time.Time) bool {
+	return d.Equal(e.From.UTC()) || d.Equal(e.Till.UTC()) || (d.Before(e.Till.UTC()) && d.After(e.From.UTC()))
+}
+
 func (e *ExternalWork) IsEditable() bool {
 	return e.Status == EXTERNAL_WORK_STATUS_PLANNED || e.Status == EXTERNAL_WORK_STATUS_MISSING_INFO
 }

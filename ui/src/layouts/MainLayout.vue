@@ -1,3 +1,84 @@
+<script lang="ts" setup>
+import { computed, onMounted, ref } from 'vue';
+import { useAuthStore } from 'stores/microsoft-auth';
+import { useI18n } from 'vue-i18n';
+import type { User } from 'src/models/Authentication';
+import BeeTimeClock from 'src/service/BeeTimeClock';
+import type { BackendStatus } from 'src/models/Base';
+import { type ErrorResponse } from 'src/models/Base';
+import { showErrorMessage } from 'src/helper/message';
+import { useRouter } from 'vue-router';
+import { msalProvider } from 'boot/microsoft-msal';
+
+const {t} = useI18n();
+
+const authStore = useAuthStore();
+const session = ref(null as User | null);
+const status = ref(null as BackendStatus | null);
+const router = useRouter();
+const leftDrawerOpen = ref(false);
+const { locale } = useI18n({ useScope: 'global' });
+const isAdministrator = ref(false);
+const missingDaysCount = ref(0);
+
+const localeOptions = [
+  { value: 'en-US', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
+];
+
+const commit = computed(() => {
+  return process.env.VUE_APP_COMMIT;
+});
+
+function logout() {
+  authStore.logout();
+  void router.push({ name: 'Login' });
+}
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+function loadMissingDaysCount() {
+  BeeTimeClock.getMissingDaysCount().then(result => {
+    if (result.status === 200) {
+      missingDaysCount.value = result.data.Data.Count;
+    }
+  }).catch((error) => {
+    showErrorMessage(error)
+  })
+}
+
+onMounted(async () => {
+  await refresh();
+  loadMissingDaysCount()
+});
+
+async function refresh() {
+  if (authStore.getAuthProvider === 'microsoft') {
+    msalProvider.refresh();
+  }
+  const isLoggedIn = await authStore.loadSession();
+  if (!isLoggedIn) {
+    console.log('unauth');
+    logout();
+    return;
+  }
+
+  session.value = authStore.getSession();
+
+  BeeTimeClock.getStatus()
+    .then((result) => {
+      if (result.status === 200) {
+        status.value = result.data.Data;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+  isAdministrator.value = authStore.isAdministrator();
+}
+</script>
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
@@ -69,6 +150,13 @@
             :to="{ name: 'SuspiciousTimestampsOverview' }"
           >
             {{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'MissingDaysOverview' }"
+          >
+            {{ t('MENU_MISSING_DAYS') }} <q-chip class="q-ml-md" v-if="missingDaysCount > 0" :label="missingDaysCount" dense  color="negative"/>
           </q-item>
           <q-item-label header> {{ t('LABEL_ME') }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'UserApikeyOverview' }">
@@ -165,73 +253,3 @@
     </q-page-container>
   </q-layout>
 </template>
-
-<script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
-import { useAuthStore } from 'stores/microsoft-auth';
-import { useI18n } from 'vue-i18n';
-import type { User } from 'src/models/Authentication';
-import BeeTimeClock from 'src/service/BeeTimeClock';
-import type { BackendStatus } from 'src/models/Base';
-import { type ErrorResponse } from 'src/models/Base';
-import { showErrorMessage } from 'src/helper/message';
-import { useRouter } from 'vue-router';
-import { msalProvider } from 'boot/microsoft-msal';
-
-const {t} = useI18n();
-
-const authStore = useAuthStore();
-const session = ref(null as User | null);
-const status = ref(null as BackendStatus | null);
-const router = useRouter();
-const leftDrawerOpen = ref(false);
-const { locale } = useI18n({ useScope: 'global' });
-const isAdministrator = ref(false);
-
-const localeOptions = [
-  { value: 'en-US', label: 'English' },
-  { value: 'de', label: 'Deutsch' },
-];
-
-const commit = computed(() => {
-  return process.env.VUE_APP_COMMIT;
-});
-
-function logout() {
-  authStore.logout();
-  void router.push({ name: 'Login' });
-}
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
-}
-
-onMounted(async () => {
-  await refresh();
-});
-
-async function refresh() {
-  if (authStore.getAuthProvider === 'microsoft') {
-    msalProvider.refresh();
-  }
-  const isLoggedIn = await authStore.loadSession();
-  if (!isLoggedIn) {
-    console.log('unauth');
-    logout();
-    return;
-  }
-
-  session.value = authStore.getSession();
-
-  BeeTimeClock.getStatus()
-    .then((result) => {
-      if (result.status === 200) {
-        status.value = result.data.Data;
-      }
-    })
-    .catch((error: ErrorResponse) => {
-      showErrorMessage(error.message);
-    });
-  isAdministrator.value = authStore.isAdministrator();
-}
-</script>

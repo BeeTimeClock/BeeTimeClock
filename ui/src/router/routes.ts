@@ -28,6 +28,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/worktime/SuspiciousTimestampsOverviewPage.vue')
       },
       {
+        name: 'MissingDaysOverview',
+        path: 'worktime/missing',
+        component: () => import('pages/worktime/MissingDaysOverviewPage.vue')
+      },
+      {
         name: 'AbsenceOverview',
         path: 'absence',
         component: () => import('pages/absence/AbsenceOverviewPage.vue'),

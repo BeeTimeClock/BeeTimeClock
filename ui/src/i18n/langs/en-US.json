@@ -145,5 +145,6 @@
   "LABEL_GENERATE_REPORTS_FROM_ACCEPTED": "generate month reports",
   "MENU_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps",
   "LABEL_HAS_CORRECTIONS": "has corrections",
-  "LABEL_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps"
+  "LABEL_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps",
+  "MENU_MISSING_DAYS": "Missing Days"
 }

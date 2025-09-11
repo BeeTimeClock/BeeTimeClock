@@ -154,10 +154,22 @@ func (h *Absence) AbsenceCreate(c *gin.Context) {
 		return
 	}
 
+	absenceFrom, err := absenceCreateRequest.AbsenceFromParsed()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceTill, err := absenceCreateRequest.AbsenceTillParsed()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
 	absence := model.Absence{
 		UserID:        &user.ID,
-		AbsenceFrom:   absenceCreateRequest.AbsenceFrom,
-		AbsenceTill:   absenceCreateRequest.AbsenceTill,
+		AbsenceFrom:   absenceFrom,
+		AbsenceTill:   absenceTill,
 		AbsenceReason: absenceReason,
 		Identifier:    uuid.New(),
 	}

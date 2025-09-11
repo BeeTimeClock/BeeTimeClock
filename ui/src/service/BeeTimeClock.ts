@@ -5,6 +5,7 @@ import type {
   User,
 } from 'src/models/Authentication';
 import type {
+  ApiCountResult,
   AuthProviders,
   BackendStatus,
   BaseResponse,
@@ -497,6 +498,18 @@ class BeeTimeClock {
     return api.get('/api/v1/logo', {
       responseType: 'blob',
     });
+  }
+
+  getMissingDays(): Promise<AxiosResponse<BaseResponse<string[]>>> {
+    return api.get(`/api/v1/timestamp/query/missing`)
+  }
+
+  getMissingDaysCount(): Promise<AxiosResponse<BaseResponse<ApiCountResult>>> {
+    return api.get(`/api/v1/timestamp/query/missing/count`)
+  }
+
+  getMissingDaysMonth(year: number, month: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
+    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/missing`)
   }
 }
 

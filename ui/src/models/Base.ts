@@ -34,3 +34,7 @@ export interface UserApikeyCreateRequest {
   Description: string;
   ValidTill: string;
 }
+
+export interface ApiCountResult {
+  Count: number;
+}

@@ -100,7 +100,7 @@ func main() {
 		panic(err)
 	}
 
-	timestampWorker := worker.NewTimestamp(env, userRepo, externalWorkRepo, timestampRepo, holiday)
+	timestampWorker := worker.NewTimestamp(env, userRepo, externalWorkRepo, timestampRepo, holiday, absenceRepo)
 	overtimeWorker := worker.NewOvertime(env, userRepo, externalWorkRepo, timestampRepo, holiday, overtimeRepo, timestampWorker, absenceRepo)
 
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
@@ -275,10 +275,13 @@ func main() {
 				timestamp.GET("query/last", timestampHandler.TimestampQueryLast)
 				timestamp.GET("query/suspicious", timestampHandler.TimestampQuerySuspicious)
 				timestamp.GET("query/suspicious/count", timestampHandler.TimestampQuerySuspiciousCount)
+				timestamp.GET("query/missing", timestampHandler.TimestampMissingEntries)
+				timestamp.GET("query/missing/count", timestampHandler.TimestampMissingEntriesCount)
 				timestamp.GET("query/current_month/grouped", timestampHandler.TimestampCurrentUserQueryCurrentMonthGrouped)
 				timestamp.GET("query/current_month/overtime", timestampHandler.TimestampCurrentUserQueryCurrentMonthOvertime)
 				timestamp.GET("query/year/:year/month/:month/grouped", timestampHandler.TimestampQueryMonthGrouped)
 				timestamp.GET("query/year/:year/month/:month/overtime", timestampHandler.TimestampQueryMonthOvertime)
+				timestamp.GET("query/year/:year/month/:month/missing", timestampHandler.TimestampMissingEntriesMonth)
 				timestamp.GET("query/timestamp/months", timestampHandler.TimestampQueryMonths)
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)

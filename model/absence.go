@@ -60,9 +60,17 @@ type AbsenceReasonCreateRequest struct {
 }
 
 type AbsenceCreateRequest struct {
-	AbsenceFrom     time.Time `binding:"required"`
-	AbsenceTill     time.Time `binding:"required"`
-	AbsenceReasonID uint      `binding:"required"`
+	AbsenceFrom     string `binding:"required" time_format:"2006-01-02"`
+	AbsenceTill     string `binding:"required" time_format:"2006-01-02"`
+	AbsenceReasonID uint   `binding:"required"`
+}
+
+func (acr *AbsenceCreateRequest) AbsenceFromParsed() (time.Time, error) {
+	return time.Parse("2006-01-02", acr.AbsenceFrom)
+}
+
+func (acr *AbsenceCreateRequest) AbsenceTillParsed() (time.Time, error) {
+	return time.Parse("2006-01-02", acr.AbsenceTill)
 }
 
 type AbsenceUserSummaryYearReason struct {

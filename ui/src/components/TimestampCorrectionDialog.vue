@@ -14,6 +14,9 @@ import type { ErrorResponse } from 'src/models/Base';
 const { t } = useI18n();
 const timestamp = defineModel<Timestamp>();
 const show = defineModel('show', { type: Boolean, default: false });
+const initDate = defineModel<Date>('init-date', {
+  default: new Date(),
+});
 const timestampCorrectionCreateRequest =
   ref<TimestampCorrectionCreateRequest>();
 
@@ -34,7 +37,7 @@ function onShow() {
     timestampCorrectionCreateRequest.value.IsHomeoffice =
       timestamp.value.IsHomeoffice;
   } else {
-    timestampCorrectionCreateRequest.value.NewComingTimestamp = new Date();
+    timestampCorrectionCreateRequest.value.NewComingTimestamp = initDate.value;
   }
 }
 
@@ -45,15 +48,17 @@ function createTimestampCorrection() {
     BeeTimeClock.timestampCorrectionCreate(
       timestamp.value,
       timestampCorrectionCreateRequest.value,
-    ).then((result) => {
-      if (result.status === 200) {
-        showInfoMessage(t('MSG_CREATE_SUCCESS'));
-        emits('refresh');
-        show.value = false;
-      }
-    }).catch((error: ErrorResponse) => {
-      showErrorMessage(error.message);
-    });;
+    )
+      .then((result) => {
+        if (result.status === 200) {
+          showInfoMessage(t('MSG_CREATE_SUCCESS'));
+          emits('refresh');
+          show.value = false;
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
   } else {
     const timestampCreateRequest = {
       ComingTimestamp: new Date(
