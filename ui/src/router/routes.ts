@@ -58,6 +58,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/overtime/OvertimeOverviewPage.vue')
       },
       {
+        path: 'team',
+        children: [
+          {
+            name: 'TeamOverview',
+            path: 'overview',
+            component: () => import('pages/teams/TeamOverviewPage.vue')
+          }
+        ]
+      },
+      {
         path: 'me',
         children: [
           {

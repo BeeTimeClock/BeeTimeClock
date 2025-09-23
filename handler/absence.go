@@ -19,14 +19,16 @@ import (
 type Absence struct {
 	env     *core.Environment
 	user    *repository.User
+	team    *repository.Team
 	absence *repository.Absence
 }
 
-func NewAbsence(env *core.Environment, user *repository.User, absence *repository.Absence) *Absence {
+func NewAbsence(env *core.Environment, user *repository.User, absence *repository.Absence, team *repository.Team) *Absence {
 	return &Absence{
 		env:     env,
 		user:    user,
 		absence: absence,
+		team:    team,
 	}
 }
 
@@ -299,6 +301,28 @@ func (h *Absence) AbsenceQueryUserYears(c *gin.Context) {
 
 func (h *Absence) AbsenceQueryUsersSummary(c *gin.Context) {
 	absences, err := h.absence.FindByQuery(true, "absence_till >= ?", time.Now().Format("2006-01-02"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c))
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Absence) AbsenceQueryTeamUsersSummary(c *gin.Context) {
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	teamMemberIds := []uint{team.TeamOwnerID}
+
+	for _, member := range team.Members {
+		teamMemberIds = append(teamMemberIds, member.UserID)
+	}
+
+	absences, err := h.absence.FindByQuery(true, "user_id in (?) and absence_till >= ?", teamMemberIds, time.Now().Format("2006-01-02"))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return

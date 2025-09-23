@@ -106,7 +106,7 @@ func main() {
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
 	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo, holiday, timestampWorker)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
-	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo)
+	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo, teamRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
 	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo)
 	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo, holiday)
@@ -333,6 +333,12 @@ func main() {
 					externalWorkDetail.PUT("expanse/:externalWorkExpanseId", externalWorkHandler.ExternalWorkExpanseUpdate)
 					externalWorkDetail.POST("action/submit", externalWorkHandler.ExternalWorkSubmit)
 				}
+			}
+
+			team := v1.Group("team")
+			{
+				team.GET("", userHandler.CurrentUserTeams)
+				team.GET(":teamID/absence/query/users/summary", absenceHandler.AbsenceQueryTeamUsersSummary)
 			}
 
 			user := v1.Group("user")
