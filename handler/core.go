@@ -27,6 +27,23 @@ func getUserFromParam(c *gin.Context, userRepo *repository.User) (model.User, bo
 	return user, true
 }
 
+func getTeamFromParam(c *gin.Context, teamRepo *repository.Team) (model.Team, bool) {
+	teamIdParam := c.Param("teamID")
+	teamId, err := strconv.Atoi(teamIdParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return model.Team{}, false
+	}
+
+	team, err := teamRepo.TeamFindById(uint(teamId), true)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return model.Team{}, false
+	}
+
+	return team, true
+}
+
 func getYearFromParam(c *gin.Context) (int, bool) {
 	yearParam := c.Param("year")
 	year, err := strconv.Atoi(yearParam)

@@ -2,12 +2,17 @@ import type { ApiUser} from 'src/models/Authentication';
 import { User } from 'src/models/Authentication';
 import { autoImplement } from 'src/helper/functions';
 
+export enum TeamLevel {
+  Lead = "lead",
+  LeadSurrogate = "lead_surrogate",
+  Member = "member"
+}
+
 export interface ApiTeam {
   ID: number;
   Teamname: string;
-  TeamOwnerID: number;
-  TeamOwner: ApiUser;
   CreatedAt: Date;
+  Members: ApiTeamMember[];
 }
 
 export interface ApiTeamMember {
@@ -16,15 +21,17 @@ export interface ApiTeamMember {
   Team: ApiTeam;
   UserID: number;
   User: ApiUser;
+  Level: TeamLevel;
 }
 
 export interface ApiTeamCreateRequest {
   Teamname: string;
-  TeamOwnerID: number;
+  TeamLeadID: number;
 }
 
 export interface ApiTeamMemberCreateRequest {
   UserID: number;
+  Level: TeamLevel;
 }
 
 export class Team extends autoImplement<ApiTeam>() {
@@ -32,8 +39,8 @@ export class Team extends autoImplement<ApiTeam>() {
     return new Team(apiItem)
   }
 
-  get teamOwnerMapped() {
-    return User.fromApi(this.TeamOwner)
+  get membersMapped() {
+    return this.Members.map(s => TeamMember.fromApi(s))
   }
 }
 

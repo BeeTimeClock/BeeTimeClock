@@ -166,10 +166,31 @@ func (h *User) CurrentUserGet(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(user.GetUserResponse()))
 }
 
+func (h *User) CurrentUserTeams(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teams, err := h.team.TeamsFindByUserId(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := []model.TeamResponse{}
+	for _, t := range teams {
+		result = append(result, t.GetTeamResponse())
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
 func (h *User) CurrentUserUpdate(c *gin.Context) {
 	currentUser, err := auth.GetUserFromSession(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
@@ -270,18 +291,29 @@ func (h *User) AdministrationTeamCreate(c *gin.Context) {
 		return
 	}
 
-	teamOwner, err := h.user.FindByID(teamCreateRequest.TeamOwnerID)
+	teamLead, err := h.user.FindByID(teamCreateRequest.TeamLeadId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
 	team := model.Team{
-		Teamname:  teamCreateRequest.Teamname,
-		TeamOwner: teamOwner,
+		Teamname: teamCreateRequest.Teamname,
 	}
 
 	err = h.team.TeamInsert(&team)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teamMember := model.TeamMember{
+		Team:  team,
+		User:  teamLead,
+		Level: model.TeamLevel_Lead,
+	}
+
+	err = h.team.TeamMemberInsert(&teamMember)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -295,12 +327,6 @@ func (h *User) AdministrationTeamUpdate(c *gin.Context) {
 	err := c.BindJSON(&teamUpdateRequest)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
-		return
-	}
-
-	_, err = h.user.FindByID(teamUpdateRequest.TeamOwnerID)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
@@ -318,8 +344,6 @@ func (h *User) AdministrationTeamUpdate(c *gin.Context) {
 	}
 
 	team.Teamname = teamUpdateRequest.Teamname
-	team.TeamOwnerID = teamUpdateRequest.TeamOwnerID
-
 	err = h.team.TeamUpdate(&team)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -420,8 +444,9 @@ func (h *User) AdministrationTeamMemberCreate(c *gin.Context) {
 	}
 
 	teamMember := model.TeamMember{
-		Team: team,
-		User: user,
+		Team:  team,
+		User:  user,
+		Level: teamMemberCreateRequest.Level,
 	}
 
 	err = h.team.TeamMemberInsert(&teamMember)

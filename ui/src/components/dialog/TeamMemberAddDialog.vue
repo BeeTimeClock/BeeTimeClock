@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { ApiTeamMemberCreateRequest} from 'src/models/Team';
-import { Team } from 'src/models/Team';
-import { User } from 'src/models/Authentication';
-import { ref } from 'vue';
+import {type ApiTeamMemberCreateRequest, Team, TeamLevel} from 'src/models/Team';
+import {User} from 'src/models/Authentication';
+import {ref} from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showErrorMessage, showInfoMessage } from 'src/helper/message';
-import { useI18n } from 'vue-i18n';
-import type { ErrorResponse } from 'src/models/Base';
+import {showErrorMessage, showInfoMessage} from 'src/helper/message';
+import {useI18n} from 'vue-i18n';
+import type {ErrorResponse} from 'src/models/Base';
 
 const { t } = useI18n();
 const team = defineModel('team', { type: Team, required: true });
@@ -16,6 +15,20 @@ const teamMemberCreateRequest = ref<ApiTeamMemberCreateRequest>(
   {} as ApiTeamMemberCreateRequest,
 );
 const emits = defineEmits(['created']);
+const teamLevels = [
+  {
+    label: t('LABEL_TEAM_LEAD'),
+    value: TeamLevel.Lead
+  },
+  {
+    label: t('LABEL_TEAM_LEAD_SURROGATE'),
+    value: TeamLevel.LeadSurrogate
+  },
+  {
+    label: t('LABEL_TEAM_MEMBER'),
+    value: TeamLevel.Member
+  }
+]
 
 function createMember() {
   BeeTimeClock.administrationCreateTeamMember(
@@ -60,6 +73,13 @@ function loadUsers() {
             option-label="displayName"
             option-value="ID"
             :label="t('LABEL_USER')"
+          />
+          <q-select
+            v-model="teamMemberCreateRequest.Level"
+            :options="teamLevels"
+            map-options
+            emit-value
+            :label="t('LABEL_LEVEL')"
           />
         </q-card-section>
         <q-card-section>

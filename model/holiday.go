@@ -7,11 +7,38 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	HOLIDAY_SOURCE_IMPORTED HolidaySource = "imported"
+	HOLIDAY_SOURCE_CUSTOM   HolidaySource = "custom"
+)
+
+type HolidaySource string
+
 type Holiday struct {
 	gorm.Model
-	Name  string
-	Date  time.Time `gorm:"uniqueIndex"`
-	State string
+	Name                    string
+	Date                    time.Time `gorm:"uniqueIndex"`
+	State                   string
+	Source                  HolidaySource `gorm:"default: imported"`
+	EmployeeDaySubstraction int
+}
+
+type HolidayCustom struct {
+	gorm.Model
+	Name                    string `gorm:"uniqueIndex"`
+	Date                    *time.Time
+	Month                   *int
+	Day                     *int
+	Yearly                  *bool `gorm:"default: true"`
+	EmployeeDaySubstraction int
+}
+
+type HolidayCustomCreateRequest struct {
+	Name   string `binding:"required"`
+	Date   *time.Time
+	Month  *int
+	Day    *int
+	Yearly bool
 }
 
 type Holidays []Holiday

@@ -79,7 +79,7 @@ func (r *Absence) Migrate() error {
 	return nil
 }
 
-func (r *Absence) FindAll(withUser bool) ([]model.Absence, error) {
+func (r *Absence) FindAll(withRelations bool) ([]model.Absence, error) {
 	db, err := r.env.DatabaseManager.GetConnection()
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (r *Absence) FindAll(withUser bool) ([]model.Absence, error) {
 	var items []model.Absence
 
 	result := db
-	if withUser {
+	if withRelations {
 		result = result.Preload(clause.Associations)
 	}
 	result = result.Find(&items)
@@ -107,7 +107,7 @@ func (r *Absence) FindByQuery(withUser bool, query string, args ...interface{}) 
 
 	result := db
 	if withUser {
-		result = result.Preload(clause.Associations)
+		result = result.Debug().Preload(clause.Associations)
 	}
 	result = result.Where(query, args...).Find(&items)
 	return items, result.Error

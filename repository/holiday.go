@@ -25,7 +25,7 @@ func (r *Holiday) Migrate() error {
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	err = db.AutoMigrate(&model.Holiday{})
+	err = db.AutoMigrate(&model.Holiday{}, &model.HolidayCustom{})
 	if err != nil {
 		return err
 	}
@@ -169,4 +169,73 @@ func (r Holiday) HolidayFindByDateRange(start time.Time, end time.Time) ([]model
 		return items, result.Error
 	}
 	return items, result.Error
+}
+
+var ErrHolidayCustomNotFound = errors.New("HolidayCustom not found")
+
+func (r Holiday) HolidayCustomFindAll() ([]model.HolidayCustom, error) {
+	var items []model.HolidayCustom
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Find(&items)
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
+func (r Holiday) HolidayCustomFindById(id uint) (model.HolidayCustom, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return model.HolidayCustom{}, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var item model.HolidayCustom
+	result := db.Find(&item, "id = ?", id)
+	if result.Error != nil {
+		return model.HolidayCustom{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return model.HolidayCustom{}, ErrHolidayCustomNotFound
+	}
+	return item, result.Error
+}
+
+func (r Holiday) HolidayCustomInsert(item *model.HolidayCustom) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Create(item)
+	return result.Error
+}
+
+func (r Holiday) HolidayCustomUpdate(item *model.HolidayCustom) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Updates(item)
+	return result.Error
+}
+
+func (r Holiday) HolidayCustomDelete(item *model.HolidayCustom) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Delete(item)
+	return result.Error
 }

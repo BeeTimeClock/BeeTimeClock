@@ -147,5 +147,20 @@
   "LABEL_HAS_CORRECTIONS": "has corrections",
   "LABEL_SUSPICIOUS_TIMESTAMPS": "Suspicious Timestamps",
   "MENU_MISSING_DAYS": "Missing Days",
-  "LABEL_OVERTIME": "Overtime"
+  "LABEL_OVERTIME": "Overtime",
+  "LABEL_OVERTIME_IMPACT_NONE": "none",
+  "LABEL_OVERTIME_IMPACT_DURATION": "duration",
+  "LABEL_OVERTIME_IMPACT_HOURS": "hours",
+  "LABEL_OVERTIME_IMPACT_DAYS": "days",
+  "LABEL_NEEDS_APPROVAL": "needs approval",
+  "LABEL_OVERTIME_IMPACT": "impact to overtime",
+  "LABEL_DAY": "day",
+  "LABEL_TEAM_LEAD_SURROGATE": "team lead surrogate",
+  "LABEL_LEVEL": "level",
+  "MENU_OVERVIEW": "Overview",
+  "MENU_HOLIDAYS": "holidays",
+  "TEAM_LEVEL": "level",
+  "LABEL_DANGER_ZONE": "danger zone",
+  "LABEL_RECALCULATE_ABSENCES": "recalculate absence",
+  "LABEL_HOLIDAY": "holiday"
 }

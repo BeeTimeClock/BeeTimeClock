@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/helper"
@@ -16,13 +17,15 @@ type Administration struct {
 	env      *core.Environment
 	settings *repository.Settings
 	absence  *repository.Absence
+	holiday  *repository.Holiday
 }
 
-func NewAdministration(env *core.Environment, settings *repository.Settings, absence *repository.Absence) *Administration {
+func NewAdministration(env *core.Environment, settings *repository.Settings, absence *repository.Absence, holiday *repository.Holiday) *Administration {
 	return &Administration{
 		env:      env,
 		settings: settings,
 		absence:  absence,
+		holiday:  holiday,
 	}
 }
 
@@ -100,4 +103,78 @@ func (h Administration) GetLogo(c *gin.Context) {
 	}
 
 	c.DataFromReader(http.StatusOK, stat.Size, "application/pdf", file, extraHeaders)
+}
+
+func (h Administration) AdministrationGetHolidaysYear(c *gin.Context) {
+	year, err := strconv.ParseInt(c.Param("year"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	days, err := h.holiday.HolidayFindByYear(int(year))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(days))
+}
+
+func (h Administration) AdministrationGetHolidaysCustom(c *gin.Context) {
+	customs, err := h.holiday.HolidayCustomFindAll()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(customs))
+}
+
+func (h Administration) AdministrationCreateHolidaysCustom(c *gin.Context) {
+	var customHolidayCreateRequest model.HolidayCustom
+
+	err := c.BindJSON(&customHolidayCreateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	customHoliday := model.HolidayCustom{
+		Name:   customHolidayCreateRequest.Name,
+		Date:   customHolidayCreateRequest.Date,
+		Month:  customHolidayCreateRequest.Month,
+		Day:    customHolidayCreateRequest.Day,
+		Yearly: customHolidayCreateRequest.Yearly,
+	}
+
+	err = h.holiday.HolidayCustomInsert(&customHoliday)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(customHoliday))
+}
+
+func (h Administration) AdministrationDeleteHolidaysCustom(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	customHoliday, err := h.holiday.HolidayCustomFindById(uint(id))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	err = h.holiday.HolidayCustomDelete(&customHoliday)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

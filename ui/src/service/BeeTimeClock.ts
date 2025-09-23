@@ -26,6 +26,7 @@ import type {
 } from 'src/models/Timestamp';
 import type {
   AbsenceCreateRequest,
+  AbsenceSignRequest,
   AbsenceSummaryItem,
   AbsenceUserSummary,
   ApiAbsence,
@@ -47,7 +48,7 @@ import type {
   ExternalWorkCompensation,
 } from 'src/models/ExternalWork';
 import type { ApiOvertimeMonthQuota } from 'src/models/Overtime';
-import type { ApiHoliday } from 'src/models/Holiday';
+import type { ApiHoliday, ApiHolidayCustom } from 'src/models/Holiday';
 
 class BeeTimeClock {
   login(
@@ -145,6 +146,10 @@ class BeeTimeClock {
     absenceCreateRequest: AbsenceCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
     return api.post('/api/v1/absence', absenceCreateRequest);
+  }
+
+  createTeamUserAbsence(teamId: number, userId: number, absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
+    return api.post(`/api/v1/team/${teamId}/user/${userId}/absence`, absenceCreateRequest)
   }
 
   deleteAbsence(
@@ -456,7 +461,7 @@ class BeeTimeClock {
   }
 
   overtimeTotal(): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
-    return api.get(`/overtime/total`);
+    return api.get(`/api/v1/overtime/total`);
   }
 
   administrationOvertimeTotal(userId: number): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
@@ -532,6 +537,36 @@ class BeeTimeClock {
 
   getMissingDaysMonth(year: number, month: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
     return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/missing`)
+  }
+
+  getTeams(): Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
+    return api.get('/api/v1/team')
+  }
+
+  queryTeamAbsenceSummary(teamId: number): Promise<
+    AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
+  > {
+    return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
+  }
+
+  absenceTeamOpen(teamId: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get(`/api/v1/team/${teamId}/absence/open`)
+  }
+
+  absenceTeamSign(teamId: number, absenceId: number, absenceSignRequest: AbsenceSignRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
+    return api.post(`/api/v1/team/${teamId}/absence/${absenceId}/sign`, absenceSignRequest)
+  }
+
+  administrationHolidaysCustom() : Promise<AxiosResponse<BaseResponse<ApiHolidayCustom[]>>> {
+    return api.get(`/api/v1/administration/holidays/custom`)
+  }
+
+  holidaysYear(year: number) : Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
+    return api.get(`/api/v1/holidays/year/${year}`)
+  }
+
+  administrationAbsenceRecalculate() : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.post(`/api/v1/administration/absence/recalculate`)
   }
 }
 

@@ -1,6 +1,16 @@
-import type {User} from 'src/models/Authentication';
+import { type ApiUser, User } from 'src/models/Authentication';
 import { autoImplement } from 'src/helper/functions';
 import { date } from 'quasar';
+
+export enum AbsenceSignedStatus {
+  Accepted = 'accepted',
+  Declined = 'declined',
+}
+
+export interface AbsenceSignRequest {
+  Status: AbsenceSignedStatus;
+  Message?: string;
+}
 
 export interface AbsenceCreateRequest {
   AbsenceFrom: string;
@@ -10,7 +20,7 @@ export interface AbsenceCreateRequest {
 
 export enum AbsenceReasonImpact {
   Duration = 'duration',
-  Hours = 'hours'
+  Hours = 'hours',
 }
 
 export interface ApiAbsenceReason {
@@ -18,10 +28,12 @@ export interface ApiAbsenceReason {
   Description: string;
   Impact?: AbsenceReasonImpact;
   ImpactHours: number;
+  ImpactDays: number;
+  NeedsApproval: boolean;
 }
 
 export class AbsenceReason extends autoImplement<ApiAbsenceReason>() {
-  static fromApi(apiItem: ApiAbsenceReason) : AbsenceReason {
+  static fromApi(apiItem: ApiAbsenceReason): AbsenceReason {
     return new AbsenceReason(apiItem);
   }
 }
@@ -39,6 +51,8 @@ export interface ApiAbsence {
   UpdatedAt: Date;
   NettoDays: number;
   Deletable: boolean;
+  UserID: number;
+  User: ApiUser;
 }
 
 export interface AbsenceSummaryItem {
@@ -47,48 +61,53 @@ export interface AbsenceSummaryItem {
   AbsenceTill: Date;
   NettoDays: number;
   User: User;
+  SignedStatus?: AbsenceSignedStatus;
 }
 
 export type AbsenceUserSummaryYearReason = {
   Upcoming: number;
   Past: number;
-}
+};
 
 type AbsenceUserSummaryYearReasonMap = {
   [key: number]: AbsenceUserSummaryYearReason;
-}
+};
 
 export type AbsenceUserSummaryYear = {
-  ByAbsenceReason: AbsenceUserSummaryYearReasonMap
-}
+  ByAbsenceReason: AbsenceUserSummaryYearReasonMap;
+};
 
 export type AbsenceUserSummaryYearMap = {
   [key: number]: AbsenceUserSummaryYear;
-}
+};
 
 export type AbsenceUserSummary = {
   ByYear: AbsenceUserSummaryYearMap;
   HolidayDaysPerYear: number;
-}
+};
 
 export class Absence extends autoImplement<ApiAbsence>() {
-  static fromApi(apiItem: ApiAbsence) : Absence {
+  static fromApi(apiItem: ApiAbsence): Absence {
     return new Absence(apiItem);
   }
 
   get formatTill() {
-    return date.formatDate(this.AbsenceTill, 'DD. MMM. YYYY')
+    return date.formatDate(this.AbsenceTill, 'DD. MMM. YYYY');
   }
 
   get formatFrom() {
-    return date.formatDate(this.AbsenceFrom, 'DD. MMM. YYYY')
+    return date.formatDate(this.AbsenceFrom, 'DD. MMM. YYYY');
   }
 
   get formatTillFull() {
-    return date.formatDate(this.AbsenceTill, 'ddd DD. MMM. YYYY')
+    return date.formatDate(this.AbsenceTill, 'ddd DD. MMM. YYYY');
   }
 
   get formatFromFull() {
-    return date.formatDate(this.AbsenceFrom, 'ddd DD. MMM. YYYY')
+    return date.formatDate(this.AbsenceFrom, 'ddd DD. MMM. YYYY');
+  }
+
+  get userMapped() {
+    return User.fromApi(this.User);
   }
 }

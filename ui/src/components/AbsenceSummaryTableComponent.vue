@@ -22,6 +22,10 @@ const props = defineProps({
   title: {
     type: String,
   },
+  showReason: {
+    type: Boolean,
+    default: false
+  },
 });
 
 const getTitle = computed(() => {
@@ -71,12 +75,11 @@ const pagination = {
   rowsPerPage: 10,
 };
 
-if (auth.isAdministrator()) {
+if (auth.isAdministrator() || props.showReason) {
   columns.push({
     name: 'absenceReason',
     label: t('LABEL_REASON'),
     field: 'Reason',
-    format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   } as QTableColumn);
 }
 </script>

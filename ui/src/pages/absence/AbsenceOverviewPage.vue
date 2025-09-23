@@ -4,7 +4,9 @@ import { computed, onMounted, ref } from 'vue';
 import type {
   AbsenceSummaryItem,
   AbsenceUserSummary,
-  AbsenceUserSummaryYear,
+  AbsenceUserSummaryYear} from 'src/models/Absence';
+import  {
+  AbsenceSignedStatus
 } from 'src/models/Absence';
 import { AbsenceReason } from 'src/models/Absence';
 import { Absence } from 'src/models/Absence';
@@ -55,6 +57,11 @@ const myAbsencesColumns = [
     label: t('LABEL_CREATED_AT'),
     field: 'CreatedAt',
     format: (val: Date) => date.formatDate(val, 'DD.MM.YYYY HH:mm'),
+  },
+  {
+    name: 'absenceSigningStatus',
+    label: t('LABEL_SIGN'),
+    field: 'SignedStatus'
   },
   {
     name: 'absenceActions',
@@ -238,7 +245,11 @@ onMounted(() => {
       <template v-slot:body="props">
         <q-tr :props="props" :key="`m_${props.row.index}`">
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
-            <div v-if="col.name == 'absenceActions'">
+            <div v-if="col.name == 'absenceSigningStatus'">
+              <q-icon v-if="props.row.SignedStatus == AbsenceSignedStatus.Accepted" name="check" color="positive" size="sm"/>
+              <q-icon v-else-if="props.row.SignedStatus == AbsenceSignedStatus.Declined" name="cancel" color="negative" size="sm"/>
+            </div>
+            <div v-else-if="col.name == 'absenceActions'">
               <q-btn
                 v-if="props.row.Deletable"
                 icon="delete"

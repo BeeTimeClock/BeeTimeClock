@@ -93,7 +93,12 @@ func (r *Timestamp) FindLastByUserID(userID uint) (model.Timestamp, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.Timestamp
-	result := db.Order("coming_timestamp DESC").Last(&item, "user_id = ?", userID)
+	var count int64
+	result := db.Where(&item, "user_id = ?", userID).Count(&count)
+
+	if count > 0 {
+		result = db.Order("coming_timestamp DESC").Last(&item, "user_id = ?", userID)
+	}
 
 	if result.RowsAffected == 0 || errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return model.Timestamp{}, ErrTimestampNotFound

@@ -58,6 +58,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/overtime/OvertimeOverviewPage.vue')
       },
       {
+        path: 'team',
+        children: [
+          {
+            name: 'TeamOverview',
+            path: 'overview',
+            component: () => import('pages/teams/TeamOverviewPage.vue')
+          }
+        ]
+      },
+      {
         path: 'me',
         children: [
           {
@@ -122,7 +132,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'AdministrationSettingsExternalWork',
                 path: 'external_work',
                 component: () => import('pages/administration/settings/AdministrationSettingsExternalWorkPage.vue')
-              }
+              },
+              {
+                name: 'AdministrationSettingsHolidays',
+                path: 'holidays',
+                component: () => import('pages/administration/settings/AdministrationSettingsHolidaysPage.vue')
+              },
             ],
           },
           {

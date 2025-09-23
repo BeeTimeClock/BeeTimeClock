@@ -49,10 +49,26 @@ func (r Team) TeamFindAll(withData bool) ([]model.Team, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	if withData {
-		db = db.Preload(clause.Associations)
+		db = db.Preload("Members.User").Preload(clause.Associations)
 	}
 
 	result := db.Find(&items)
+
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
+func (r Team) TeamsFindByUserId(userId uint) ([]model.Team, error) {
+	var items []model.Team
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Where("id IN (?)", db.Table("beetc_team_member").Select("team_id").Where("user_id = ?", userId)).Preload("Members.User").Preload(clause.Associations).Find(&items)
 
 	if result.Error != nil {
 		return items, result.Error

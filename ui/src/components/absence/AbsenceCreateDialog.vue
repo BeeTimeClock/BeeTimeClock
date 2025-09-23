@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
-import type {AbsenceCreateRequest, AbsenceReason} from 'src/models/Absence';
-import {type AbsenceSummaryItem} from 'src/models/Absence';
-import {computed, ref} from 'vue';
+import type { AbsenceCreateRequest, AbsenceReason } from 'src/models/Absence';
+import { type AbsenceSummaryItem } from 'src/models/Absence';
+import { computed, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import type {ErrorResponse} from 'src/models/Base';
-import {showErrorMessage, showInfoMessage} from 'src/helper/message';
-import {useI18n} from 'vue-i18n';
-import {date} from 'quasar';
+import type { ErrorResponse } from 'src/models/Base';
+import { showErrorMessage, showInfoMessage } from 'src/helper/message';
+import { useI18n } from 'vue-i18n';
+import { date } from 'quasar';
+import { type User } from 'src/models/Authentication';
+import { type Team } from 'src/models/Team';
 
-const {t} = useI18n();
-const show = defineModel('show', {default: false});
+const { t } = useI18n();
+const show = defineModel('show', { default: false });
+const user = defineModel<User>('user', { required: false });
+const team = defineModel<Team>('team', { required: false });
 const emit = defineEmits<{
-  create: [],
-}>()
+  create: [];
+}>();
 const initDate = defineModel<Date>('init-date', {
   default: new Date(),
 });
 
 const absenceCreateRequest = ref<AbsenceCreateRequest>(
-  {} as AbsenceCreateRequest);
+  {} as AbsenceCreateRequest,
+);
 const absenceSummaryItems = ref([] as AbsenceSummaryItem[]);
 const absenceReasons = ref<AbsenceReason[]>([]);
 
@@ -59,17 +64,35 @@ function loadAbsenceReasons() {
 
 function createAbsence() {
   if (!absenceCreateRequest.value) return;
-  BeeTimeClock.createAbsence(absenceCreateRequest.value)
-    .then((result) => {
+
+  if (user.value && team.value) {
+    BeeTimeClock.createTeamUserAbsence(
+      team.value.ID,
+      user.value.ID,
+      absenceCreateRequest.value,
+    ).then((result) => {
       if (result.status === 201) {
-        emit('create')
+        emit('create');
         absenceCreateRequest.value = {} as AbsenceCreateRequest;
         showInfoMessage(t('MSG_CREATE_SUCCESS'));
+        emit('create');
       }
-    })
-    .catch((error: ErrorResponse) => {
+    }).catch((error: ErrorResponse) => {
       showErrorMessage(error.message);
     });
+  } else {
+    BeeTimeClock.createAbsence(absenceCreateRequest.value)
+      .then((result) => {
+        if (result.status === 201) {
+          emit('create');
+          absenceCreateRequest.value = {} as AbsenceCreateRequest;
+          showInfoMessage(t('MSG_CREATE_SUCCESS'));
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
+  }
 }
 
 function onBeforeShow() {
@@ -77,7 +100,10 @@ function onBeforeShow() {
   loadAbsenceSummary();
 
   console.log(initDate.value.toDateString());
-  absenceCreateRequest.value.AbsenceFrom = date.formatDate(initDate.value, 'YYYY-MM-DD');
+  absenceCreateRequest.value.AbsenceFrom = date.formatDate(
+    initDate.value,
+    'YYYY-MM-DD',
+  );
   console.log(absenceCreateRequest.value);
 }
 </script>
@@ -86,6 +112,12 @@ function onBeforeShow() {
   <q-dialog persistent v-model="show" @before-show="onBeforeShow">
     <q-card class="q-dialog-plugin full-width">
       <q-card-section>
+        <q-input
+          :label="t('LABEL_USER')"
+          v-if="user"
+          readonly
+          :model-value="user.displayName"
+        />
         <q-input
           type="date"
           :label="t('LABEL_FROM')"
@@ -115,7 +147,7 @@ function onBeforeShow() {
         />
       </q-card-section>
       <q-card-actions>
-        <q-btn v-close-popup :label="t('BTN_CANCEL')" color="negative"/>
+        <q-btn v-close-popup :label="t('BTN_CANCEL')" color="negative" />
         <q-btn
           v-close-popup
           :label="t('BTN_CREATE')"
