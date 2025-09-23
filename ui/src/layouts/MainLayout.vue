@@ -158,6 +158,10 @@ async function refresh() {
           >
             {{ t('MENU_MISSING_DAYS') }} <q-chip class="q-ml-md" v-if="missingDaysCount > 0" :label="missingDaysCount" dense  color="negative"/>
           </q-item>
+          <q-item-label header> {{ t('LABEL_TEAM', 2) }}</q-item-label>
+          <q-item clickable v-ripple :to="{ name: 'TeamOverview' }">
+            {{ t('MENU_OVERVIEW') }}
+          </q-item>
           <q-item-label header> {{ t('LABEL_ME') }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'UserApikeyOverview' }">
             {{ t('MENU_APIKEY') }}

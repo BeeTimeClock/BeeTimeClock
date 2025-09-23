@@ -533,6 +533,16 @@ class BeeTimeClock {
   getMissingDaysMonth(year: number, month: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
     return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/missing`)
   }
+
+  getTeams(): Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
+    return api.get('/api/v1/team')
+  }
+
+  queryTeamAbsenceSummary(teamId: number): Promise<
+    AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
+  > {
+    return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
+  }
 }
 
 export default new BeeTimeClock();

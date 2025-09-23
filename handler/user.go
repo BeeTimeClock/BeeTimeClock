@@ -166,10 +166,31 @@ func (h *User) CurrentUserGet(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(user.GetUserResponse()))
 }
 
+func (h *User) CurrentUserTeams(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teams, err := h.team.TeamsFindByUserId(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := []model.TeamResponse{}
+	for _, t := range teams {
+		result = append(result, t.GetTeamResponse())
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
 func (h *User) CurrentUserUpdate(c *gin.Context) {
 	currentUser, err := auth.GetUserFromSession(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
