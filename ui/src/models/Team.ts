@@ -8,6 +8,7 @@ export interface ApiTeam {
   TeamOwnerID: number;
   TeamOwner: ApiUser;
   CreatedAt: Date;
+  Members: ApiTeamMember[];
 }
 
 export interface ApiTeamMember {
