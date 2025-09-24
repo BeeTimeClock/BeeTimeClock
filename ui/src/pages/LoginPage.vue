@@ -90,7 +90,11 @@ function loginWithMicrosoft() {
       auth.setAccessToken(result.idToken);
       auth.setAuthProvider('microsoft');
 
-      msalProvider.msalInstance.setActiveAccount(msalProvider.msalInstance.getAllAccounts()[0]!)
+
+      const account = msalProvider.msalInstance.getAllAccounts()[0]
+      if (account) {
+        msalProvider.msalInstance.setActiveAccount(account)
+      }
     } catch (e) {
       let message = 'Unknown error';
       if (e instanceof Error) {
