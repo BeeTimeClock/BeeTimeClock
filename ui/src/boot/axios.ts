@@ -16,7 +16,7 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 const options = {
-  baseURL: process.env.VUE_APP_BACKEND_ADDRESS || 'http://localhost:8085',
+  baseURL: process.env.VUE_APP_BACKEND_ADDRESS || '',
   headers: {
     'Content-Type': 'application/json',
   }
