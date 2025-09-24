@@ -20,7 +20,6 @@ class MsalProvider {
     this._msalInstance = msalInstance;
   }
   get msalInstance() {
-    console.log('Msal Instance: ', this._msalInstance);
     return this._msalInstance!;
   }
 
@@ -53,8 +52,6 @@ export default boot(async({ app }) => {
 
   authStore.setMicrosoftClientId(microsoftSettings.data.Data.ClientID);
   authStore.setMicrosoftAuthority(microsoftSettings.data.Data.TenantID);
-
-  console.log('msal settings: ', authStore.msalConfig)
 
   msalProvider.msalInstance = await PublicClientApplication.createPublicClientApplication(authStore.msalConfig)
 
