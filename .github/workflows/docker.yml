@@ -7,6 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FULL_IMAGE_NAME: ghcr.io/beetimeclock/beetimeclock
 
 jobs:
   build-and-push-image:
@@ -35,7 +36,5 @@ jobs:
           push: true
           build-args: |
             "VUE_APP_COMMIT=${{ steps.vars.outputs.short_sha }}"
-          tags:
-            - ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.short_sha }}
-            - ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ GITHUB_OUTPUT }}
+          tags: ${{ env.FULL_IMAGE_NAME }}:${{ steps.vars.outputs.short_sha }},${{ env.FULL_IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
