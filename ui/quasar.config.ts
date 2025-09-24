@@ -55,7 +55,7 @@ export default defineConfig((ctx) => {
       // analyze: true,
       env: {
         VUE_APP_COMMIT: process.env.VUE_APP_COMMIT || 'dirty',
-        VUE_APP_BACKEND_ADDRESS: process.env.VUE_APP_BACKEND_ADDRESS,
+        VUE_APP_BACKEND_ADDRESS: process.env.VUE_APP_BACKEND_ADDRESS
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

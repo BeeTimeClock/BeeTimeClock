@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', {
         auth: {
           clientId: '',
           authority: '',
-          redirectUri: process.env.APP_URL,
+          redirectUri: window.location.origin,
         },
         cache: {
           cacheLocation: 'localStorage',

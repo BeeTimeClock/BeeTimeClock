@@ -90,7 +90,6 @@ function loginWithMicrosoft() {
       auth.setAccessToken(result.idToken);
       auth.setAuthProvider('microsoft');
 
-
       const account = msalProvider.msalInstance.getAllAccounts()[0]
       if (account) {
         msalProvider.msalInstance.setActiveAccount(account)
@@ -106,6 +105,7 @@ function loginWithMicrosoft() {
     }
   }).catch((error) => {
     showErrorMessage('Something went wrong with microsoft popup: ' + error)
+    console.log(error)
     auth.logout();
   })
 }
