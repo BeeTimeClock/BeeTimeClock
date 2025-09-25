@@ -47,6 +47,7 @@ import type {
   ExternalWorkCompensation,
 } from 'src/models/ExternalWork';
 import type { ApiOvertimeMonthQuota } from 'src/models/Overtime';
+import type { ApiHoliday } from 'src/models/Holiday';
 
 class BeeTimeClock {
   login(
@@ -492,6 +493,10 @@ class BeeTimeClock {
         'Content-Type': 'multipart/form-data',
       },
     });
+  }
+
+  administrationDebugHolidays() : Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
+    return api.get('/api/v1/administration/debug/holidays')
   }
 
   getLogo(): Promise<AxiosResponse<Blob>> {

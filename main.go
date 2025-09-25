@@ -267,6 +267,18 @@ func main() {
 				{
 					administrationNotify.POST("absence/week", administrationHandler.AdministrationNotifyAbsenceWeek)
 				}
+				administrationDebug := administration.Group("debug")
+				{
+					administrationDebug.GET("holidays", func(c *gin.Context) {
+						days, err := holiday.HolidayFindByYear(time.Now().Year())
+						if err != nil {
+							c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+							return
+						}
+
+						c.JSON(http.StatusOK, model.NewSuccessResponse(days))
+					})
+				}
 			}
 
 			timestamp := v1.Group("timestamp")

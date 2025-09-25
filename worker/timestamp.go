@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"log"
 	"slices"
 	"time"
 
@@ -146,7 +147,8 @@ func (w *Timestamp) MissingDaysInMonth(userID uint, year int, month int) ([]time
 	}
 
 	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	lastOfMonth := firstOfMonth.AddDate(0, 1, 0).Add(-1 * time.Second)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, 0).Add(-1 * (time.Hour * 24))
+	log.Printf("First of month: %#v, Last of month: %#v", firstOfMonth, lastOfMonth)
 
 	absences, err := w.absence.AbsenceFindByUserIDAndBetweenDates(userID, firstOfMonth, lastOfMonth)
 	if err != nil {
@@ -166,7 +168,7 @@ func (w *Timestamp) MissingDaysInMonth(userID uint, year int, month int) ([]time
 	missingDays := []time.Time{}
 	currentDay := firstOfMonth.AddDate(0, 0, -1)
 	for currentDay.Before(lastOfMonth) {
-		currentDay = currentDay.AddDate(0, 0, 1)
+		currentDay = currentDay.AddDate(0, 0, 1).UTC()
 		if currentDay.After(time.Now()) {
 			break
 		}

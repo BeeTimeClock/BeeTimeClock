@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/BeeTimeClock/BeeTimeClock-Server/helper"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +27,7 @@ func (hi HolidayImport) GetDate() (time.Time, error) {
 
 func (h Holidays) Contains(date time.Time) bool {
 	for _, holiday := range h {
-		if holiday.Date == date {
+		if helper.GetDayDate(holiday.Date) == helper.GetDayDate(date) {
 			return true
 		}
 	}

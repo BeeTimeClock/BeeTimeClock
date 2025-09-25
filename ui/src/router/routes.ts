@@ -124,6 +124,10 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('pages/administration/settings/AdministrationSettingsExternalWorkPage.vue')
               }
             ],
+          },
+          {
+            path: 'debug',
+            component: () => import('pages/DebugPage.vue')
           }
         ]
       }
