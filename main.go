@@ -17,6 +17,7 @@ import (
 	"github.com/BeeTimeClock/BeeTimeClock-Server/handler"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/microsoft"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/middleware"
+	"github.com/BeeTimeClock/BeeTimeClock-Server/migrations"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/repository"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/worker"
@@ -32,6 +33,7 @@ const (
 	MIGRATION_HOMEOFFICE_GOING        = "HOMEOFFICE_GOING"
 	MIGRATION_EXTERNAL_CALENDAR       = "EXTERNAL_CALENDAR"
 	MIGRATION_EXTERNAL_CALENDAR_MULTI = "EXTERNAL_CALENDAR_MULTI"
+	MIGRATION_ABSENCE_APPROVAL        = "ABSENCE_APPROVAL"
 )
 
 func main() {
@@ -94,8 +96,8 @@ func main() {
 		panic(err)
 	}
 
-	holiday := repository.NewHoliday(env)
-	err = holiday.Migrate()
+	holidayRepo := repository.NewHoliday(env)
+	err = holidayRepo.Migrate()
 	if err != nil {
 		panic(err)
 	}
@@ -106,11 +108,12 @@ func main() {
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
 	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo, holiday, timestampWorker)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
-	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo, teamRepo)
+	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo, teamRepo, holiday)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
-	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo)
+	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo, holiday)
 	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo, holiday)
 	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker)
+	holidayHandler := handler.NewHoliday(env, holiday)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 
@@ -169,6 +172,16 @@ func main() {
 	}
 
 	err = migrateExternalCalendarMulti(migrationRepo, absenceRepo)
+	if err != nil {
+		panic(err)
+	}
+
+	err = migrateAbsenceApproval(migrationRepo, absenceRepo)
+	if err != nil {
+		panic(err)
+	}
+
+	err = migrations.MigrateAbsenceNettoDays(migrationRepo, absenceRepo, holiday)
 	if err != nil {
 		panic(err)
 	}
@@ -271,17 +284,12 @@ func main() {
 				{
 					administrationNotify.POST("absence/week", administrationHandler.AdministrationNotifyAbsenceWeek)
 				}
-				administrationDebug := administration.Group("debug")
-				{
-					administrationDebug.GET("holidays", func(c *gin.Context) {
-						days, err := holiday.HolidayFindByYear(time.Now().Year())
-						if err != nil {
-							c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-							return
-						}
 
-						c.JSON(http.StatusOK, model.NewSuccessResponse(days))
-					})
+				administrationHolidays := administration.Group("holidays")
+				{
+					administrationHolidays.GET("custom", administrationHandler.AdministrationGetHolidaysCustom)
+					administrationHolidays.POST("custom", administrationHandler.AdministrationCreateHolidaysCustom)
+					administrationHolidays.DELETE("custom/:id", administrationHandler.AdministrationDeleteHolidaysCustom)
 				}
 			}
 
@@ -355,6 +363,7 @@ func main() {
 			{
 				team.GET("", userHandler.CurrentUserTeams)
 				team.GET(":teamID/absence/query/users/summary", absenceHandler.AbsenceQueryTeamUsersSummary)
+				team.GET(":teamID/approvals/open", absenceHandler.AbsenceApprovalTeamOpen)
 			}
 
 			user := v1.Group("user")
@@ -364,12 +373,62 @@ func main() {
 				user.GET("me/apikey", userHandler.CurrentUserApikeyGet)
 				user.POST("me/apikey", userHandler.CurrentUserApikeyCreate)
 			}
+
+			holiday := v1.Group("holidays")
+			{
+				holiday.GET("year/:year", holidayHandler)
+			}
 		}
 	}
 
 	notify(env, absenceRepo)
 
 	r.Run()
+}
+
+func migrateAbsenceApproval(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
+	_, err := migrationRepo.MigrationFindByTitle(MIGRATION_ABSENCE_APPROVAL)
+	migrationExists := true
+
+	if err != nil {
+		if err == repository.ErrMigrationNotFound {
+			migrationExists = false
+		} else {
+			return err
+		}
+	}
+
+	if migrationExists {
+		log.Println("Migration: MIGRATION_ABSENCE_APPROVAL already finished")
+		return nil
+	}
+
+	log.Println("Migration: MIGRATION_ABSENCE_APPROVAL started")
+	absences, err := absenceRepo.FindAll(true)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, absence := range absences {
+		if absence.SignedUserID == nil {
+			absence.SignedUserID = absence.UserID
+			err = absenceRepo.Update(&absence)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	migration := model.Migration{
+		Title:      MIGRATION_ABSENCE_APPROVAL,
+		Result:     "absences migrated",
+		FinishedAt: time.Now(),
+		Success:    true,
+	}
+	migrationRepo.MigrationInsert(&migration)
+
+	log.Println("Migration: MIGRATION_ABSENCE_APPROVAL finished")
+	return nil
 }
 
 func migrateExternalCalendarMulti(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
@@ -607,6 +666,25 @@ func importHolidaysByYear(holiday *repository.Holiday, year int) error {
 				return err
 			}
 		}
+	}
+
+	customHolidays, err := holiday.HolidayCustomFindAll()
+	if err != nil {
+		return err
+	}
+
+	for _, custom := range customHolidays {
+		if (custom.Date != nil) {
+			
+		}
+		
+		exists, err := holiday.HolidayIsByDate(date)
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+		
 	}
 
 	return nil

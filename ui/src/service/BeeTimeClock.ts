@@ -47,7 +47,7 @@ import type {
   ExternalWorkCompensation,
 } from 'src/models/ExternalWork';
 import type { ApiOvertimeMonthQuota } from 'src/models/Overtime';
-import type { ApiHoliday } from 'src/models/Holiday';
+import type { ApiHoliday, ApiHolidayCustom } from 'src/models/Holiday';
 
 class BeeTimeClock {
   login(
@@ -542,6 +542,18 @@ class BeeTimeClock {
     AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
   > {
     return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
+  }
+
+  absenceApprovalTeamOpen(teamId: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get(`/api/v1/team/${teamId}/approvals/open`)
+  }
+
+  administrationHolidaysCustom() : Promise<AxiosResponse<BaseResponse<ApiHolidayCustom[]>>> {
+    return api.get(`/api/v1/administration/holidays/custom`)
+  }
+
+  administrationHolidaysYear(year: number) : Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
+    return api.get(`/api/v1/administration/holidays/year/${year}`)
   }
 }
 

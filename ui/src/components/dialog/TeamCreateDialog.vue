@@ -68,7 +68,7 @@ function loadUsers() {
             :label="t('LABEL_TEAM_NAME')"
           />
           <q-select
-            v-model="teamCreateRequest.TeamOwnerID"
+            v-model="teamCreateRequest.TeamLeadID"
             :label="t('LABEL_TEAM_LEAD')"
             :options="users"
             emit-value

@@ -26,6 +26,12 @@ const columns: QTableColumn[] = [
     align: 'left',
   },
   {
+    name: 'level',
+    field: 'Level',
+    label: t('TEAM_LEVEL'),
+    align: 'left'
+  },
+  {
     name: 'actions',
     field: '',
     label: t('LABEL_ACTION', 2),
@@ -114,14 +120,6 @@ onMounted(() => {
             <q-item-section>
               <q-item-label caption>{{ t('LABEL_CREATED_AT') }}</q-item-label>
               <q-item-label>{{ team.CreatedAt }}</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label caption>{{ t('LABEL_TEAM_LEAD') }}</q-item-label>
-              <q-item-label
-                >{{ team.teamOwnerMapped.displayName }}
-              </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>

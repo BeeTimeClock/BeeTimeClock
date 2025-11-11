@@ -73,7 +73,7 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 		return model.OvertimeMonthQuota{}, false, err
 	}
 	for _, absence := range absences {
-		switch absence.AbsenceReason.Impact {
+		switch absence.AbsenceReason.OvertimeImpact {
 		case model.ABESENCE_REASON_OVERTIME_IMPACT_DURATION:
 			duration := absence.AbsenceTill.Sub(absence.AbsenceFrom).Hours()
 

@@ -18,6 +18,8 @@ export interface ApiAbsenceReason {
   Description: string;
   Impact?: AbsenceReasonImpact;
   ImpactHours: number;
+  ImpactDays: number;
+  NeedsApproval: boolean;
 }
 
 export class AbsenceReason extends autoImplement<ApiAbsenceReason>() {

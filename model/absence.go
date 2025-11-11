@@ -27,6 +27,7 @@ type Absence struct {
 	ExternalEventID       string
 	Identifier            uuid.UUID
 	ExternalEvents        []AbsenceExternalEvent
+	NettoDays             *float64
 }
 
 type AbsenceExternalEvent struct {
@@ -49,14 +50,19 @@ type AbsenceReasonOvertimeImpact string
 
 type AbsenceReason struct {
 	gorm.Model
-	Description string
-	Impact      AbsenceReasonOvertimeImpact `gorm:"default:none"`
-	ImpactHours float64
-	ImpactDays  float64
+	Description    string
+	OvertimeImpact AbsenceReasonOvertimeImpact `gorm:"default:none"`
+	ImpactHours    float64
+	ImpactDays     float64
+	NeedsApproval  *bool
 }
 
 type AbsenceReasonCreateRequest struct {
-	Description string `binding:"required"`
+	Description    string `binding:"required"`
+	NeedsApproval  *bool
+	OvertimeImpact AbsenceReasonOvertimeImpact
+	ImpactHours    float64
+	ImpactDays     float64
 }
 
 type AbsenceCreateRequest struct {
@@ -74,8 +80,8 @@ func (acr *AbsenceCreateRequest) AbsenceTillParsed() (time.Time, error) {
 }
 
 type AbsenceUserSummaryYearReason struct {
-	Upcoming int
-	Past     int
+	Upcoming float64
+	Past     float64
 }
 
 type AbsenceUserSummaryYear struct {
@@ -93,27 +99,29 @@ type AbsenceReturn struct {
 	AbsenceFrom     time.Time
 	AbsenceTill     time.Time
 	AbsenceReasonID uint `json:",omitempty"`
-	NettoDays       int
+	AbsenceReason   AbsenceReason
+	NettoDays       float64
 	CreatedAt       time.Time
 	Reason          string `json:",omitempty"`
 	Deletable       bool
 }
 
-func (a *Absence) GetAbsenceWorkDays() int {
+func (a *Absence) CalculateNettoDays(holidays Holidays) {
 	days := 0
 
 	currentDay := a.AbsenceFrom
 
 	for !currentDay.After(a.AbsenceTill) {
-		// TODO: add holidays
-		if currentDay.Weekday() != time.Saturday && currentDay.Weekday() != time.Sunday {
+		if currentDay.Weekday() != time.Saturday && currentDay.Weekday() != time.Sunday && !holidays.Contains(currentDay) {
 			days++
 		}
 
 		currentDay = currentDay.Add(24 * time.Hour)
 	}
 
-	return days
+	total := float64(days) * a.AbsenceReason.ImpactDays
+
+	a.NettoDays = &total
 }
 
 func (a *Absence) IsDeletableByUser() bool {
@@ -131,7 +139,7 @@ func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealRea
 			ID:          absence.ID,
 			AbsenceFrom: absence.AbsenceFrom,
 			AbsenceTill: absence.AbsenceTill,
-			NettoDays:   absence.GetAbsenceWorkDays(),
+			NettoDays:   *absence.NettoDays,
 			CreatedAt:   absence.CreatedAt,
 			Deletable:   absence.IsDeletableByUser(),
 		}
