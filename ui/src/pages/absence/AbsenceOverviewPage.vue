@@ -18,6 +18,7 @@ import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { AxiosError } from 'axios';
 import type { BaseResponse } from 'src/models/Base';
 import { type ErrorResponse } from 'src/models/Base';
+import {useAuthStore} from 'stores/microsoft-auth';
 
 const { t } = useI18n();
 const q = useQuasar();

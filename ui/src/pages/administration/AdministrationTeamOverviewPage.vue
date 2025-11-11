@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { onMounted, ref } from 'vue';
-import { Team } from 'src/models/Team';
+import {Team, TeamLevel, type TeamMember} from 'src/models/Team';
 import TeamCreateDialog from 'components/dialog/TeamCreateDialog.vue';
 import type { QTableColumn } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
@@ -27,9 +27,10 @@ const columns: QTableColumn[] = [
   },
   {
     name: 'teamLead',
-    field: row => row.teamOwnerMapped.displayName,
+    field: (row: Team) => row.membersMapped.find((s: TeamMember) => s.Level == TeamLevel.Lead),
     label: t('LABEL_TEAM_LEAD'),
     align: 'left',
+    format: (val?: TeamMember) => val ? val.userMapped.displayName : '-',
   },
   {
     name: 'actions',

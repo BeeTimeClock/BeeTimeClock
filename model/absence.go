@@ -49,14 +49,16 @@ type AbsenceReasonOvertimeImpact string
 
 type AbsenceReason struct {
 	gorm.Model
-	Description string
-	Impact      AbsenceReasonOvertimeImpact `gorm:"default:none"`
-	ImpactHours float64
-	ImpactDays  float64
+	Description   string
+	Impact        AbsenceReasonOvertimeImpact `gorm:"default:none"`
+	ImpactHours   float64
+	ImpactDays    float64
+	NeedsApproval bool
 }
 
 type AbsenceReasonCreateRequest struct {
-	Description string `binding:"required"`
+	Description   string `binding:"required"`
+	NeedsApproval bool
 }
 
 type AbsenceCreateRequest struct {

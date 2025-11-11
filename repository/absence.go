@@ -107,7 +107,7 @@ func (r *Absence) FindByQuery(withUser bool, query string, args ...interface{}) 
 
 	result := db
 	if withUser {
-		result = result.Preload(clause.Associations)
+		result = result.Debug().Preload(clause.Associations)
 	}
 	result = result.Where(query, args...).Find(&items)
 	return items, result.Error

@@ -125,6 +125,8 @@ onMounted(() => {
             v-model="selectedAbsenceReason.Description"
             :label="t('LABEL_DESCRIPTION')"
           />
+          <q-toggle v-model="selectedAbsenceReason.NeedsApproval"
+                    :label="t('LABEL_NEEDS_APPROVAL')"/>
         </q-card-section>
         <q-card-section>
           <q-card-actions>

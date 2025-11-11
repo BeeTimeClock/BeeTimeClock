@@ -526,6 +526,10 @@ class BeeTimeClock {
   > {
     return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
   }
+
+  absenceApprovalTeamOpen(teamId: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get(`/api/v1/team/${teamId}/approvals/open`)
+  }
 }
 
 export default new BeeTimeClock();

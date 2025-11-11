@@ -32,6 +32,7 @@ const (
 	MIGRATION_HOMEOFFICE_GOING        = "HOMEOFFICE_GOING"
 	MIGRATION_EXTERNAL_CALENDAR       = "EXTERNAL_CALENDAR"
 	MIGRATION_EXTERNAL_CALENDAR_MULTI = "EXTERNAL_CALENDAR_MULTI"
+	MIGRATION_ABSENCE_APPROVAL        = "ABSENCE_APPROVAL"
 )
 
 func main() {
@@ -169,6 +170,11 @@ func main() {
 	}
 
 	err = migrateExternalCalendarMulti(migrationRepo, absenceRepo)
+	if err != nil {
+		panic(err)
+	}
+
+	err = migrateAbsenceApproval(migrationRepo, absenceRepo)
 	if err != nil {
 		panic(err)
 	}
@@ -351,6 +357,7 @@ func main() {
 			{
 				team.GET("", userHandler.CurrentUserTeams)
 				team.GET(":teamID/absence/query/users/summary", absenceHandler.AbsenceQueryTeamUsersSummary)
+				team.GET(":teamID/approvals/open", absenceHandler.AbsenceApprovalTeamOpen)
 			}
 
 			user := v1.Group("user")
@@ -366,6 +373,51 @@ func main() {
 	notify(env, absenceRepo)
 
 	r.Run()
+}
+
+func migrateAbsenceApproval(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {
+	_, err := migrationRepo.MigrationFindByTitle(MIGRATION_ABSENCE_APPROVAL)
+	migrationExists := true
+
+	if err != nil {
+		if err == repository.ErrMigrationNotFound {
+			migrationExists = false
+		} else {
+			return err
+		}
+	}
+
+	if migrationExists {
+		log.Println("Migration: MIGRATION_ABSENCE_APPROVAL already finished")
+		return nil
+	}
+
+	log.Println("Migration: MIGRATION_ABSENCE_APPROVAL started")
+	absences, err := absenceRepo.FindAll(true)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, absence := range absences {
+		if absence.SignedUserID == nil {
+			absence.SignedUserID = absence.UserID
+			err = absenceRepo.Update(&absence)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	migration := model.Migration{
+		Title:      MIGRATION_ABSENCE_APPROVAL,
+		Result:     "absences migrated",
+		FinishedAt: time.Now(),
+		Success:    true,
+	}
+	migrationRepo.MigrationInsert(&migration)
+
+	log.Println("Migration: MIGRATION_ABSENCE_APPROVAL finished")
+	return nil
 }
 
 func migrateExternalCalendarMulti(migrationRepo *repository.Migration, absenceRepo *repository.Absence) error {

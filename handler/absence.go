@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -98,6 +100,7 @@ func (h *Absence) AdministrationAbsenceReasonUpdate(c *gin.Context) {
 	}
 
 	absenceReason.Description = absenceReasonUpdateRequest.Description
+	absenceReason.NeedsApproval = absenceReasonUpdateRequest.NeedsApproval
 	err = h.absence.UpdateAbsenceReason(&absenceReason)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -316,8 +319,7 @@ func (h *Absence) AbsenceQueryTeamUsersSummary(c *gin.Context) {
 		return
 	}
 
-	teamMemberIds := []uint{team.TeamOwnerID}
-
+	teamMemberIds := []uint{}
 	for _, member := range team.Members {
 		teamMemberIds = append(teamMemberIds, member.UserID)
 	}
@@ -330,6 +332,58 @@ func (h *Absence) AbsenceQueryTeamUsersSummary(c *gin.Context) {
 
 	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c))
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Absence) AbsenceApprovalTeamOpen(c *gin.Context) {
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	isLead := slices.ContainsFunc(team.Members, func(member model.TeamMember) bool {
+		return member.UserID == user.ID && (member.Level == model.TeamLevel_Lead || member.Level == model.TeamLevel_LeadSurrogate)
+	})
+
+	if !isLead {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(errors.New("you're not lead of the team")))
+		return
+	}
+
+	userIds := []uint{}
+
+	for _, member := range team.Members {
+		userIds = append(userIds, member.UserID)
+	}
+
+	abseneceReasons, err := h.absence.FindAllAbsenceReasons()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReasonIds := []uint{}
+	for _, absenceReason := range abseneceReasons {
+		if absenceReason.NeedsApproval {
+			absenceReasonIds = append(absenceReasonIds, absenceReason.ID)
+		}
+	}
+
+	teamAbsences := []model.Absence{}
+	if len(absenceReasonIds) > 0 {
+		teamAbsences, err = h.absence.FindByQuery(true, "user_id in ? and absence_reason_id in ? and signed_user_id is null", userIds, absenceReasonIds)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(teamAbsences))
 }
 
 func (h *Absence) AbsenceQueryUsersSummaryCurrentYear(c *gin.Context) {
