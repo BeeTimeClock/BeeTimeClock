@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { User, UserWithAbsenceSummary } from 'src/models/Authentication';
+import {
+  User,
+  UserWithAbsenceSummaryAndOvertime,
+} from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import type {
   AbsenceReason,
@@ -11,11 +14,12 @@ import { useI18n } from 'vue-i18n';
 import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { ErrorResponse } from 'src/models/Base';
 import { emptyPagination } from 'src/helper/objects';
+import { formatIndustryHourMinutes } from 'src/helper/formatter';
 
 const q = useQuasar();
 const { t } = useI18n();
 
-const users = ref([] as UserWithAbsenceSummary[]);
+const users = ref([] as UserWithAbsenceSummaryAndOvertime[]);
 const absenceReasons = ref([] as AbsenceReason[]);
 const needle = ref('');
 
@@ -26,17 +30,24 @@ function loadUsers() {
     .then((result) => {
       if (result.status === 200) {
         users.value = result.data.Data.map(
-          (s) => new UserWithAbsenceSummary(User.fromApi(s)),
+          (s) => new UserWithAbsenceSummaryAndOvertime(User.fromApi(s)),
         );
 
         users.value.forEach((s) => {
+          const userIndex = users.value.indexOf(s);
+
           void BeeTimeClock.administrationSummaryUserCurrentYear(
             s.ID,
             new Date().getFullYear(),
           ).then((absenceResult) => {
-            const userIndex = users.value.indexOf(s);
             users.value[userIndex]!.absenceSummary = absenceResult.data.Data;
           });
+
+          void BeeTimeClock.administrationOvertimeTotal(s.ID).then(
+            (overtimeResult) => {
+              users.value[userIndex]!.overtime = overtimeResult.data.Data.Total;
+            },
+          );
         });
       }
     })
@@ -75,6 +86,12 @@ const columns = computed(() => {
       field: 'LastName',
       align: 'left',
     },
+    {
+      name: 'overtime',
+      label: t('LABEL_OVERTIME'),
+      field: 'overtime',
+      format: (val: number) => formatIndustryHourMinutes(val ?? 0),
+    },
   ] as QTableColumn[];
 
   result.push(
@@ -84,7 +101,7 @@ const columns = computed(() => {
         return {
           name: s.ID.toString(),
           label: s.Description,
-          field: (row: UserWithAbsenceSummary) => {
+          field: (row: UserWithAbsenceSummaryAndOvertime) => {
             const year = row.absenceSummary?.ByYear[2025];
             if (year == undefined) return null;
             return year.ByAbsenceReason[s.ID] ?? null;
@@ -169,7 +186,12 @@ onMounted(() => {
         </q-item>
       </template>
     </q-select>
-    <q-input :label="t('LABEL_SEARCH')" v-model="needle" clearable @clear="needle = ''"/>
+    <q-input
+      :label="t('LABEL_SEARCH')"
+      v-model="needle"
+      clearable
+      @clear="needle = ''"
+    />
     <q-table
       class="q-mt-md"
       :rows="sortedFilteredUsers"

@@ -31,6 +31,7 @@ export class User extends autoImplement<ApiUser>() {
   }
 }
 
-export class UserWithAbsenceSummary extends User {
+export class UserWithAbsenceSummaryAndOvertime extends User {
   public absenceSummary?: AbsenceUserSummary;
+  public overtime?: number;
 }

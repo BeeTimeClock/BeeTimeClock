@@ -435,6 +435,12 @@ class BeeTimeClock {
     return api.get('/api/v1/overtime');
   }
 
+  administrationOvertimeMonthQuotas(userId: number): Promise<
+    AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>
+  > {
+    return api.get(`/api/v1/administration/user/${userId}/overtime`);
+  }
+
   calculateOvertimeMonthQuota(
     year: number,
     month: number,
@@ -442,8 +448,19 @@ class BeeTimeClock {
     return api.post(`/api/v1/overtime/action/calculate/${year}/${month}`, {});
   }
 
+  administrationCalculateOvertimeMonthQuota(userId: number,
+    year: number,
+    month: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
+    return api.post(`/api/v1/administration/user/${userId}/overtime/action/calculate/${year}/${month}`, {});
+  }
+
   overtimeTotal(): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
-    return api.get('/api/v1/overtime/total');
+    return api.get(`/overtime/total`);
+  }
+
+  administrationOvertimeTotal(userId: number): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get(`/api/v1/administration/user/${userId}/overtime/total`);
   }
 
   externalWorkCompensation(): Promise<

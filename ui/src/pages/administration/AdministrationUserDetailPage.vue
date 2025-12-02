@@ -16,6 +16,9 @@ import { Absence } from 'src/models/Absence';
 import type { QTableColumn} from 'quasar';
 import { useQuasar } from 'quasar';
 import type { ErrorResponse } from 'src/models/Base';
+import { emptyPagination } from 'src/helper/objects';
+import { OvertimeMonthQuota } from 'src/models/Overtime';
+import { formatIndustryHourMinutes } from 'src/helper/formatter';
 
 const { t } = useI18n();
 
@@ -34,6 +37,7 @@ const absenceYears = ref<number[]>([]);
 const absences = ref<Absence[]>([]);
 const selectedAbsenceYear = ref<number>(new Date().getFullYear());
 const absenceReasons = ref<AbsenceReason[]>([]);
+const overtimeTotal = ref<number>();
 const q = useQuasar();
 
 const accessLevelOptions = [
@@ -57,6 +61,30 @@ const overtimeSubtractions = [
     label: t('LABEL_HOUR', 2),
   },
 ];
+
+const overtimeColumns = [
+  {
+    name: 'Date',
+    required: true,
+    label: t('LABEL_DATE'),
+    align: "left",
+    field: 'identifier',
+    sortable: true,
+  },
+  {
+    name: 'Hours',
+    required: true,
+    label: t('LABEL_HOUR', 2),
+    field: 'Hours',
+    align: "right",
+    sortable: true,
+    format: (val: number) => `${val.toFixed(2)}`,
+  },
+  {
+    name: 'actions',
+    label: t('LABEL_ACTION', 2),
+  },
+] as QTableColumn[];
 
 function loadUser() {
   BeeTimeClock.administrationGetUserById(userId.value)
@@ -162,6 +190,51 @@ function loadAbsenceReasons() {
     });
 }
 
+
+const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
+
+
+function loadOvertimeQuotas() {
+  if (!user.value) return;
+  BeeTimeClock.administrationOvertimeMonthQuotas(user.value.ID).then((result) => {
+    if (result.status === 200) {
+      overtimeQuotas.value = result.data.Data.sort((a, b) => b.Year - a.Year || b.Month - a.Month).map((s) =>
+        OvertimeMonthQuota.fromApi(s)
+      );
+    }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
+  });
+}
+
+function calculateOvertimeMonth(overtimeMonthQuota: OvertimeMonthQuota) {
+  if (!user.value) return;
+  BeeTimeClock.administrationCalculateOvertimeMonthQuota(
+    user.value.ID,
+    overtimeMonthQuota.Year,
+    overtimeMonthQuota.Month
+  ).then((result) => {
+    if (result.status === 200) {
+      loadOvertimeQuotas();
+      loadOvertimeTotal();
+    }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
+  });
+}
+
+function loadOvertimeTotal() {
+  if (!user.value) return;
+
+  BeeTimeClock.administrationOvertimeTotal(user.value.ID).then(result => {
+    if (result.status === 200) {
+      overtimeTotal.value = result.data.Data.Total;
+    }
+  }).catch((error: ErrorResponse) => {
+    showErrorMessage(error.response?.data.Message);
+  });
+}
+
 onMounted(async () => {
   loadUser();
   loadAbsenceReasons();
@@ -169,6 +242,8 @@ onMounted(async () => {
   loadAbsences();
   await loadTimestampMonths();
   loadTimestampGrouped();
+  loadOvertimeTotal();
+  loadOvertimeQuotas();
 });
 
 watch(selectedYear, () => {
@@ -260,6 +335,7 @@ function deleteUserAbsence(absence: Absence) {
       <q-tabs v-model="selectedTab" inline-label class="bg-primary text-white">
         <q-tab name="common" icon="account_circle" :label="t('LABEL_COMMON')" />
         <q-tab name="worktime" icon="alarms" :label="t('LABEL_WORKTIME')" />
+        <q-tab name="overtime" icon="more_time" :label="t('LABEL_OVERTIME')" />
         <q-tab
           name="absence"
           icon="event_busy"
@@ -349,6 +425,74 @@ function deleteUserAbsence(absence: Absence) {
               @create="loadTimestampGrouped()"
             />
           </div>
+        </q-tab-panel>
+        <q-tab-panel name="overtime">
+          <q-card v-if="overtimeTotal" class="q-mb-lg">
+            <q-card-section class="bg-primary text-h6 text-white">
+              {{t('LABEL_OVERTIME_TOTAL')}}
+            </q-card-section>
+            <q-card-section class="text-h6 text-center">
+              {{ formatIndustryHourMinutes(overtimeTotal) }}
+            </q-card-section>
+          </q-card>
+          <q-table
+            flat
+            bordered
+            :rows="overtimeQuotas"
+            :columns="overtimeColumns"
+            row-key="identifier"
+            :pagination="emptyPagination"
+            hide-pagination
+          >
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th auto-width />
+                <q-th v-for="col in props.cols" :key="col.name" :props="props">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+
+            <template v-slot:body="props">
+              <q-tr :props="props">
+                <q-td auto-width>
+                  <q-btn
+                    size="xs"
+                    color="secondary"
+                    round
+                    dense
+                    @click="props.expand = !props.expand"
+                    :icon="props.expand ? 'remove' : 'add'"
+                  />
+                </q-td>
+                <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                  <template v-if="col.name === 'actions'">
+                    <q-btn icon="refresh" @click="calculateOvertimeMonth(props.row)" color="primary"/>
+                  </template>
+                  <template v-else>
+                    {{ col.value }}
+                  </template>
+                </q-td>
+              </q-tr>
+              <q-tr v-show="props.expand" :props="props">
+                <q-td colspan="100%">
+                  <q-list separator>
+                    <q-item
+                      v-for="entry in props.row.Summary"
+                      :key="entry.Identifier"
+                    >
+                      <q-item-section>
+                        <q-item-label caption>{{ entry.Source }}</q-item-label>
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-section>{{ entry.Value.toFixed(2) }}</q-item-section>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
         </q-tab-panel>
         <q-tab-panel name="absence">
           <q-select

@@ -237,6 +237,10 @@ func main() {
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
 					administrationUser.GET(":userID/timestamp/months", timestampHandler.TimestampUserQueryMonths)
+
+					administrationUser.GET(":userID/overtime", overtimeHandler.OvertimeUserGetAll)
+					administrationUser.GET(":userID/overtime/total", overtimeHandler.OvertimeUserTotal)
+					administrationUser.POST(":userID/overtime/action/calculate/:year/:month", overtimeHandler.OvertimeUserCalculateMonth)
 				}
 				administrationAbsence := administration.Group("absence")
 				{
@@ -303,8 +307,8 @@ func main() {
 
 			overtime := v1.Group("overtime")
 			{
-				overtime.GET("", overtimeHandler.OvertimeGetAll)
-				overtime.GET("total", overtimeHandler.OvertimeTotal)
+				overtime.GET("", overtimeHandler.OvertimeCurrentUserGetAll)
+				overtime.GET("total", overtimeHandler.OvertimeCurrentUserTotal)
 				overtime.POST("action/calculate/:year/:month", overtimeHandler.OvertimeCurrentUserCalculateMonth)
 			}
 

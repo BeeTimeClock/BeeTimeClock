@@ -28,7 +28,74 @@ func NewOvertime(env *core.Environment, user *repository.User, overtime *reposit
 	}
 }
 
-func (h *Overtime) OvertimeGetAll(c *gin.Context) {
+func (h *Overtime) OvertimeUserGetAll(c *gin.Context) {
+	userId, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	user, err := h.user.FindByID(uint(userId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	overtimeMonths, err := h.overtime.OvertimeMonthQuotaFindByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(overtimeMonths))
+}
+
+func (h *Overtime) OvertimeUserTotal(c *gin.Context) {
+	userId, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+	user, err := h.user.FindByID(uint(userId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	h.userTotalOvertime(c, &user)
+}
+
+func (h *Overtime) OvertimeUserCalculateMonth(c *gin.Context) {
+	userId, err := strconv.ParseUint(c.Param("userID"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	monthParam := c.Param("month")
+	month, err := strconv.Atoi(monthParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	user, err := h.user.FindByID(uint(userId))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	h.calculateUserMonth(c, &user, year, month)
+}
+
+func (h *Overtime) OvertimeCurrentUserGetAll(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
@@ -44,29 +111,14 @@ func (h *Overtime) OvertimeGetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(overtimeMonths))
 }
 
-func (h *Overtime) OvertimeTotal(c *gin.Context) {
+func (h *Overtime) OvertimeCurrentUserTotal(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
 		return
 	}
 
-	overtimeMonths, err := h.overtime.OvertimeMonthQuotaFindByUserID(user.ID)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
-		return
-	}
-
-	total := 0.0
-	for _, overtimeQuota := range overtimeMonths {
-		total += *overtimeQuota.Hours
-	}
-
-	result := model.SumResult{
-		Total: total,
-	}
-
-	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+	h.userTotalOvertime(c, &user)
 }
 
 func (h *Overtime) OvertimeCurrentUserCalculateMonth(c *gin.Context) {
@@ -90,6 +142,10 @@ func (h *Overtime) OvertimeCurrentUserCalculateMonth(c *gin.Context) {
 		return
 	}
 
+	h.calculateUserMonth(c, &user, year, month)
+}
+
+func (h *Overtime) calculateUserMonth(c *gin.Context, user *model.User, year int, month int) {
 	result, created, err := h.overtimeWorker.CalculateMonth(user.ID, year, month)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -100,5 +156,24 @@ func (h *Overtime) OvertimeCurrentUserCalculateMonth(c *gin.Context) {
 		c.JSON(http.StatusCreated, model.NewSuccessResponse(result))
 		return
 	}
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Overtime) userTotalOvertime(c *gin.Context, user *model.User) {
+	overtimeMonths, err := h.overtime.OvertimeMonthQuotaFindByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	total := 0.0
+	for _, overtimeQuota := range overtimeMonths {
+		total += *overtimeQuota.Hours
+	}
+
+	result := model.SumResult{
+		Total: total,
+	}
+
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
