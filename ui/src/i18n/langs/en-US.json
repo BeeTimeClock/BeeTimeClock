@@ -162,5 +162,10 @@
   "TEAM_LEVEL": "level",
   "LABEL_DANGER_ZONE": "danger zone",
   "LABEL_RECALCULATE_ABSENCES": "recalculate absence",
-  "LABEL_HOLIDAY": "holiday"
+  "LABEL_HOLIDAY": "holiday",
+  "LABEL_SIGN": "sign",
+  "TITLE_DECLINE": "Decline",
+  "MSG_ABSENCE_DECLINE": "should this absence really be declined",
+  "TITLE_ACCEPT": "Accept",
+  "MSG_ARE_YOU_SURE": "are you sure?"
 }

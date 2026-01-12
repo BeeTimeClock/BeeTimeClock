@@ -162,5 +162,10 @@
   "TEAM_LEVEL": "Team Stufe",
   "LABEL_DANGER_ZONE": "gefährlicher Bereich",
   "LABEL_RECALCULATE_ABSENCES": "Abwesenheit neu berechnen",
-  "LABEL_HOLIDAY": "Feiertag"
+  "LABEL_HOLIDAY": "Feiertag",
+  "LABEL_SIGN": "freigegeben",
+  "TITLE_DECLINE": "Ablehnen",
+  "MSG_ABSENCE_DECLINE": "Soll die Abwesenheit wirklich abgelehnt werden?",
+  "TITLE_ACCEPT": "Akzeptieren",
+  "MSG_ARE_YOU_SURE": "Bist du dir sicher?"
 }
