@@ -414,7 +414,7 @@ func migrateAbsenceApproval(migrationRepo *repository.Migration, absenceRepo *re
 
 	for _, absence := range absences {
 		if absence.SignedUserID == nil && absence.AbsenceFrom.Before(time.Now()) {
-			absence.SignedUserID = absence.UserID
+			absence.Sign(absence.User, model.SIGNED_STATUS_ACCEPTED, nil)
 			err = absenceRepo.Update(&absence)
 			if err != nil {
 				panic(err)
