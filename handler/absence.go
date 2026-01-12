@@ -198,7 +198,7 @@ func (h *Absence) absenceCreate(c *gin.Context, user *model.User, absenceCreateR
 		Identifier:    uuid.New(),
 	}
 
-	if !*absenceReason.NeedsApproval {
+	if absenceReason.NeedsApproval == nil || *absenceReason.NeedsApproval == false {
 		absence.Sign(user, model.SIGNED_STATUS_ACCEPTED, nil)
 	} else {
 		if signingUser != nil {
