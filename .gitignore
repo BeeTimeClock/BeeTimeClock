@@ -8,3 +8,4 @@ btc.exe
 images/
 output/
 /upload/
+/.env.local

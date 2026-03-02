@@ -167,5 +167,6 @@
   "TITLE_DECLINE": "Decline",
   "MSG_ABSENCE_DECLINE": "should this absence really be declined",
   "TITLE_ACCEPT": "Accept",
-  "MSG_ARE_YOU_SURE": "are you sure?"
+  "MSG_ARE_YOU_SURE": "are you sure?",
+  "LABEL_MISSING_DAY": "missing day|missing days"
 }

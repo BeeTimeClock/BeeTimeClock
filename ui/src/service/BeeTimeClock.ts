@@ -568,6 +568,10 @@ class BeeTimeClock {
   administrationAbsenceRecalculate() : Promise<AxiosResponse<BaseResponse<never>>> {
     return api.post(`/api/v1/administration/absence/recalculate`)
   }
+
+  administrationGetMissingDays(userId: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
+    return api.get (`/api/v1/administration/user/${userId}/query/missing`)
+  }
 }
 
 export default new BeeTimeClock();

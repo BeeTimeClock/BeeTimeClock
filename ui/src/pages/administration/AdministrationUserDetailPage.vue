@@ -13,19 +13,21 @@ import type {
 } from 'src/models/Timestamp';
 import type { AbsenceReason } from 'src/models/Absence';
 import { Absence } from 'src/models/Absence';
-import type { QTableColumn} from 'quasar';
+import { date, type QTableColumn } from 'quasar';
 import { useQuasar } from 'quasar';
 import type { ErrorResponse } from 'src/models/Base';
 import { emptyPagination } from 'src/helper/objects';
 import { OvertimeMonthQuota } from 'src/models/Overtime';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
+import { type MissingDay } from 'src/models/MissingDays';
+import formatDate = date.formatDate;
 
 const { t } = useI18n();
 
 const route = useRoute();
 const userId = computed(() => {
   return parseInt(route.params.userId as string);
-})
+});
 const user = ref(null as User | null);
 const selectedTab = ref('common');
 const timestampYearMonths = ref<TimestampYearMonthGrouped>({});
@@ -39,6 +41,7 @@ const selectedAbsenceYear = ref<number>(new Date().getFullYear());
 const absenceReasons = ref<AbsenceReason[]>([]);
 const overtimeTotal = ref<number>();
 const q = useQuasar();
+const missingDays = ref<MissingDay[]>([]);
 
 const accessLevelOptions = [
   {
@@ -67,7 +70,7 @@ const overtimeColumns = [
     name: 'Date',
     required: true,
     label: t('LABEL_DATE'),
-    align: "left",
+    align: 'left',
     field: 'identifier',
     sortable: true,
   },
@@ -76,7 +79,7 @@ const overtimeColumns = [
     required: true,
     label: t('LABEL_HOUR', 2),
     field: 'Hours',
-    align: "right",
+    align: 'right',
     sortable: true,
     format: (val: number) => `${val.toFixed(2)}`,
   },
@@ -85,6 +88,17 @@ const overtimeColumns = [
     label: t('LABEL_ACTION', 2),
   },
 ] as QTableColumn[];
+
+const missingDaysColumn = ref<QTableColumn[]>([
+  {
+    name: 'date',
+    label: `${t('LABEL_DATE')}`,
+    field: 'date',
+    sortable: true,
+    format: (val) => formatDate(val, 'ddd. DD.MM.YYYY'),
+    align: 'left',
+  },
+]);
 
 function loadUser() {
   BeeTimeClock.administrationGetUserById(userId.value)
@@ -124,7 +138,9 @@ const timestampMonths = computed(() => {
 });
 
 async function loadTimestampMonths() {
-  const result = await BeeTimeClock.administrationTimestampUserMonths(userId.value);
+  const result = await BeeTimeClock.administrationTimestampUserMonths(
+    userId.value,
+  );
 
   if (result.status === 200) {
     timestampYearMonths.value = result.data.Data;
@@ -167,7 +183,10 @@ function loadAbsenceYears() {
 }
 
 function loadAbsences() {
-  BeeTimeClock.administrationAbsencesByYear(userId.value, selectedAbsenceYear.value)
+  BeeTimeClock.administrationAbsencesByYear(
+    userId.value,
+    selectedAbsenceYear.value,
+  )
     .then((result) => {
       if (result.status === 200) {
         absences.value = result.data.Data.map((s) => Absence.fromApi(s));
@@ -190,21 +209,21 @@ function loadAbsenceReasons() {
     });
 }
 
-
 const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
-
 
 function loadOvertimeQuotas() {
   if (!user.value) return;
-  BeeTimeClock.administrationOvertimeMonthQuotas(user.value.ID).then((result) => {
-    if (result.status === 200) {
-      overtimeQuotas.value = result.data.Data.sort((a, b) => b.Year - a.Year || b.Month - a.Month).map((s) =>
-        OvertimeMonthQuota.fromApi(s)
-      );
-    }
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.response?.data.Message);
-  });
+  BeeTimeClock.administrationOvertimeMonthQuotas(user.value.ID)
+    .then((result) => {
+      if (result.status === 200) {
+        overtimeQuotas.value = result.data.Data.sort(
+          (a, b) => b.Year - a.Year || b.Month - a.Month,
+        ).map((s) => OvertimeMonthQuota.fromApi(s));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
 }
 
 function calculateOvertimeMonth(overtimeMonthQuota: OvertimeMonthQuota) {
@@ -212,27 +231,49 @@ function calculateOvertimeMonth(overtimeMonthQuota: OvertimeMonthQuota) {
   BeeTimeClock.administrationCalculateOvertimeMonthQuota(
     user.value.ID,
     overtimeMonthQuota.Year,
-    overtimeMonthQuota.Month
-  ).then((result) => {
-    if (result.status === 200) {
-      loadOvertimeQuotas();
-      loadOvertimeTotal();
-    }
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.response?.data.Message);
-  });
+    overtimeMonthQuota.Month,
+  )
+    .then((result) => {
+      if (result.status === 200) {
+        loadOvertimeQuotas();
+        loadOvertimeTotal();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
 }
 
 function loadOvertimeTotal() {
   if (!user.value) return;
 
-  BeeTimeClock.administrationOvertimeTotal(user.value.ID).then(result => {
-    if (result.status === 200) {
-      overtimeTotal.value = result.data.Data.Total;
-    }
-  }).catch((error: ErrorResponse) => {
-    showErrorMessage(error.response?.data.Message);
-  });
+  BeeTimeClock.administrationOvertimeTotal(user.value.ID)
+    .then((result) => {
+      if (result.status === 200) {
+        overtimeTotal.value = result.data.Data.Total;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
+}
+
+function loadMissingDays() {
+  if (!user.value) return;
+
+  BeeTimeClock.administrationGetMissingDays(userId.value)
+    .then((result) => {
+      if (result.status === 200) {
+        missingDays.value = result.data.Data.map((s) => {
+          return { date: s } as MissingDay;
+        }).sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+      }
+    })
+    .catch((error) => {
+      showErrorMessage(error);
+    });
 }
 
 onMounted(async () => {
@@ -244,6 +285,7 @@ onMounted(async () => {
   loadTimestampGrouped();
   loadOvertimeTotal();
   loadOvertimeQuotas();
+  loadMissingDays();
 });
 
 watch(selectedYear, () => {
@@ -336,10 +378,11 @@ function deleteUserAbsence(absence: Absence) {
         <q-tab name="common" icon="account_circle" :label="t('LABEL_COMMON')" />
         <q-tab name="worktime" icon="alarms" :label="t('LABEL_WORKTIME')" />
         <q-tab name="overtime" icon="more_time" :label="t('LABEL_OVERTIME')" />
+        <q-tab name="absence" icon="event" :label="t('LABEL_ABSENCE', 2)" />
         <q-tab
-          name="absence"
+          name="missing-days"
           icon="event_busy"
-          :label="t('LABEL_ABSENCE', 2)"
+          :label="t('LABEL_MISSING_DAY', 2)"
         />
       </q-tabs>
       <q-tab-panels v-model="selectedTab">
@@ -382,11 +425,7 @@ function deleteUserAbsence(absence: Absence) {
               />
             </q-card-section>
             <q-card-actions>
-              <q-btn
-                :label="t('BTN_SAVE')"
-                color="primary"
-                @click="saveUser"
-              />
+              <q-btn :label="t('BTN_SAVE')" color="primary" @click="saveUser" />
             </q-card-actions>
           </q-card>
         </q-tab-panel>
@@ -429,7 +468,7 @@ function deleteUserAbsence(absence: Absence) {
         <q-tab-panel name="overtime">
           <q-card v-if="overtimeTotal" class="q-mb-lg">
             <q-card-section class="bg-primary text-h6 text-white">
-              {{t('LABEL_OVERTIME_TOTAL')}}
+              {{ t('LABEL_OVERTIME_TOTAL') }}
             </q-card-section>
             <q-card-section class="text-h6 text-center">
               {{ formatIndustryHourMinutes(overtimeTotal) }}
@@ -467,7 +506,11 @@ function deleteUserAbsence(absence: Absence) {
                 </q-td>
                 <q-td v-for="col in props.cols" :key="col.name" :props="props">
                   <template v-if="col.name === 'actions'">
-                    <q-btn icon="refresh" @click="calculateOvertimeMonth(props.row)" color="primary"/>
+                    <q-btn
+                      icon="refresh"
+                      @click="calculateOvertimeMonth(props.row)"
+                      color="primary"
+                    />
                   </template>
                   <template v-else>
                     {{ col.value }}
@@ -485,7 +528,9 @@ function deleteUserAbsence(absence: Absence) {
                         <q-item-label caption>{{ entry.Source }}</q-item-label>
                       </q-item-section>
                       <q-item-section>
-                        <q-item-section>{{ entry.Value.toFixed(2) }}</q-item-section>
+                        <q-item-section>{{
+                          entry.Value.toFixed(2)
+                        }}</q-item-section>
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -527,6 +572,30 @@ function deleteUserAbsence(absence: Absence) {
                     color="negative"
                     @click="deleteUserAbsence(props.row)"
                   />
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
+        </q-tab-panel>
+        <q-tab-panel name="missing-days">
+          <q-btn class="full-width" label="refresh" @click="loadMissingDays"/>
+          <q-table
+            :columns="missingDaysColumn"
+            :rows="missingDays"
+            hide-pagination
+            :pagination="emptyPagination"
+          >
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+            <template v-slot:body="props">
+              <q-tr :props="props">
+                <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                  {{ col.value }}
                 </q-td>
               </q-tr>
             </template>

@@ -167,5 +167,6 @@
   "TITLE_DECLINE": "Ablehnen",
   "MSG_ABSENCE_DECLINE": "Soll die Abwesenheit wirklich abgelehnt werden?",
   "TITLE_ACCEPT": "Akzeptieren",
-  "MSG_ARE_YOU_SURE": "Bist du dir sicher?"
+  "MSG_ARE_YOU_SURE": "Bist du dir sicher?",
+  "LABEL_MISSING_DAY": "fehlender Tag|fehlende Tage"
 }

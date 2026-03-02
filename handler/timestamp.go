@@ -702,3 +702,18 @@ func (h *Timestamp) TimestampUserQueryMonths(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
+
+func (h *Timestamp) TimestampUserMissingEntries(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	result, err := h.timestampWorker.MissingDays(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}

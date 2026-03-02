@@ -8,10 +8,7 @@ import { useI18n } from 'vue-i18n';
 import formatDate = date.formatDate;
 import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
 import AbsenceCreateDialog from 'components/absence/AbsenceCreateDialog.vue';
-
-interface MissingDay {
-  date: string;
-}
+import { type MissingDay } from 'src/models/MissingDays';
 
 const { t } = useI18n();
 const loading = ref(true);

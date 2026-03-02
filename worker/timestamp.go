@@ -153,7 +153,7 @@ func (w *Timestamp) MissingDaysInMonth(userID uint, year int, month int) ([]time
 		return nil, err
 	}
 
-	timestamps, err := w.timestamp.FindByUserIDAndDate(userID, firstOfMonth, lastOfMonth)
+	timestamps, err := w.timestamp.FindByUserIDAndDate(userID, firstOfMonth, lastOfMonth.Add(time.Hour*24))
 	if err != nil {
 		return nil, err
 	}

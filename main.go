@@ -254,6 +254,8 @@ func main() {
 					administrationUser.GET(":userID/overtime", overtimeHandler.OvertimeUserGetAll)
 					administrationUser.GET(":userID/overtime/total", overtimeHandler.OvertimeUserTotal)
 					administrationUser.POST(":userID/overtime/action/calculate/:year/:month", overtimeHandler.OvertimeUserCalculateMonth)
+
+					administrationUser.GET(":userID/query/missing", timestampHandler.TimestampUserMissingEntries)
 				}
 				administrationAbsence := administration.Group("absence")
 				{

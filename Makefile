@@ -13,7 +13,7 @@ develop-frontend:
 	VUE_APP_BACKEND_ADDRESS=http://localhost:8085 yarn quasar dev
 
 develop-backend: ui
-	PORT=8085 DB_HOST=localhost DB_PORT=5432 DB_PASSWORD=verysecretpassword DB_USER=postgres DATABASE=postgres air
+	PORT=8085 DB_HOST=localhost DB_PORT=5432 DB_PASSWORD=postgres DB_USER=postgres DATABASE=postgres air
 
 all: ui-modules ui server
 
