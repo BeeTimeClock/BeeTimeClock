@@ -8,6 +8,7 @@ export interface Timestamp {
   IsHomeoffice: boolean;
   IsHomeofficeGoing: boolean;
   Corrections: TimestampCorrection[];
+  SuspiciousReason?: string;
 }
 
 export interface ApiTimestampGroup {
@@ -61,4 +62,8 @@ export interface OvertimeResponse {
 
 export interface TimestampYearMonthGrouped {
   [details: number]: number[];
+}
+
+export interface TimestampOvertimeReasonRequest {
+  OvertimeReason: string;
 }

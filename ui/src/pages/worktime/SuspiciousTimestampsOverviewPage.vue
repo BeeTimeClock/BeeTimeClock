@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import type { Timestamp } from 'src/models/Timestamp';
+import type {
+  Timestamp,
+  TimestampOvertimeReasonRequest,
+} from 'src/models/Timestamp';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import { useI18n } from 'vue-i18n';
-import { date, type QTableColumn } from 'quasar';
+import { date, type QTableColumn, useQuasar } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import formatDate = date.formatDate;
 import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
 import type { ErrorResponse } from 'src/models/Base';
 import { showErrorMessage } from 'src/helper/message';
 
+const q = useQuasar();
 const timestamps = ref<Timestamp[]>([]);
 const selectedTimestamp = ref<Timestamp>();
 const showTimestampCreateDialog = ref(false);
@@ -30,6 +34,13 @@ const columns = [
     field: 'GoingTimestamp',
     label: t('LABEL_GOING_TIMESTAMP'),
     format: (val: Date) => formatDate(val, 'DD.MM.YYYY HH:mm:ss'),
+  },
+  {
+    name: 'suspiciousReason',
+    field: 'SuspiciousReason',
+    label: t('LABEL_SUSPICIOUS_REASON'),
+    format: (val: string, row: Timestamp) =>
+      getTimestampSuspiciousReasonLabel(row),
   },
   {
     name: 'hasCorrections',
@@ -57,6 +68,46 @@ function editTimestamp(timestamp: Timestamp) {
   console.log('Timestamp: ', timestamp);
   selectedTimestamp.value = timestamp;
   showTimestampCreateDialog.value = true;
+}
+
+function setOvertimeReason(timestamp: Timestamp) {
+  q.dialog({
+    title: t('LABEL_SET_OVERTIME_REASON'),
+      message: t('LABEL_SET_OVERTIME_REASON_DESC'),
+    prompt: {
+      model: '',
+      type: 'text', // optional
+    },
+    cancel: true,
+    persistent: true,
+  }).onOk((reason) => {
+    const overtimeReasonUpdateRequest = {
+      OvertimeReason: reason,
+    } as TimestampOvertimeReasonRequest;
+
+    BeeTimeClock.timestampSetOvertimeReason(timestamp.ID, overtimeReasonUpdateRequest)
+      .then((result) => {
+        if (result.status === 200) {
+          loadTimestamps();
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.response?.data.Message);
+      });
+  });
+}
+
+function getTimestampSuspiciousReasonLabel(timestamp: Timestamp) {
+  switch (timestamp.SuspiciousReason) {
+    case 'broken_timestamp':
+      return t('LABEL_BROKEN_TIMESTAMP');
+    case 'correction':
+      return t('LABEL_NEEDS_CORRECTION');
+    case 'overtime':
+      return t('LABEL_NEEDS_OVERTIME_REASON');
+  }
+
+  return '';
 }
 
 onMounted(() => {
@@ -89,6 +140,13 @@ onMounted(() => {
               />
             </q-td>
             <div v-else-if="col.name == 'actions'">
+              <q-btn
+                v-if="props.row.SuspiciousReason == 'overtime'"
+                icon="add_comment"
+                color="primary"
+                class="q-mr-sm"
+                @click="setOvertimeReason(props.row)"
+              />
               <q-btn
                 icon="edit"
                 color="primary"

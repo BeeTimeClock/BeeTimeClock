@@ -356,15 +356,8 @@ func (h *Absence) TeamUserAbsenceCreate(c *gin.Context) {
 		return
 	}
 
-	userId, err := strconv.Atoi(c.Param("userID"))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
-		return
-	}
-
-	user, err := h.user.FindByID(uint(userId))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+	user, success := getUserFromParam(c, h.user)
+	if !success {
 		return
 	}
 

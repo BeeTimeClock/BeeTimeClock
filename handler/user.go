@@ -492,3 +492,29 @@ func (h *User) AdministrationTeamMemberDelete(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func (h *User) TeamUserById(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(user.GetUserResponse()))
+}

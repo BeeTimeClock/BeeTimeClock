@@ -103,7 +103,7 @@ func (r *Timestamp) FindLastByUserID(userID uint) (model.Timestamp, error) {
 	return item, result.Error
 }
 
-func (r *Timestamp) FindSuspiciousTimestampsByUserID(userId uint) ([]model.Timestamp, error) {
+func (r *Timestamp) FindSuspiciousTimestampsByUserID(userId uint, maxDurationHours int64) ([]model.Timestamp, error) {
 	var items []model.Timestamp
 	db, err := r.env.DatabaseManager.GetConnection()
 	if err != nil {
@@ -111,7 +111,17 @@ func (r *Timestamp) FindSuspiciousTimestampsByUserID(userId uint) ([]model.Times
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	result := db.Preload(clause.Associations).Find(&items, "user_id = ? and (date_part('year', coming_timestamp) < 1999 or date_part('year', going_timestamp) < 1999)", userId)
+	conditionsQuery := db.Or("(date_part('year', coming_timestamp) < 1999 or date_part('year', going_timestamp) < 1999)").
+		Or("(needs_correction = true)")
+
+	if maxDurationHours > 0 {
+		conditionsQuery = conditionsQuery.Or("EXTRACT(EPOCH FROM (going_timestamp - coming_timestamp)) / 3600 > ? and overtime_reason is null", maxDurationHours)
+	}
+
+	result := db.Debug().Preload(clause.Associations).Where("user_id = ?", userId).Where(conditionsQuery)
+
+	result = result.Find(&items)
+
 	if result.Error != nil {
 		return items, result.Error
 	}
@@ -172,8 +182,19 @@ func (r *Timestamp) Delete(timestamp *model.Timestamp) error {
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	result := db.Unscoped().Delete(&timestamp)
-	return result.Error
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Debug().
+			Unscoped().
+			Where("timestamp_id = ?", timestamp.ID).
+			Delete(&model.TimestampCorrection{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Debug().Unscoped().Delete(&timestamp).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (r *Timestamp) TimestampCorrectionInsert(timestampCorrection *model.TimestampCorrection) error {

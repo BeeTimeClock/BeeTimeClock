@@ -168,5 +168,13 @@
   "MSG_ABSENCE_DECLINE": "Soll die Abwesenheit wirklich abgelehnt werden?",
   "TITLE_ACCEPT": "Akzeptieren",
   "MSG_ARE_YOU_SURE": "Bist du dir sicher?",
-  "LABEL_MISSING_DAY": "fehlender Tag|fehlende Tage"
+  "LABEL_MISSING_DAY": "fehlender Tag|fehlende Tage",
+  "LABEL_SUSPICIOUS_REASON": "Verdächtiger Grund|Verdächtige Gründe",
+  "LABEL_SET_OVERTIME_REASON": "Grund für Überstunden festlegen",
+  "LABEL_OVERTIME_REASON": "Überstunden Grund|Überstunden Gründe",
+  "LABEL_SET_OVERTIME_REASON_DESC": "Hier kannst du einen Grund für die Überstunden festlegen, damit diese in der Übersicht besser nachvollziehbar sind. Dieser Grund wird nicht in der Abwesenheitsübersicht angezeigt.",
+  "LABEL_BROKEN_TIMESTAMP": "Stempelung unvollständig/fehlerhaft",
+  "LABEL_NEEDS_CORRECTION": "Korrektur benötigt",
+  "LABEL_NEEDS_OVERTIME_REASON": "Überstunden Grund benötigt",
+  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Soll die Stempelung wirklich gelöscht werden? Alle Informationen zu dieser Stempelung gehen dabei verloren."
 }

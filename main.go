@@ -106,7 +106,7 @@ func main() {
 	overtimeWorker := worker.NewOvertime(env, userRepo, externalWorkRepo, timestampRepo, holidayRepo, overtimeRepo, timestampWorker, absenceRepo)
 
 	userHandler := handler.NewUser(env, userRepo, teamRepo)
-	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo, holidayRepo, timestampWorker)
+	timestampHandler := handler.NewTimestamp(env, userRepo, timestampRepo, absenceRepo, settingsRepo, holidayRepo, timestampWorker, teamRepo)
 	fuelHandler := handler.NewFuel(env, userRepo, fuelRepo)
 	absenceHandler := handler.NewAbsence(env, userRepo, absenceRepo, teamRepo, holidayRepo)
 	migrationHandler := handler.NewMigration(env, migrationRepo)
@@ -250,6 +250,7 @@ func main() {
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
 					administrationUser.GET(":userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
 					administrationUser.GET(":userID/timestamp/months", timestampHandler.TimestampUserQueryMonths)
+					administrationUser.DELETE(":userID/timestamp/:timestampID", timestampHandler.TimestampUserDelete)
 
 					administrationUser.GET(":userID/overtime", overtimeHandler.OvertimeUserGetAll)
 					administrationUser.GET(":userID/overtime/total", overtimeHandler.OvertimeUserTotal)
@@ -313,6 +314,7 @@ func main() {
 				timestamp.POST("action/checkin", timestampHandler.TimestampActionCheckIn)
 				timestamp.POST("action/checkout", timestampHandler.TimestampActionCheckOut)
 				timestamp.POST(":timestampID/correction", timestampHandler.TimestampCorrectionCreate)
+				timestamp.POST(":timestampID/overtime", timestampHandler.TimestampOvertimeSet)
 				timestamp.POST("", timestampHandler.TimestampCreate)
 			}
 
@@ -365,7 +367,14 @@ func main() {
 			team := v1.Group("team")
 			{
 				team.GET("", userHandler.CurrentUserTeams)
+				team.GET(":teamID/user/:userID", userHandler.TeamUserById)
 				team.POST(":teamID/user/:userID/absence", absenceHandler.TeamUserAbsenceCreate)
+
+				team.GET(":teamID/user/:userID/timestamp/months", timestampHandler.TeamUserTimestampQueryMonths)
+				team.DELETE(":teamID/user/:userID/timestamp/:timestampID", timestampHandler.TeamUserTimestampDelete)
+				team.GET(":teamID/user/:userID/timestamp/year/:year/month/:month/grouped", timestampHandler.TimestampUserQueryMonthGrouped)
+				team.GET(":teamID/user/:userID/timestamp/year/:year/month/:month/overtime", timestampHandler.TimestampUserQueryMonthOvertime)
+
 				team.GET(":teamID/absence/query/users/summary", absenceHandler.AbsenceQueryTeamUsersSummary)
 				team.GET(":teamID/absence/open", absenceHandler.AbsenceTeamOpen)
 				team.POST(":teamID/absence/:absenceID/sign", absenceHandler.AbsenceSign)

@@ -64,6 +64,11 @@ const routes: RouteRecordRaw[] = [
             name: 'TeamOverview',
             path: 'overview',
             component: () => import('pages/teams/TeamOverviewPage.vue')
+          },
+          {
+            name: 'TeamUserDetail',
+            path: ':teamId/user/:userId',
+            component: () => import('pages/teams/TeamUserDetailPage.vue')
           }
         ]
       },

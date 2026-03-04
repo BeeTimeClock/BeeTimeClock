@@ -168,5 +168,13 @@
   "MSG_ABSENCE_DECLINE": "should this absence really be declined",
   "TITLE_ACCEPT": "Accept",
   "MSG_ARE_YOU_SURE": "are you sure?",
-  "LABEL_MISSING_DAY": "missing day|missing days"
+  "LABEL_MISSING_DAY": "missing day|missing days",
+  "LABEL_SUSPICIOUS_REASON": "suspicious reason|suspicious reasons",
+  "LABEL_SET_OVERTIME_REASON": "set reason for overtime",
+  "LABEL_OVERTIME_REASON": "overtime reason|overtime reasons",
+  "LABEL_SET_OVERTIME_REASON_DESC": "reason for this overtime",
+  "LABEL_BROKEN_TIMESTAMP": "incomplete/missing timestamp",
+  "LABEL_NEEDS_CORRECTION": "needs correction",
+  "LABEL_NEEDS_OVERTIME_REASON": "needs overtime reason",
+  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Are you sure you want to delete this timestamp? This action cannot be undone."
 }

@@ -8,6 +8,7 @@ import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import WorktimeOverviewTable from 'components/WorktimeOverviewTable.vue';
 import OvertimeMonth from 'components/OvertimeMonth.vue';
 import type {
+  Timestamp,
   TimestampGroup,
   TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
@@ -276,6 +277,18 @@ function loadMissingDays() {
     });
 }
 
+function deleteTimestamp(timestamp: Timestamp) {
+  BeeTimeClock.administrationTimestampUserDelete(userId.value, timestamp.ID)
+    .then((result) => {
+      if (result.status === 204) {
+        loadTimestampGrouped();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
 onMounted(async () => {
   loadUser();
   loadAbsenceReasons();
@@ -462,6 +475,8 @@ function deleteUserAbsence(absence: Absence) {
             <WorktimeOverviewTable
               v-model="timestampCurrentMonthGrouped"
               @create="loadTimestampGrouped()"
+              @delete="deleteTimestamp"
+              allow-delete
             />
           </div>
         </q-tab-panel>
@@ -578,7 +593,7 @@ function deleteUserAbsence(absence: Absence) {
           </q-table>
         </q-tab-panel>
         <q-tab-panel name="missing-days">
-          <q-btn class="full-width" label="refresh" @click="loadMissingDays"/>
+          <q-btn class="full-width" label="refresh" @click="loadMissingDays" />
           <q-table
             :columns="missingDaysColumn"
             :rows="missingDays"

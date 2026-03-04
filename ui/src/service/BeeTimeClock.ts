@@ -22,6 +22,7 @@ import type {
   TimestampCorrectionCreateRequest,
   TimestampCreateRequest,
   TimestampGroup,
+  TimestampOvertimeReasonRequest,
   TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
 import type {
@@ -104,6 +105,16 @@ class BeeTimeClock {
     );
   }
 
+  timestampSetOvertimeReason(
+    timestampId: number,
+    timestampOvertimeReasonRequest: TimestampOvertimeReasonRequest,
+  ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.post(
+      `/api/v1/timestamp/${timestampId}/overtime`,
+      timestampOvertimeReasonRequest,
+    );
+  }
+
   timestampCreate(
     timestampCreateRequest: TimestampCreateRequest,
   ): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
@@ -148,8 +159,15 @@ class BeeTimeClock {
     return api.post('/api/v1/absence', absenceCreateRequest);
   }
 
-  createTeamUserAbsence(teamId: number, userId: number, absenceCreateRequest: AbsenceCreateRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
-    return api.post(`/api/v1/team/${teamId}/user/${userId}/absence`, absenceCreateRequest)
+  createTeamUserAbsence(
+    teamId: number,
+    userId: number,
+    absenceCreateRequest: AbsenceCreateRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
+    return api.post(
+      `/api/v1/team/${teamId}/user/${userId}/absence`,
+      absenceCreateRequest,
+    );
   }
 
   deleteAbsence(
@@ -368,6 +386,12 @@ class BeeTimeClock {
     return api.get('/api/v1/timestamp/query/suspicious');
   }
 
+  timestampQuerySuspiciousCount(): Promise<
+    AxiosResponse<BaseResponse<ApiCountResult>>
+  > {
+    return api.get('/api/v1/timestamp/query/suspicious/count');
+  }
+
   administrationTimestampUserMonths(
     userId: number,
   ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
@@ -440,9 +464,9 @@ class BeeTimeClock {
     return api.get('/api/v1/overtime');
   }
 
-  administrationOvertimeMonthQuotas(userId: number): Promise<
-    AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>
-  > {
+  administrationOvertimeMonthQuotas(
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>> {
     return api.get(`/api/v1/administration/user/${userId}/overtime`);
   }
 
@@ -453,18 +477,24 @@ class BeeTimeClock {
     return api.post(`/api/v1/overtime/action/calculate/${year}/${month}`, {});
   }
 
-  administrationCalculateOvertimeMonthQuota(userId: number,
+  administrationCalculateOvertimeMonthQuota(
+    userId: number,
     year: number,
     month: number,
   ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
-    return api.post(`/api/v1/administration/user/${userId}/overtime/action/calculate/${year}/${month}`, {});
+    return api.post(
+      `/api/v1/administration/user/${userId}/overtime/action/calculate/${year}/${month}`,
+      {},
+    );
   }
 
   overtimeTotal(): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
     return api.get(`/api/v1/overtime/total`);
   }
 
-  administrationOvertimeTotal(userId: number): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+  administrationOvertimeTotal(
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
     return api.get(`/api/v1/administration/user/${userId}/overtime/total`);
   }
 
@@ -517,8 +547,10 @@ class BeeTimeClock {
     });
   }
 
-  administrationDebugHolidays() : Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
-    return api.get('/api/v1/administration/debug/holidays')
+  administrationDebugHolidays(): Promise<
+    AxiosResponse<BaseResponse<ApiHoliday[]>>
+  > {
+    return api.get('/api/v1/administration/debug/holidays');
   }
 
   getLogo(): Promise<AxiosResponse<Blob>> {
@@ -528,49 +560,115 @@ class BeeTimeClock {
   }
 
   getMissingDays(): Promise<AxiosResponse<BaseResponse<string[]>>> {
-    return api.get(`/api/v1/timestamp/query/missing`)
+    return api.get(`/api/v1/timestamp/query/missing`);
   }
 
   getMissingDaysCount(): Promise<AxiosResponse<BaseResponse<ApiCountResult>>> {
-    return api.get(`/api/v1/timestamp/query/missing/count`)
+    return api.get(`/api/v1/timestamp/query/missing/count`);
   }
 
-  getMissingDaysMonth(year: number, month: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
-    return api.get(`/api/v1/timestamp/query/year/${year}/month/${month}/missing`)
+  getMissingDaysMonth(
+    year: number,
+    month: number,
+  ): Promise<AxiosResponse<BaseResponse<string[]>>> {
+    return api.get(
+      `/api/v1/timestamp/query/year/${year}/month/${month}/missing`,
+    );
   }
 
   getTeams(): Promise<AxiosResponse<BaseResponse<ApiTeam[]>>> {
-    return api.get('/api/v1/team')
+    return api.get('/api/v1/team');
   }
 
-  queryTeamAbsenceSummary(teamId: number): Promise<
-    AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
-  > {
+  queryTeamAbsenceSummary(
+    teamId: number,
+  ): Promise<AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>> {
     return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
   }
 
-  absenceTeamOpen(teamId: number) : Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
-    return api.get(`/api/v1/team/${teamId}/absence/open`)
+  absenceTeamOpen(
+    teamId: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get(`/api/v1/team/${teamId}/absence/open`);
   }
 
-  absenceTeamSign(teamId: number, absenceId: number, absenceSignRequest: AbsenceSignRequest) : Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
-    return api.post(`/api/v1/team/${teamId}/absence/${absenceId}/sign`, absenceSignRequest)
+  absenceTeamSign(
+    teamId: number,
+    absenceId: number,
+    absenceSignRequest: AbsenceSignRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsence>>> {
+    return api.post(
+      `/api/v1/team/${teamId}/absence/${absenceId}/sign`,
+      absenceSignRequest,
+    );
   }
 
-  administrationHolidaysCustom() : Promise<AxiosResponse<BaseResponse<ApiHolidayCustom[]>>> {
-    return api.get(`/api/v1/administration/holidays/custom`)
+  administrationHolidaysCustom(): Promise<
+    AxiosResponse<BaseResponse<ApiHolidayCustom[]>>
+  > {
+    return api.get(`/api/v1/administration/holidays/custom`);
   }
 
-  holidaysYear(year: number) : Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
-    return api.get(`/api/v1/holidays/year/${year}`)
+  holidaysYear(
+    year: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiHoliday[]>>> {
+    return api.get(`/api/v1/holidays/year/${year}`);
   }
 
-  administrationAbsenceRecalculate() : Promise<AxiosResponse<BaseResponse<never>>> {
-    return api.post(`/api/v1/administration/absence/recalculate`)
+  administrationAbsenceRecalculate(): Promise<
+    AxiosResponse<BaseResponse<never>>
+  > {
+    return api.post(`/api/v1/administration/absence/recalculate`);
   }
 
-  administrationGetMissingDays(userId: number): Promise<AxiosResponse<BaseResponse<string[]>>> {
-    return api.get (`/api/v1/administration/user/${userId}/query/missing`)
+  administrationGetMissingDays(
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<string[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/query/missing`);
+  }
+
+  teamTimestampQueryMonthGrouped(
+    teamId: number,
+    userId: number,
+    year: number,
+    month: number,
+  ): Promise<AxiosResponse<BaseResponse<TimestampGroup[]>>> {
+    return api.get(
+      `/api/v1/team/${teamId}/user/${userId}/timestamp/year/${year}/month/${month}/grouped`,
+    );
+  }
+
+  teamTimestampQueryMonthOvertime(
+    teamId: number,
+    userId: number,
+    year: number,
+    month: number,
+  ): Promise<AxiosResponse<BaseResponse<OvertimeResponse>>> {
+    return api.get(
+      `/api/v1/team/${teamId}/user/${userId}/timestamp/year/${year}/month/${month}/overtime`,
+    );
+  }
+
+  teamGetUserById(
+    teamId: number,
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<User>>> {
+    return api.get(`/api/v1/team/${teamId}/user/${userId}`);
+  }
+
+  teamTimestampDelete(
+    teamId: number,
+    userId: number,
+    timestampId: number,
+  ) : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(`/api/v1/team/${teamId}/user/${userId}/timestamp/${timestampId}`)
+  }
+
+  administrationTimestampUserDelete(
+    userId: number,
+    timestampId: number,
+  ) : Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(`/api/v1/administration/user/${userId}/timestamp/${timestampId}`)
   }
 }
 

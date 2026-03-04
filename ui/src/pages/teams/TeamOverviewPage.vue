@@ -248,6 +248,13 @@ onMounted(() => {
                 <q-btn
                   v-if="isLead"
                   color="primary"
+                  icon="visibility"
+                  :to="{ name: 'TeamUserDetail', params: { teamId: selectedTeam.ID, userId: props.row.UserID } }"
+                  class="q-mr-sm"
+                />
+                <q-btn
+                  v-if="isLead"
+                  color="primary"
                   icon="add"
                   @click="createAbsenceForTeamMember(props.row)"
                 />

@@ -10,7 +10,7 @@ import { showErrorMessage } from 'src/helper/message';
 import { useRouter } from 'vue-router';
 import { msalProvider } from 'boot/microsoft-msal';
 
-const {t} = useI18n();
+const { t } = useI18n();
 
 const authStore = useAuthStore();
 const session = ref(null as User | null);
@@ -20,6 +20,7 @@ const leftDrawerOpen = ref(false);
 const { locale } = useI18n({ useScope: 'global' });
 const isAdministrator = ref(false);
 const missingDaysCount = ref(0);
+const suspiciousCount = ref(0);
 
 const localeOptions = [
   { value: 'en-US', label: 'English' },
@@ -40,18 +41,33 @@ function toggleLeftDrawer() {
 }
 
 function loadMissingDaysCount() {
-  BeeTimeClock.getMissingDaysCount().then(result => {
-    if (result.status === 200) {
-      missingDaysCount.value = result.data.Data.Count;
-    }
-  }).catch((error) => {
-    showErrorMessage(error)
-  })
+  BeeTimeClock.getMissingDaysCount()
+    .then((result) => {
+      if (result.status === 200) {
+        missingDaysCount.value = result.data.Data.Count;
+      }
+    })
+    .catch((error) => {
+      showErrorMessage(error);
+    });
+}
+
+function loadSuspiciousCount() {
+  BeeTimeClock.timestampQuerySuspiciousCount()
+    .then((result) => {
+      if (result.status === 200) {
+        suspiciousCount.value = result.data.Data.Count;
+      }
+    })
+    .catch((error) => {
+      showErrorMessage(error);
+    });
 }
 
 onMounted(async () => {
   await refresh();
-  loadMissingDaysCount()
+  loadMissingDaysCount();
+  loadSuspiciousCount();
 });
 
 async function refresh() {
@@ -150,13 +166,23 @@ async function refresh() {
             :to="{ name: 'SuspiciousTimestampsOverview' }"
           >
             {{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}
+            <q-chip
+              class="q-ml-md"
+              v-if="suspiciousCount > 0"
+              :label="suspiciousCount"
+              dense
+              color="negative"
+            />
           </q-item>
-          <q-item
-            clickable
-            v-ripple
-            :to="{ name: 'MissingDaysOverview' }"
-          >
-            {{ t('MENU_MISSING_DAYS') }} <q-chip class="q-ml-md" v-if="missingDaysCount > 0" :label="missingDaysCount" dense  color="negative"/>
+          <q-item clickable v-ripple :to="{ name: 'MissingDaysOverview' }">
+            {{ t('MENU_MISSING_DAYS') }}
+            <q-chip
+              class="q-ml-md"
+              v-if="missingDaysCount > 0"
+              :label="missingDaysCount"
+              dense
+              color="negative"
+            />
           </q-item>
           <q-item-label header> {{ t('LABEL_TEAM', 2) }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'TeamOverview' }">

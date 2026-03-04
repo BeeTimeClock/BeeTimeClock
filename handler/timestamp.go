@@ -18,6 +18,7 @@ import (
 type Timestamp struct {
 	env             *core.Environment
 	user            *repository.User
+	team            *repository.Team
 	timestamp       *repository.Timestamp
 	absence         *repository.Absence
 	settings        *repository.Settings
@@ -25,7 +26,7 @@ type Timestamp struct {
 	timestampWorker *worker.Timestamp
 }
 
-func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence, settings *repository.Settings, holiday *repository.Holiday, timestampWorker *worker.Timestamp) *Timestamp {
+func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repository.Timestamp, absence *repository.Absence, settings *repository.Settings, holiday *repository.Holiday, timestampWorker *worker.Timestamp, team *repository.Team) *Timestamp {
 	return &Timestamp{
 		env:             env,
 		user:            user,
@@ -34,6 +35,7 @@ func NewTimestamp(env *core.Environment, user *repository.User, timestamp *repos
 		settings:        settings,
 		holiday:         holiday,
 		timestampWorker: timestampWorker,
+		team:            team,
 	}
 }
 
@@ -140,13 +142,28 @@ func (h *Timestamp) TimestampQuerySuspicious(c *gin.Context) {
 		return
 	}
 
-	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID)
+	maxDurationHours := 12
+
+	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID, int64(maxDurationHours))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamps))
+	result := []model.TimestampSuspiciousResponse{}
+
+	for _, timestamp := range timestamps {
+		if timestamp.IsToday() {
+			continue
+		}
+
+		result = append(result, model.TimestampSuspiciousResponse{
+			Timestamp:        timestamp,
+			SuspiciousReason: timestamp.SuspiciousReason(float64(maxDurationHours)),
+		})
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
 func (h *Timestamp) TimestampQuerySuspiciousCount(c *gin.Context) {
@@ -156,7 +173,7 @@ func (h *Timestamp) TimestampQuerySuspiciousCount(c *gin.Context) {
 		return
 	}
 
-	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID)
+	timestamps, err := h.timestamp.FindSuspiciousTimestampsByUserID(user.ID, 12)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
@@ -559,6 +576,37 @@ func (h *Timestamp) overtimeMonth(userID uint, year int, month int) (float64, er
 	return result.OvertimeHours, nil
 }
 
+func (h *Timestamp) TimestampOvertimeSet(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp, success := getTimestampFromParam(c, h.timestamp, &user.ID)
+	if !success {
+		return
+	}
+
+	var overtimeReasonUpdateRequest model.TimestampOvertimeReasonUpdateRequest
+
+	err = c.BindJSON(&overtimeReasonUpdateRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp.OvertimeReason = &overtimeReasonUpdateRequest.OvertimeReason
+
+	err = h.timestamp.Update(&timestamp)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamp))
+}
+
 func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 	user, err := auth.GetUserFromSession(c)
 	if err != nil {
@@ -614,6 +662,9 @@ func (h *Timestamp) TimestampCorrectionCreate(c *gin.Context) {
 		ChangeReason:       timestampCorrectionCreateRequest.ChangeReason,
 		OldComingTimestamp: timestamp.ComingTimestamp,
 		OldGoingTimestamp:  timestamp.GoingTimestamp,
+		NeededCorrection:   timestamp.NeedsCorrection,
+		CorrectionReason:   timestamp.CorrectionReason,
+		OvertimeReason:     timestamp.OvertimeReason,
 	}
 
 	err = h.timestamp.TimestampCorrectionInsert(&timestampCorrection)
@@ -713,6 +764,233 @@ func (h *Timestamp) TimestampUserMissingEntries(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TimestampUserActionRequestCorrection(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	timestamp, success := getTimestampFromParam(c, h.timestamp, &user.ID)
+	if !success {
+		return
+	}
+
+	var timestampCorrectionRequest model.TimestampCorrectionRequest
+
+	err := c.BindJSON(&timestampCorrectionRequest)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp.CorrectionReason = &timestampCorrectionRequest.CorrectionReason
+	timestamp.NeedsCorrection = true
+
+	err = h.timestamp.Update(&timestamp)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(timestamp))
+}
+
+func (h *Timestamp) TeamUserTimestampDelete(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	timestamp, success := getTimestampFromParam(c, h.timestamp, &user.ID)
+	if !success {
+		return
+	}
+
+	err = h.timestamp.Delete(&timestamp)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *Timestamp) TimestampUserDelete(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	timestamp, success := getTimestampFromParam(c, h.timestamp, &user.ID)
+	if !success {
+		return
+	}
+
+	err := h.timestamp.Delete(&timestamp)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *Timestamp) TeamUserTimestampQueryMonths(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	result, success := h.queryMonths(c, user.ID)
+	if !success {
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Timestamp) TeamUserTimestampQueryMonthGrouped(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	result, err := h.timestampWorker.CalculateMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result.TimestampGroups))
+}
+
+func (h *Timestamp) TeamUserTimestampQueryMonthOvertime(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	year, month, success := getYearMonthFromParam(c)
+	if !success {
+		return
+	}
+
+	overtimeHours, err := h.overtimeMonth(user.ID, year, month)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	holidays, err := h.holiday.HolidayFindByYear(year)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+
+	subtractedHours := 0.0
+	if overtimeHours > 0 {
+		switch user.OvertimeSubtractionModel {
+		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
+			subtractedHours = user.OvertimeSubtractionAmount
+
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+
+			break
+		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
+			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			if subtractedHours > overtimeHours {
+				subtractedHours = overtimeHours
+			}
+			break
+		}
+	}
+
+	result := model.OvertimeResult{
+		Total:      overtimeHours,
+		Needed:     neededHours,
+		Subtracted: subtractedHours,
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))

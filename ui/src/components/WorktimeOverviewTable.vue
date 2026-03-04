@@ -3,15 +3,20 @@ import { formatIndustryHourMinutes } from 'src/helper/formatter';
 import { ref } from 'vue';
 import type { Timestamp, TimestampGroup } from 'src/models/Timestamp';
 import formatDate = date.formatDate;
-import { date, type QTableColumn } from 'quasar';
+import { date, type QTableColumn, useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import TimestampCorrectionDialog from 'components/TimestampCorrectionDialog.vue';
 
 const { t } = useI18n();
+const q = useQuasar();
 
 const value = defineModel<TimestampGroup[]>({ required: true });
+const allowDelete = defineModel('allow-delete', {
+  type: Boolean,
+  default: false,
+});
 
-const emits = defineEmits(['create']);
+const emits = defineEmits(['create', 'delete']);
 
 const columns = [
   {
@@ -69,6 +74,17 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
   selectedTimestamp.value = timestamp;
   isTimestampCorrentViewVisible.value = true;
 }
+
+function deleteTimestamp(timestamp: Timestamp) {
+  q.dialog({
+    title: t('LABEL_DELETE'),
+    message: t('LABEL_DELETE_TIMESTAMP_CONFIRM'),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    emits('delete', timestamp);
+  });
+}
 </script>
 
 <template>
@@ -119,9 +135,7 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
           <q-markup-table>
             <thead>
               <q-tr>
-                <q-th class="text-left">{{
-                  t('LABEL_COMING_TIMESTAMP')
-                }}</q-th>
+                <q-th class="text-left">{{ t('LABEL_COMING_TIMESTAMP') }}</q-th>
                 <q-th class="text-left">{{ t('LABEL_GOING_TIMESTAMP') }}</q-th>
                 <q-th></q-th>
               </q-tr>
@@ -172,6 +186,13 @@ function promptTimestampCorrectionView(timestamp: Timestamp) {
                       selectedTimestamp = timestamp;
                       promptNewTimestampCorrection = true;
                     "
+                  />
+                  <q-btn
+                    v-if="allowDelete"
+                    class="q-ml-md"
+                    color="negative"
+                    icon="delete"
+                    @click="deleteTimestamp(timestamp)"
                   />
                 </td>
               </tr>

@@ -16,6 +16,9 @@ type Timestamp struct {
 	IsHomeoffice      bool
 	IsHomeofficeGoing bool
 	Corrections       []TimestampCorrection
+	OvertimeReason    *string
+	NeedsCorrection   bool
+	CorrectionReason  *string
 }
 
 type TimestampCorrection struct {
@@ -25,6 +28,9 @@ type TimestampCorrection struct {
 	ChangeReason       string `binding:"required,min=20"`
 	OldComingTimestamp time.Time
 	OldGoingTimestamp  time.Time
+	NeededCorrection   bool
+	CorrectionReason   *string
+	OvertimeReason     *string
 }
 
 type TimestampCreateRequest struct {
@@ -71,8 +77,33 @@ type TimestampYearMonthGrouped struct {
 	UserID uint
 }
 
+func (t *Timestamp) SuspiciousReason(maxTimestampDuration float64) string {
+	if t.ComingTimestamp.Year() < 1999 || t.GoingTimestamp.Year() < 1999 {
+		return "broken_timestamp"
+	}
+
+	if t.NeedsCorrection {
+		return "correction"
+	}
+
+	netto, _ := t.CalculateWorkingHours()
+	if netto > maxTimestampDuration && t.OvertimeReason == nil {
+		return "overtime"
+	}
+
+	return ""
+}
+
 func (t *Timestamp) IsComplete() bool {
 	return !t.GoingTimestamp.IsZero()
+}
+
+func (t *Timestamp) IsToday() bool {
+	now := time.Now()
+
+	return t.ComingTimestamp.Day() == now.Day() &&
+		t.ComingTimestamp.Month() == now.Month() &&
+		t.ComingTimestamp.Year() == now.Year()
 }
 
 func (t *Timestamp) CalculateWorkingHours() (float64, float64) {
@@ -129,4 +160,17 @@ func DefaultWorkTimeModel() WorkTimeModel {
 			time.Sunday:   0.0,
 		},
 	}
+}
+
+type TimestampCorrectionRequest struct {
+	CorrectionReason string `binding:"required"`
+}
+
+type TimestampSuspiciousResponse struct {
+	Timestamp
+	SuspiciousReason string
+}
+
+type TimestampOvertimeReasonUpdateRequest struct {
+	OvertimeReason string `binding:"required"`
 }
