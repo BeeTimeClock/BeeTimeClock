@@ -176,5 +176,9 @@
   "LABEL_BROKEN_TIMESTAMP": "Stempelung unvollständig/fehlerhaft",
   "LABEL_NEEDS_CORRECTION": "Korrektur benötigt",
   "LABEL_NEEDS_OVERTIME_REASON": "Überstunden Grund benötigt",
-  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Soll die Stempelung wirklich gelöscht werden? Alle Informationen zu dieser Stempelung gehen dabei verloren."
+  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Soll die Stempelung wirklich gelöscht werden? Alle Informationen zu dieser Stempelung gehen dabei verloren.",
+  "LABEL_ONLY_FUTURE_ABSENCES": "nur zukünftige Abwesenheiten anzeigen",
+  "LABEL_TABLE_VIEW": "Tabellenansicht",
+  "LABEL_CALENDAR_VIEW": "Kalenderansicht",
+  "LABEL_TODAY": "heute"
 }

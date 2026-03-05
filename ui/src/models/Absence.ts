@@ -55,13 +55,29 @@ export interface ApiAbsence {
   User: ApiUser;
 }
 
-export interface AbsenceSummaryItem {
+export interface ApiAbsenceSummaryItem {
   ID: number;
   AbsenceFrom: Date;
   AbsenceTill: Date;
   NettoDays: number;
   User: User;
   SignedStatus?: AbsenceSignedStatus;
+  Reason?: string;
+}
+
+export class AbsenceSummaryItem extends autoImplement<ApiAbsenceSummaryItem>() {
+  static fromApi(apiItem: ApiAbsenceSummaryItem): AbsenceSummaryItem {
+    return new AbsenceSummaryItem(apiItem);
+  }
+
+  get calendarCaption(): string {
+    let caption = `${this.User.FirstName} ${this.User.LastName}`;
+    if (this.Reason) {
+      caption += ` - ${this.Reason}`;
+    }
+
+    return caption
+  }
 }
 
 export type AbsenceUserSummaryYearReason = {

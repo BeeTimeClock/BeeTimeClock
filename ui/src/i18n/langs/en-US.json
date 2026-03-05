@@ -176,5 +176,9 @@
   "LABEL_BROKEN_TIMESTAMP": "incomplete/missing timestamp",
   "LABEL_NEEDS_CORRECTION": "needs correction",
   "LABEL_NEEDS_OVERTIME_REASON": "needs overtime reason",
-  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Are you sure you want to delete this timestamp? This action cannot be undone."
+  "LABEL_DELETE_TIMESTAMP_CONFIRM": "Are you sure you want to delete this timestamp? This action cannot be undone.",
+  "LABEL_ONLY_FUTURE_ABSENCES": "only view future absences",
+  "LABEL_TABLE_VIEW": "table view",
+  "LABEL_CALENDAR_VIEW": "calendar view",
+  "LABEL_TODAY": "today"
 }

@@ -1,10 +1,10 @@
 /** eslint-disable @typescript-eslint/consistent-type-imports */
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import type {
+import {
   AbsenceSummaryItem,
-  AbsenceUserSummary,
-  AbsenceUserSummaryYear} from 'src/models/Absence';
+  type AbsenceUserSummary,
+  type AbsenceUserSummaryYear} from 'src/models/Absence';
 import  {
   AbsenceSignedStatus
 } from 'src/models/Absence';
@@ -25,7 +25,7 @@ const { t } = useI18n();
 const q = useQuasar();
 
 const absences = ref([] as Absence[]);
-const absenceSummaryItems = ref([] as AbsenceSummaryItem[]);
+const absenceSummaryItems = ref<AbsenceSummaryItem[]>([]);
 const mySummary = ref(null as AbsenceUserSummary | null);
 const absenceReasons = ref<AbsenceReason[]>([]);
 const promptAbsenceCreationDialog = ref(false);
@@ -105,7 +105,7 @@ function loadAbsenceSummary() {
   BeeTimeClock.queryAbsenceSummary()
     .then((result) => {
       if (result.status === 200) {
-        absenceSummaryItems.value = result.data.Data;
+        absenceSummaryItems.value = result.data.Data.map(s => AbsenceSummaryItem.fromApi(s));
       }
     })
     .catch((error: ErrorResponse) => {

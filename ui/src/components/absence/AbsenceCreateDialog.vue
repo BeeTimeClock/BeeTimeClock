@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
 import type { AbsenceCreateRequest, AbsenceReason } from 'src/models/Absence';
-import { type AbsenceSummaryItem } from 'src/models/Absence';
+import { AbsenceSummaryItem } from 'src/models/Absence';
 import { computed, ref } from 'vue';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import type { ErrorResponse } from 'src/models/Base';
@@ -32,7 +32,7 @@ function loadAbsenceSummary() {
   BeeTimeClock.queryAbsenceSummary()
     .then((result) => {
       if (result.status === 200) {
-        absenceSummaryItems.value = result.data.Data;
+        absenceSummaryItems.value = result.data.Data.map(s => AbsenceSummaryItem.fromApi(s));
       }
     })
     .catch((error: ErrorResponse) => {

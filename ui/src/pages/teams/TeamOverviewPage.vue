@@ -8,7 +8,7 @@ import {
   Absence,
   AbsenceSignedStatus,
   type AbsenceSignRequest,
-  type AbsenceSummaryItem,
+  AbsenceSummaryItem,
 } from 'src/models/Absence';
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
 import { type User } from 'src/models/Authentication';
@@ -120,7 +120,7 @@ function loadTeamAbensces() {
   BeeTimeClock.queryTeamAbsenceSummary(selectedTeam.value.ID)
     .then((result) => {
       if (result.status === 200) {
-        teamAbsenceSummaries.value = result.data.Data;
+        teamAbsenceSummaries.value = result.data.Data.map(s => AbsenceSummaryItem.fromApi(s));
       }
     })
     .catch((error) => {

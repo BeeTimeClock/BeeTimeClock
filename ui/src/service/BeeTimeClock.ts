@@ -28,7 +28,7 @@ import type {
 import type {
   AbsenceCreateRequest,
   AbsenceSignRequest,
-  AbsenceSummaryItem,
+  ApiAbsenceSummaryItem,
   AbsenceUserSummary,
   ApiAbsence,
   ApiAbsenceReason,
@@ -189,7 +189,7 @@ class BeeTimeClock {
   }
 
   queryAbsenceSummary(): Promise<
-    AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>
+    AxiosResponse<BaseResponse<ApiAbsenceSummaryItem[]>>
   > {
     return api.get('/api/v1/absence/query/users/summary');
   }
@@ -582,7 +582,7 @@ class BeeTimeClock {
 
   queryTeamAbsenceSummary(
     teamId: number,
-  ): Promise<AxiosResponse<BaseResponse<AbsenceSummaryItem[]>>> {
+  ): Promise<AxiosResponse<BaseResponse<ApiAbsenceSummaryItem[]>>> {
     return api.get(`/api/v1/team/${teamId}/absence/query/users/summary`);
   }
 
@@ -660,15 +660,19 @@ class BeeTimeClock {
     teamId: number,
     userId: number,
     timestampId: number,
-  ) : Promise<AxiosResponse<BaseResponse<never>>> {
-    return api.delete(`/api/v1/team/${teamId}/user/${userId}/timestamp/${timestampId}`)
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(
+      `/api/v1/team/${teamId}/user/${userId}/timestamp/${timestampId}`,
+    );
   }
 
   administrationTimestampUserDelete(
     userId: number,
     timestampId: number,
-  ) : Promise<AxiosResponse<BaseResponse<never>>> {
-    return api.delete(`/api/v1/administration/user/${userId}/timestamp/${timestampId}`)
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(
+      `/api/v1/administration/user/${userId}/timestamp/${timestampId}`,
+    );
   }
 }
 
