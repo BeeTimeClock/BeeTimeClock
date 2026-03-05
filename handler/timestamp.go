@@ -179,8 +179,22 @@ func (h *Timestamp) TimestampQuerySuspiciousCount(c *gin.Context) {
 		return
 	}
 
+	maxDurationHours := 12
+
+	result := []model.TimestampSuspiciousResponse{}
+	for _, timestamp := range timestamps {
+		if timestamp.IsToday() {
+			continue
+		}
+
+		result = append(result, model.TimestampSuspiciousResponse{
+			Timestamp:        timestamp,
+			SuspiciousReason: timestamp.SuspiciousReason(float64(maxDurationHours)),
+		})
+	}
+
 	c.JSON(http.StatusOK, model.NewSuccessResponse(model.CountResult{
-		Count: len(timestamps),
+		Count: len(result),
 	}))
 }
 
