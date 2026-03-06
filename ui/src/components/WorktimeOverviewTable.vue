@@ -16,6 +16,11 @@ const allowDelete = defineModel('allow-delete', {
   default: false,
 });
 
+const disableEdit = defineModel('disable-edit', {
+  type: Boolean,
+  default: false,
+});
+
 const emits = defineEmits(['create', 'delete']);
 
 const columns = [
@@ -180,6 +185,7 @@ function deleteTimestamp(timestamp: Timestamp) {
                     @click="promptTimestampCorrectionView(timestamp)"
                   />
                   <q-btn
+                    v-if="!disableEdit"
                     color="primary"
                     icon="edit"
                     @click="

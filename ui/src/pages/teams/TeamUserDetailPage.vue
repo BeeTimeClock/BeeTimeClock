@@ -13,6 +13,9 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import type { ErrorResponse } from 'src/models/Base';
 import { showErrorMessage } from 'src/helper/message';
 import { useRoute } from 'vue-router';
+import { OvertimeMonthQuota } from 'src/models/Overtime';
+import OvertimeTableComponent from 'components/overtime/OvertimeTableComponent.vue';
+import { formatIndustryHourMinutes } from 'src/helper/formatter';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -23,11 +26,13 @@ const userId = computed(() => {
   return parseInt(route.params.userId as string);
 });
 
+const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
 const user = ref<User>();
 const selectedTab = ref('worktime');
 const timestampYearMonths = ref<TimestampYearMonthGrouped>({});
 const timestampCurrentMonthGrouped = ref<TimestampGroup[]>([]);
 const expanded = ref(['']);
+const overtimeTotal = ref<number>();
 
 const selectedYear = ref<number>(new Date().getFullYear());
 const selectedMonth = ref<number>(new Date().getMonth() + 1);
@@ -53,6 +58,54 @@ async function loadUser() {
     })
     .catch((error: ErrorResponse) => {
       showErrorMessage(error.message);
+    });
+}
+
+function loadOvertimeTotal() {
+  if (!user.value) return;
+
+  BeeTimeClock.teamUserOvertimeTotal(teamId.value, user.value.ID)
+    .then((result) => {
+      if (result.status === 200) {
+        overtimeTotal.value = result.data.Data.Total;
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
+}
+
+function loadOvertimeQuotas() {
+  if (!user.value) return;
+  BeeTimeClock.teamUserOvertimeMonthQuotas(teamId.value, user.value.ID)
+    .then((result) => {
+      if (result.status === 200) {
+        overtimeQuotas.value = result.data.Data.sort(
+          (a, b) => b.Year - a.Year || b.Month - a.Month,
+        ).map((s) => OvertimeMonthQuota.fromApi(s));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
+    });
+}
+
+function calculateOvertimeMonth(overtimeMonthQuota: OvertimeMonthQuota) {
+  if (!user.value) return;
+  BeeTimeClock.teamUserCalculateOvertimeMonthQuota(
+    teamId.value,
+    user.value.ID,
+    overtimeMonthQuota.Year,
+    overtimeMonthQuota.Month,
+  )
+    .then((result) => {
+      if (result.status === 200) {
+        loadOvertimeQuotas();
+        loadOvertimeTotal();
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.response?.data.Message);
     });
 }
 
@@ -93,7 +146,8 @@ function deleteTimestamp(timestamp: Timestamp) {
 }
 
 async function loadTimestampMonths() {
-  const result = await BeeTimeClock.administrationTimestampUserMonths(
+  const result = await BeeTimeClock.teamTimestampUserMonths(
+    teamId.value,
     userId.value,
   );
 
@@ -103,7 +157,6 @@ async function loadTimestampMonths() {
 }
 
 watch(selectedYear, () => {
-  console.log('year changed');
   if (
     timestampYearMonths.value[selectedYear.value]!.includes(selectedMonth.value)
   ) {
@@ -115,7 +168,6 @@ watch(selectedYear, () => {
 });
 
 watch(selectedMonth, () => {
-  console.log('month changed');
   loadTimestampGrouped();
 });
 
@@ -123,55 +175,117 @@ onMounted(async () => {
   await loadUser();
   await loadTimestampMonths();
   loadTimestampGrouped();
+  loadOvertimeQuotas();
+  loadOvertimeTotal();
 });
 </script>
 
 <template>
-  <q-page>
+  <q-page padding>
     <div v-if="user">
-      <q-tabs v-model="selectedTab" inline-label class="bg-primary text-white">
-        <q-tab name="worktime" icon="alarms" :label="t('LABEL_WORKTIME')" />
-      </q-tabs>
-      <q-tab-panels v-model="selectedTab">
-        <q-tab-panel name="worktime">
+      <q-card>
+        <q-card-section>
           <div class="row">
-            <div class="col">
-              <q-select
-                v-model.number="selectedYear"
-                :options="timestampYears"
-                :label="t('LABEL_YEAR')"
-              />
-            </div>
-            <div class="col">
-              <q-select
-                class="q-ml-md"
-                v-model.number="selectedMonth"
-                :options="timestampMonths"
-                :label="t('LABEL_MONTH')"
-              />
-            </div>
-          </div>
-          <div class="row q-mt-md">
-            <div class="col">
-              <OvertimeMonth
-                v-if="user"
-                v-model:model-user-id="user.ID"
-                v-model:model-month="selectedMonth"
-                v-model:model-year="selectedYear"
-                class="full-width"
-              />
-            </div>
-          </div>
-          <div class="q-pt-lg">
-            <WorktimeOverviewTable
-              v-model="timestampCurrentMonthGrouped"
-              @create="loadTimestampGrouped()"
-              @delete="deleteTimestamp"
-              allow-delete
+            <q-input
+              class="col"
+              readonly
+              :label="t('LABEL_USERNAME')"
+              v-model="user.Username"
+            />
+            <q-input
+              class="col"
+              :label="t('LABEL_STAFF_NUMBER')"
+              v-model="user.StaffNumber"
+              readonly
             />
           </div>
-        </q-tab-panel>
-      </q-tab-panels>
+
+          <div class="row">
+            <q-input
+              class="col"
+              :label="t('LABEL_FIRST_NAME')"
+              v-model="user.FirstName"
+              readonly
+            />
+            <q-input
+              class="col"
+              :label="t('LABEL_LAST_NAME')"
+              v-model="user.LastName"
+              readonly
+            />
+          </div>
+          <div class="row">
+            <q-input
+              class="col"
+              :label="t('LABEL_OVERTIME_TOTAL')"
+              :model-value="formatIndustryHourMinutes(overtimeTotal ?? 0)"
+              readonly
+            />
+          </div>
+        </q-card-section>
+      </q-card>
+      <q-card class="q-mt-md">
+        <q-tabs
+          v-model="selectedTab"
+          inline-label
+          class="bg-primary text-white"
+        >
+          <q-tab name="worktime" icon="alarms" :label="t('LABEL_WORKTIME')" />
+          <q-tab
+            name="overtime"
+            icon="more_time"
+            :label="t('LABEL_OVERTIME')"
+          />
+        </q-tabs>
+        <q-tab-panels v-model="selectedTab">
+          <q-tab-panel name="worktime">
+            <div class="row">
+              <div class="col">
+                <q-select
+                  v-model.number="selectedYear"
+                  :options="timestampYears"
+                  :label="t('LABEL_YEAR')"
+                />
+              </div>
+              <div class="col">
+                <q-select
+                  class="q-ml-md"
+                  v-model.number="selectedMonth"
+                  :options="timestampMonths"
+                  :label="t('LABEL_MONTH')"
+                />
+              </div>
+            </div>
+            <div class="row q-mt-md">
+              <div class="col">
+                <OvertimeMonth
+                  v-if="user"
+                  v-model:model-team-id="teamId"
+                  v-model:model-user-id="user.ID"
+                  v-model:model-month="selectedMonth"
+                  v-model:model-year="selectedYear"
+                  class="full-width"
+                />
+              </div>
+            </div>
+            <div class="q-pt-lg">
+              <WorktimeOverviewTable
+                v-model="timestampCurrentMonthGrouped"
+                @create="loadTimestampGrouped()"
+                @delete="deleteTimestamp"
+                allow-delete
+                disable-edit
+              />
+            </div>
+          </q-tab-panel>
+          <q-tab-panel name="overtime">
+            <OvertimeTableComponent
+              v-model="overtimeQuotas"
+              @calculateOvertimeMonth="calculateOvertimeMonth"
+            />
+          </q-tab-panel>
+        </q-tab-panels>
+      </q-card>
     </div>
     <q-inner-loading :showing="!user" />
   </q-page>

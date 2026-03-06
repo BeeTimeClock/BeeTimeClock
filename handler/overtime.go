@@ -17,14 +17,16 @@ type Overtime struct {
 	overtime       *repository.Overtime
 	user           *repository.User
 	overtimeWorker *worker.Overtime
+	team           *repository.Team
 }
 
-func NewOvertime(env *core.Environment, user *repository.User, overtime *repository.Overtime, overtimeWorker *worker.Overtime) *Overtime {
+func NewOvertime(env *core.Environment, user *repository.User, overtime *repository.Overtime, overtimeWorker *worker.Overtime, team *repository.Team) *Overtime {
 	return &Overtime{
 		env:            env,
 		user:           user,
 		overtime:       overtime,
 		overtimeWorker: overtimeWorker,
+		team:           team,
 	}
 }
 
@@ -176,4 +178,102 @@ func (h *Overtime) userTotalOvertime(c *gin.Context, user *model.User) {
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
+func (h *Overtime) TeamUserOvertimeGetAll(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	overtimeMonths, err := h.overtime.OvertimeMonthQuotaFindByUserID(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(overtimeMonths))
+}
+
+func (h *Overtime) TeamUserOvertimeTotal(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	h.userTotalOvertime(c, &user)
+}
+
+func (h *Overtime) TeamUserOvertimeCalculateMonth(c *gin.Context) {
+	user, success := getUserFromParam(c, h.user)
+	if !success {
+		return
+	}
+
+	team, success := getTeamFromParam(c, h.team)
+	if !success {
+		return
+	}
+
+	executingUser, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	_, err = checkUserIsUserTeamlead(c, &team, &executingUser, &user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, model.NewErrorResponse(err))
+		return
+	}
+
+	yearParam := c.Param("year")
+	year, err := strconv.Atoi(yearParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	monthParam := c.Param("month")
+	month, err := strconv.Atoi(monthParam)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	h.calculateUserMonth(c, &user, year, month)
 }

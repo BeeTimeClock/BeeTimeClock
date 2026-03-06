@@ -22,6 +22,7 @@ import { OvertimeMonthQuota } from 'src/models/Overtime';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
 import { type MissingDay } from 'src/models/MissingDays';
 import formatDate = date.formatDate;
+import OvertimeTableComponent from 'components/overtime/OvertimeTableComponent.vue';
 
 const { t } = useI18n();
 
@@ -65,30 +66,6 @@ const overtimeSubtractions = [
     label: t('LABEL_HOUR', 2),
   },
 ];
-
-const overtimeColumns = [
-  {
-    name: 'Date',
-    required: true,
-    label: t('LABEL_DATE'),
-    align: 'left',
-    field: 'identifier',
-    sortable: true,
-  },
-  {
-    name: 'Hours',
-    required: true,
-    label: t('LABEL_HOUR', 2),
-    field: 'Hours',
-    align: 'right',
-    sortable: true,
-    format: (val: number) => `${val.toFixed(2)}`,
-  },
-  {
-    name: 'actions',
-    label: t('LABEL_ACTION', 2),
-  },
-] as QTableColumn[];
 
 const missingDaysColumn = ref<QTableColumn[]>([
   {
@@ -477,6 +454,7 @@ function deleteUserAbsence(absence: Absence) {
               @create="loadTimestampGrouped()"
               @delete="deleteTimestamp"
               allow-delete
+              disable-edit
             />
           </div>
         </q-tab-panel>
@@ -489,70 +467,7 @@ function deleteUserAbsence(absence: Absence) {
               {{ formatIndustryHourMinutes(overtimeTotal) }}
             </q-card-section>
           </q-card>
-          <q-table
-            flat
-            bordered
-            :rows="overtimeQuotas"
-            :columns="overtimeColumns"
-            row-key="identifier"
-            :pagination="emptyPagination"
-            hide-pagination
-          >
-            <template v-slot:header="props">
-              <q-tr :props="props">
-                <q-th auto-width />
-                <q-th v-for="col in props.cols" :key="col.name" :props="props">
-                  {{ col.label }}
-                </q-th>
-              </q-tr>
-            </template>
-
-            <template v-slot:body="props">
-              <q-tr :props="props">
-                <q-td auto-width>
-                  <q-btn
-                    size="xs"
-                    color="secondary"
-                    round
-                    dense
-                    @click="props.expand = !props.expand"
-                    :icon="props.expand ? 'remove' : 'add'"
-                  />
-                </q-td>
-                <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                  <template v-if="col.name === 'actions'">
-                    <q-btn
-                      icon="refresh"
-                      @click="calculateOvertimeMonth(props.row)"
-                      color="primary"
-                    />
-                  </template>
-                  <template v-else>
-                    {{ col.value }}
-                  </template>
-                </q-td>
-              </q-tr>
-              <q-tr v-show="props.expand" :props="props">
-                <q-td colspan="100%">
-                  <q-list separator>
-                    <q-item
-                      v-for="entry in props.row.Summary"
-                      :key="entry.Identifier"
-                    >
-                      <q-item-section>
-                        <q-item-label caption>{{ entry.Source }}</q-item-label>
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-section>{{
-                          entry.Value.toFixed(2)
-                        }}</q-item-section>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-td>
-              </q-tr>
-            </template>
-          </q-table>
+          <OvertimeTableComponent v-model="overtimeQuotas" @calculate="calculateOvertimeMonth" />
         </q-tab-panel>
         <q-tab-panel name="absence">
           <q-select

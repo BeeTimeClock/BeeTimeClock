@@ -666,6 +666,39 @@ class BeeTimeClock {
     );
   }
 
+  teamUserOvertimeMonthQuotas(
+    teamId: number,
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota[]>>> {
+    return api.get(`/api/v1/team/${teamId}/user/${userId}/overtime`);
+  }
+
+  teamUserCalculateOvertimeMonthQuota(
+    teamId: number,
+    userId: number,
+    year: number,
+    month: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiOvertimeMonthQuota>>> {
+    return api.post(
+      `/api/v1/team/${teamId}/user/${userId}/overtime/action/calculate/${year}/${month}`,
+      {},
+    );
+  }
+
+  teamTimestampUserMonths(
+    teamId: number,
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>> {
+    return api.get(`/api/v1/team/${teamId}/user/${userId}/timestamp/months`);
+  }
+
+  teamUserOvertimeTotal(
+    teamId: number,
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<SumResponse>>> {
+    return api.get(`/api/v1/team/${teamId}/user/${userId}/overtime/total`);
+  }
+
   administrationTimestampUserDelete(
     userId: number,
     timestampId: number,

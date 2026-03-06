@@ -112,7 +112,7 @@ func main() {
 	migrationHandler := handler.NewMigration(env, migrationRepo)
 	administrationHandler := handler.NewAdministration(env, settingsRepo, absenceRepo, holidayRepo)
 	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo, holidayRepo)
-	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker)
+	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker, teamRepo)
 	holidayHandler := handler.NewHoliday(env, holidayRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
@@ -378,6 +378,10 @@ func main() {
 				team.GET(":teamID/absence/query/users/summary", absenceHandler.AbsenceQueryTeamUsersSummary)
 				team.GET(":teamID/absence/open", absenceHandler.AbsenceTeamOpen)
 				team.POST(":teamID/absence/:absenceID/sign", absenceHandler.AbsenceSign)
+
+				team.GET(":teamID/user/:userID/overtime", overtimeHandler.TeamUserOvertimeGetAll)
+				team.GET(":teamID/user/:userID/overtime/total", overtimeHandler.TeamUserOvertimeTotal)
+				team.POST(":teamID/user/:userID/overtime/action/calculate/:year/:month", overtimeHandler.TeamUserOvertimeCalculateMonth)
 			}
 
 			user := v1.Group("user")
