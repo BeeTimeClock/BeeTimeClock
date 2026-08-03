@@ -207,7 +207,7 @@ if (auth.isAdministrator() || props.showReason) {
             v-for="event in getEventsForDate(timestamp.date)"
             :key="event.id"
           >
-            <div class="q-calendar__ellipsis bg-primary q-mt-sm">
+            <div class="q-calendar__ellipsis bg-primary q-mt-sm text-white">
               <div class="title q-calendar__ellipsis">
                 {{ event.calendarCaption }}
               </div>
