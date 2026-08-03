@@ -188,6 +188,7 @@ func AbsenceReturns(absences []Absence, user *User, withReason bool, showRealRea
 
 		if withSigningInfo {
 			returnObj.SignedUserID = absence.SignedUserID
+			returnObj.SignedUser = absence.SignedUser
 			returnObj.SignedMessage = absence.SignedMessage
 			returnObj.SignedStatus = absence.SignedStatus
 			returnObj.SignedTimestamp = absence.SignedTimestamp

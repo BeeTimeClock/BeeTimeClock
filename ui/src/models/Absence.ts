@@ -53,6 +53,8 @@ export interface ApiAbsence {
   Deletable: boolean;
   UserID: number;
   User: ApiUser;
+  SignedStatus?: AbsenceSignedStatus;
+  SignedUser?: User;
 }
 
 export interface ApiAbsenceSummaryItem {
@@ -61,7 +63,6 @@ export interface ApiAbsenceSummaryItem {
   AbsenceTill: Date;
   NettoDays: number;
   User: User;
-  SignedStatus?: AbsenceSignedStatus;
   Reason?: string;
 }
 
@@ -76,7 +77,7 @@ export class AbsenceSummaryItem extends autoImplement<ApiAbsenceSummaryItem>() {
       caption += ` - ${this.Reason}`;
     }
 
-    return caption
+    return caption;
   }
 }
 
@@ -125,5 +126,10 @@ export class Absence extends autoImplement<ApiAbsence>() {
 
   get userMapped() {
     return User.fromApi(this.User);
+  }
+
+  get signedUserMapped(): User | null {
+    if (!this.SignedUser) return null;
+    return User.fromApi(this.SignedUser);
   }
 }

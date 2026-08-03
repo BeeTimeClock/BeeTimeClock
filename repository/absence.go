@@ -151,7 +151,8 @@ func (r *Absence) FindByUserIDAndYear(userID uint, year int) ([]model.Absence, e
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var items []model.Absence
-	result := db.Find(&items, "user_id = ? and absence_from between ? and ?", userID,
+
+	result := db.Preload(clause.Associations).Find(&items, "user_id = ? and absence_from between ? and ?", userID,
 		time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(year, 12, 31, 23, 59, 0, 0, time.UTC))
 

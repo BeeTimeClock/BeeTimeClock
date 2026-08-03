@@ -12,7 +12,6 @@ import type {
   TimestampGroup,
   TimestampYearMonthGrouped,
 } from 'src/models/Timestamp';
-import type { AbsenceReason } from 'src/models/Absence';
 import { Absence } from 'src/models/Absence';
 import { date, type QTableColumn } from 'quasar';
 import { useQuasar } from 'quasar';
@@ -40,7 +39,6 @@ const selectedMonth = ref<number>(new Date().getMonth() + 1);
 const absenceYears = ref<number[]>([]);
 const absences = ref<Absence[]>([]);
 const selectedAbsenceYear = ref<number>(new Date().getFullYear());
-const absenceReasons = ref<AbsenceReason[]>([]);
 const overtimeTotal = ref<number>();
 const q = useQuasar();
 const missingDays = ref<MissingDay[]>([]);
@@ -175,18 +173,6 @@ function loadAbsences() {
     });
 }
 
-function loadAbsenceReasons() {
-  BeeTimeClock.absenceReasons()
-    .then((result) => {
-      if (result.status === 200) {
-        absenceReasons.value = result.data.Data;
-      }
-    })
-    .catch((error: ErrorResponse) => {
-      showErrorMessage(error.message);
-    });
-}
-
 const overtimeQuotas = ref<OvertimeMonthQuota[]>([]);
 
 function loadOvertimeQuotas() {
@@ -268,7 +254,6 @@ function deleteTimestamp(timestamp: Timestamp) {
 
 onMounted(async () => {
   loadUser();
-  loadAbsenceReasons();
   loadAbsenceYears();
   loadAbsences();
   await loadTimestampMonths();
@@ -299,19 +284,11 @@ watch(selectedAbsenceYear, () => {
   loadAbsences();
 });
 
-function getAbsenceReasonDescriptionById(id: number): string {
-  const res = absenceReasons.value.filter((s) => s.ID == id);
-  if (res.length == 0) return '';
-
-  return res[0]!.Description;
-}
-
 const columns = [
   {
-    name: 'absenceReasonId',
+    name: 'absenceReason',
     label: t('LABEL_REASON'),
-    field: 'AbsenceReasonID',
-    format: (val: number) => getAbsenceReasonDescriptionById(val),
+    field: 'Reason',
     align: 'left',
   },
   {
@@ -330,6 +307,23 @@ const columns = [
     name: 'absenceNettoDays',
     label: t('LABEL_NETTO_DAYS'),
     field: 'NettoDays',
+  },
+  {
+    name: 'signed',
+    label: t('LABEL_STATUS'),
+    field: 'SignedStatus',
+  },
+  {
+    name: 'signedBy',
+    label: t('LABEL_SIGNED_BY'),
+    field: 'signedUserMapped',
+    format: (val: User | null) => val?.displayName,
+  },
+  {
+    name: 'createdAt',
+    label: t('LABEL_CREATED_AT'),
+    field: 'CreatedAt',
+    format: (val: string) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
   },
 ] as QTableColumn[];
 
@@ -467,7 +461,10 @@ function deleteUserAbsence(absence: Absence) {
               {{ formatIndustryHourMinutes(overtimeTotal) }}
             </q-card-section>
           </q-card>
-          <OvertimeTableComponent v-model="overtimeQuotas" @calculate="calculateOvertimeMonth" />
+          <OvertimeTableComponent
+            v-model="overtimeQuotas"
+            @calculate="calculateOvertimeMonth"
+          />
         </q-tab-panel>
         <q-tab-panel name="absence">
           <q-select

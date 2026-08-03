@@ -3,7 +3,7 @@ import { date, type QTableColumn } from 'quasar';
 import { QCalendarMonth, today } from '@quasar/quasar-ui-qcalendar';
 import type { AbsenceSummaryItem } from 'src/models/Absence';
 import type { User } from 'src/models/Authentication';
-import { type PropType, ref } from 'vue';
+import { ref } from 'vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from 'stores/microsoft-auth';
@@ -41,20 +41,18 @@ const calendarMonth = computed({
 });
 
 const calerndarYears = computed(() => {
-  if (!props.modelValue) return [];
+  if (!absences.value) return [];
 
-  const years = props.modelValue.map((item) =>
+  const years = absences.value.map((item) =>
     new Date(item.AbsenceFrom).getFullYear(),
   );
 
   return [...new Set(years)].sort((a, b) => a - b);
 });
 
+const absences = defineModel<AbsenceSummaryItem[]>({ required: true });
+
 const props = defineProps({
-  modelValue: {
-    type: Array as PropType<AbsenceSummaryItem[]>,
-    required: true,
-  },
   flat: {
     type: Boolean,
     default: false,
@@ -72,8 +70,8 @@ const calendar = ref<QCalendarMonth>();
 const selectedDate = ref(today());
 
 function getEventsForDate(date: string) {
-  if (!props.modelValue) return [];
-  const values = props.modelValue.filter((item) => {
+  if (!absences.value) return [];
+  const values = absences.value.filter((item) => {
     const from = new Date(item.AbsenceFrom);
     const till = new Date(item.AbsenceTill);
     const current = new Date(date);
@@ -90,9 +88,8 @@ const getTitle = computed(() => {
 });
 
 const rows = computed(() => {
-  if (!props.modelValue) return [];
-
-  const data = props.modelValue;
+  if (!absences.value) return [];
+  const data = absences.value;
   return data
     .filter((a) => {
       if (showOnlyFuture.value) {
@@ -142,6 +139,26 @@ if (auth.isAdministrator() || props.showReason) {
     name: 'absenceReason',
     label: t('LABEL_REASON'),
     field: 'Reason',
+  } as QTableColumn);
+
+  columns.push({
+    name: 'signed',
+    label: t('LABEL_STATUS'),
+    field: 'SignedStatus',
+  } as QTableColumn);
+
+  columns.push({
+    name: 'signedBy',
+    label: t('LABEL_SIGNED_BY'),
+    field: 'SignedUser',
+    format: (val: User|null) => `${val?.FirstName ?? ''} ${val?.LastName ?? ''}`,
+  } as QTableColumn);
+
+  columns.push({
+    name: 'createdAt',
+    label: t('LABEL_CREATED_AT'),
+    field: 'CreatedAt',
+    format: (val: string) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
   } as QTableColumn);
 }
 </script>

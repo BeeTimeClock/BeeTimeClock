@@ -402,6 +402,12 @@ func (h *Absence) AbsenceQueryTeamUsersSummary(c *gin.Context) {
 		return
 	}
 
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
 	teamMemberIds := []uint{}
 	for _, member := range team.Members {
 		teamMemberIds = append(teamMemberIds, member.UserID)
@@ -413,7 +419,11 @@ func (h *Absence) AbsenceQueryTeamUsersSummary(c *gin.Context) {
 		return
 	}
 
-	result := model.AbsenceReturns(absences, nil, true, auth.IsAdministrator(c), false)
+	isLead := slices.ContainsFunc(team.Members, func(member model.TeamMember) bool {
+		return member.UserID == user.ID && (member.Level == model.TeamLevel_Lead || member.Level == model.TeamLevel_LeadSurrogate)
+	})
+
+	result := model.AbsenceReturns(absences, nil, true, isLead, isLead)
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 

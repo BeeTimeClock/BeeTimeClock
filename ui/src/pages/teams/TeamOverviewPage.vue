@@ -41,6 +41,12 @@ const columns = [
     align: 'left',
   },
   {
+    name: 'createdAt',
+    label: t('LABEL_CREATED_AT'),
+    field: 'CreatedAt',
+    format: (val: string) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
+  },
+  {
     name: 'actions',
     label: t('LABEL_ACTION', 2),
     align: 'right',
@@ -120,7 +126,9 @@ function loadTeamAbensces() {
   BeeTimeClock.queryTeamAbsenceSummary(selectedTeam.value.ID)
     .then((result) => {
       if (result.status === 200) {
-        teamAbsenceSummaries.value = result.data.Data.map(s => AbsenceSummaryItem.fromApi(s));
+        teamAbsenceSummaries.value = result.data.Data.map((s) =>
+          AbsenceSummaryItem.fromApi(s),
+        );
       }
     })
     .catch((error) => {
@@ -249,7 +257,13 @@ onMounted(() => {
                   v-if="isLead"
                   color="primary"
                   icon="visibility"
-                  :to="{ name: 'TeamUserDetail', params: { teamId: selectedTeam.ID, userId: props.row.UserID } }"
+                  :to="{
+                    name: 'TeamUserDetail',
+                    params: {
+                      teamId: selectedTeam.ID,
+                      userId: props.row.UserID,
+                    },
+                  }"
                   class="q-mr-sm"
                 />
                 <q-btn
