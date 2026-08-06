@@ -26,7 +26,8 @@ import (
 )
 
 var (
-	GitCommit string
+	GitCommit    string
+	IsUiEmbedded bool
 )
 
 const (
@@ -102,6 +103,12 @@ func main() {
 		panic(err)
 	}
 
+	workTimeModelRepo := repository.NewWorkTimeModel(env)
+	err = workTimeModelRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	timestampWorker := worker.NewTimestamp(env, userRepo, externalWorkRepo, timestampRepo, holidayRepo, absenceRepo)
 	overtimeWorker := worker.NewOvertime(env, userRepo, externalWorkRepo, timestampRepo, holidayRepo, overtimeRepo, timestampWorker, absenceRepo)
 
@@ -114,6 +121,7 @@ func main() {
 	externalWorkHandler := handler.NewExternalWork(env, userRepo, externalWorkRepo, holidayRepo)
 	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker, teamRepo)
 	holidayHandler := handler.NewHoliday(env, holidayRepo)
+	workTimeModelHandler := handler.NewWorkTimeModel(env, userRepo, workTimeModelRepo)
 
 	authProvider := auth.NewAuthProvider(env, userRepo)
 
@@ -195,11 +203,15 @@ func main() {
 			return
 		}
 
-		c.Redirect(http.StatusTemporaryRedirect, "/ui/")
+		if IsUiEmbedded {
+			c.Redirect(http.StatusTemporaryRedirect, "/ui/")
+		}
 	})
 
-	uiFSSub, _ := fs.Sub(uiFS, "ui/dist/spa")
-	r.StaticFS("/ui/", &uiWrapper{FileSystem: http.FS(uiFSSub)})
+	if IsUiEmbedded {
+		uiFSSub, _ := fs.Sub(uiFS, "ui/dist/spa")
+		r.StaticFS("/ui/", &uiWrapper{FileSystem: http.FS(uiFSSub)})
+	}
 
 	v1 := r.Group("api/v1")
 	{
@@ -257,6 +269,11 @@ func main() {
 					administrationUser.POST(":userID/overtime/action/calculate/:year/:month", overtimeHandler.OvertimeUserCalculateMonth)
 
 					administrationUser.GET(":userID/query/missing", timestampHandler.TimestampUserMissingEntries)
+
+					administrationUser.GET(":userID/worktime", workTimeModelHandler.AdministrationUserWorktimeGet)
+					administrationUser.POST(":userID/worktime", workTimeModelHandler.AdministrationUserWorktimeCreate)
+					administrationUser.PUT(":userID/worktime/:userWorktimeID", workTimeModelHandler.AdministrationUserWorktimeUpdate)
+					administrationUser.DELETE(":userID/worktime/:userWorktimeID", workTimeModelHandler.AdministrationUserWorktimeDelete)
 				}
 				administrationAbsence := administration.Group("absence")
 				{
@@ -294,6 +311,13 @@ func main() {
 					administrationHolidays.GET("custom", administrationHandler.AdministrationGetHolidaysCustom)
 					administrationHolidays.POST("custom", administrationHandler.AdministrationCreateHolidaysCustom)
 					administrationHolidays.DELETE("custom/:id", administrationHandler.AdministrationDeleteHolidaysCustom)
+				}
+
+				administrationWorktime := administration.Group("worktime")
+				{
+					administrationWorktime.GET("", workTimeModelHandler.AdministrationWorkTimeModelGet)
+					administrationWorktime.POST("", workTimeModelHandler.AdministrationWorkTimeModelCreate)
+					administrationWorktime.PUT(":workTimeModelID", workTimeModelHandler.AdministrationWorkTimeModelUpdate)
 				}
 			}
 

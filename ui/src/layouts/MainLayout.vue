@@ -213,6 +213,13 @@ async function refresh() {
             >
               {{ t('MENU_TEAMS') }}
             </q-item>
+            <q-item
+              clickable
+              v-ripple
+              :to="{ name: 'AdministrationWorktimeModelOverview' }"
+            >
+              {{ t('MENU_WORKTIME_MODELS') }}
+            </q-item>
             <q-expansion-item
               :content-inset-level="0.5"
               :label="t('MENU_SETTINGS')"

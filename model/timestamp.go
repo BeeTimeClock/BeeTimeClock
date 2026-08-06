@@ -132,12 +132,12 @@ func (t *Timestamp) CalculateWorkingHours() (float64, float64) {
 	return calculatedTime, completeTime - calculatedTime
 }
 
-type WorkTimeModel struct {
+type WorkTimeModelOld struct {
 	DefaultHoursPerWeekday   float64
 	HoursPerWeekdayException map[time.Weekday]float64
 }
 
-func (w *WorkTimeModel) GetWorkingHoursForDay(input time.Time, holidays Holidays) float64 {
+func (w *WorkTimeModelOld) GetWorkingHoursForDay(input time.Time, holidays Holidays) float64 {
 	if holidays.Contains(input) {
 		return 0.0
 	}
@@ -151,8 +151,8 @@ func (w *WorkTimeModel) GetWorkingHoursForDay(input time.Time, holidays Holidays
 	return neededHours
 }
 
-func DefaultWorkTimeModel() WorkTimeModel {
-	return WorkTimeModel{
+func DefaultWorkTimeModel() WorkTimeModelOld {
+	return WorkTimeModelOld{
 		DefaultHoursPerWeekday: 8.0,
 		HoursPerWeekdayException: map[time.Weekday]float64{
 			time.Friday:   6.0,

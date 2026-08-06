@@ -414,13 +414,19 @@ func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+	worktimeModel, err := user.GetWorkTimeModel(time.Date(year, time.Month(month), 1, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(worktimeModel, holidays, year, month)
 
 	subtractedHours := 0.0
 	if overtimeHours > 0 {
-		switch user.OvertimeSubtractionModel {
+		switch worktimeModel.OvertimeSubtractionModel {
 		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-			subtractedHours = user.OvertimeSubtractionAmount
+			subtractedHours = worktimeModel.OvertimeSubtractionAmount
 
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
@@ -428,7 +434,7 @@ func (h *Timestamp) TimestampUserQueryMonthOvertime(c *gin.Context) {
 
 			break
 		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			subtractedHours = neededHours / 100 * worktimeModel.OvertimeSubtractionAmount
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
 			}
@@ -519,6 +525,8 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("%#v\n", user.WorkTimeModels)
+
 	yearParam := c.Param("year")
 	year, err := strconv.Atoi(yearParam)
 	if err != nil {
@@ -545,13 +553,19 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+	worktimeModel, err := user.GetWorkTimeModel(time.Date(year, time.Month(month), 1, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(worktimeModel, holidays, year, month)
 
 	subtractedHours := 0.0
 	if overtimeHours > 0 {
-		switch user.OvertimeSubtractionModel {
+		switch worktimeModel.OvertimeSubtractionModel {
 		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-			subtractedHours = user.OvertimeSubtractionAmount
+			subtractedHours = worktimeModel.OvertimeSubtractionAmount
 
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
@@ -559,7 +573,7 @@ func (h *Timestamp) TimestampQueryMonthOvertime(c *gin.Context) {
 
 			break
 		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			subtractedHours = neededHours / 100 * worktimeModel.OvertimeSubtractionAmount
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
 			}
@@ -979,13 +993,19 @@ func (h *Timestamp) TeamUserTimestampQueryMonthOvertime(c *gin.Context) {
 		return
 	}
 
-	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+	worktimeModel, err := user.GetWorkTimeModel(time.Date(year, time.Month(month), 1, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	neededHours := model.GetNeededHoursForMonth(worktimeModel, holidays, year, month)
 
 	subtractedHours := 0.0
 	if overtimeHours > 0 {
-		switch user.OvertimeSubtractionModel {
+		switch worktimeModel.OvertimeSubtractionModel {
 		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-			subtractedHours = user.OvertimeSubtractionAmount
+			subtractedHours = worktimeModel.OvertimeSubtractionAmount
 
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
@@ -993,7 +1013,7 @@ func (h *Timestamp) TeamUserTimestampQueryMonthOvertime(c *gin.Context) {
 
 			break
 		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-			subtractedHours = neededHours / 100 * user.OvertimeSubtractionAmount
+			subtractedHours = neededHours / 100 * worktimeModel.OvertimeSubtractionAmount
 			if subtractedHours > overtimeHours {
 				subtractedHours = overtimeHours
 			}

@@ -84,7 +84,7 @@ func (r *User) FindByID(id uint) (model.User, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.User
-	result := db.Find(&item, "id = ?", id)
+	result := db.Preload("WorkTimeModels.WorkTimeModel").Preload(clause.Associations).Find(&item, "id = ?", id)
 
 	if result.RowsAffected == 0 {
 		return model.User{}, fmt.Errorf("no user with id %d found", id)
@@ -101,7 +101,7 @@ func (r *User) FindByUsername(username string) (model.User, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.User
-	result := db.Find(&item, "username = ?", username)
+	result := db.Preload("WorkTimeModels.WorkTimeModel").Preload(clause.Associations).Find(&item, "username = ?", username)
 
 	if result.RowsAffected == 0 {
 		return model.User{}, ErrUserNotFound
@@ -118,7 +118,7 @@ func (r *User) FindUserByApikey(apikey string) (model.User, error) {
 	defer r.env.DatabaseManager.CloseConnection(db)
 
 	var item model.UserApikey
-	result := db.Preload(clause.Associations).Find(&item, "apikey = ?", apikey)
+	result := db.Preload("WorkTimeModels.WorkTimeModel").Preload(clause.Associations).Find(&item, "apikey = ?", apikey)
 
 	if result.RowsAffected == 0 {
 		return model.User{}, ErrUserNotFound

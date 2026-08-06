@@ -51,7 +51,13 @@ func (w *Timestamp) CalculateMonth(userID uint, year int, month int) (model.Time
 	if err != nil {
 		return result, err
 	}
-	neededHours := model.GetNeededHoursForMonth(holidays, year, month)
+
+	worktimeModel, err := user.GetWorkTimeModel(time.Date(year, time.Month(month), 1, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		return result, err
+	}
+
+	neededHours := model.GetNeededHoursForMonth(worktimeModel, holidays, year, month)
 
 	grouped := make(map[time.Time]model.TimestampGroup)
 
@@ -92,15 +98,15 @@ func (w *Timestamp) CalculateMonth(userID uint, year int, month int) (model.Time
 
 	subtractedHours := 0.0
 	if result.OvertimeHours > 0 {
-		switch user.OvertimeSubtractionModel {
+		switch worktimeModel.OvertimeSubtractionModel {
 		case model.OVERTIME_SUBTRACTION_MODEL_HOURS:
-			subtractedHours = user.OvertimeSubtractionAmount
-			if result.OvertimeHours < user.OvertimeSubtractionAmount {
+			subtractedHours = worktimeModel.OvertimeSubtractionAmount
+			if result.OvertimeHours < worktimeModel.OvertimeSubtractionAmount {
 				subtractedHours = result.OvertimeHours
 			}
 			break
 		case model.OVERTIME_SUBTRACTION_MODEL_PERCENTAGE:
-			subtractionAmount := (neededHours / 100 * user.OvertimeSubtractionAmount)
+			subtractionAmount := (neededHours / 100 * worktimeModel.OvertimeSubtractionAmount)
 			subtractedHours = subtractionAmount
 			if result.OvertimeHours < subtractionAmount {
 				subtractedHours = result.OvertimeHours

@@ -1,45 +1,42 @@
 package model
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
+var ErrUserWorkTimeModelNotFoundForTimestamp = errors.New("no worktime model found for this timestamp")
+
 type UserAccessLevel string
-type OvertimeSubtractionModel string
 
 const (
-	USER_ACCESS_LEVEL_ADMIN               UserAccessLevel          = "admin"
-	USER_ACCESS_LEVEL_USER                UserAccessLevel          = "user"
-	OVERTIME_SUBTRACTION_MODEL_HOURS      OvertimeSubtractionModel = "hours"
-	OVERTIME_SUBTRACTION_MODEL_PERCENTAGE OvertimeSubtractionModel = "percentage"
+	USER_ACCESS_LEVEL_ADMIN UserAccessLevel = "admin"
+	USER_ACCESS_LEVEL_USER  UserAccessLevel = "user"
 )
 
 type User struct {
 	gorm.Model
-	Username                  string `gorm:"unique"`
-	Password                  string
-	FirstName                 string
-	LastName                  string
-	AccessLevel               UserAccessLevel
-	HolidayDaysPerYear        uint
-	WorkingHoursPerWeek       float64
-	OvertimeSubtractionModel  OvertimeSubtractionModel
-	OvertimeSubtractionAmount float64
-	StaffNumber               int64
+	Username            string `gorm:"unique"`
+	Password            string
+	FirstName           string
+	LastName            string
+	AccessLevel         UserAccessLevel
+	HolidayDaysPerYear  uint
+	WorkingHoursPerWeek float64
+	StaffNumber         int64
+	WorkTimeModels      []UserWorktime
 }
 
 func NewUser(username string) User {
 	return User{
-		Username:                  username,
-		HolidayDaysPerYear:        30,
-		WorkingHoursPerWeek:       38.0,
-		AccessLevel:               USER_ACCESS_LEVEL_USER,
-		OvertimeSubtractionModel:  OVERTIME_SUBTRACTION_MODEL_PERCENTAGE,
-		OvertimeSubtractionAmount: 10,
+		Username:            username,
+		WorkingHoursPerWeek: 38.0,
+		AccessLevel:         USER_ACCESS_LEVEL_USER,
 	}
 }
 
@@ -59,25 +56,21 @@ type UserCreateRequest struct {
 }
 
 type UserUpdateRequest struct {
-	AccessLevel               UserAccessLevel
-	FirstName                 string
-	LastName                  string
-	HolidayDaysPerYear        uint
-	WorkingHoursPerWeek       float64
-	OvertimeSubtractionAmount float64
-	OvertimeSubtractionModel  OvertimeSubtractionModel
-	StaffNumber               int64
+	AccessLevel         UserAccessLevel
+	FirstName           string
+	LastName            string
+	HolidayDaysPerYear  uint
+	WorkingHoursPerWeek float64
+	StaffNumber         int64
 }
 
 type UserResponse struct {
 	gorm.Model
-	Username                  string
-	FirstName                 string
-	LastName                  string
-	AccessLevel               string
-	OvertimeSubtractionModel  OvertimeSubtractionModel
-	OvertimeSubtractionAmount float64
-	StaffNumber               int64
+	Username    string
+	FirstName   string
+	LastName    string
+	AccessLevel string
+	StaffNumber int64
 }
 
 type UserApikey struct {
@@ -102,14 +95,12 @@ type UserApikeyResponse struct {
 
 func (u *User) GetUserResponse() UserResponse {
 	return UserResponse{
-		Model:                     u.Model,
-		Username:                  u.Username,
-		FirstName:                 u.FirstName,
-		LastName:                  u.LastName,
-		AccessLevel:               string(u.AccessLevel),
-		OvertimeSubtractionModel:  u.OvertimeSubtractionModel,
-		OvertimeSubtractionAmount: u.OvertimeSubtractionAmount,
-		StaffNumber:               u.StaffNumber,
+		Model:       u.Model,
+		Username:    u.Username,
+		FirstName:   u.FirstName,
+		LastName:    u.LastName,
+		AccessLevel: string(u.AccessLevel),
+		StaffNumber: u.StaffNumber,
 	}
 }
 
@@ -138,4 +129,37 @@ func (u *User) SetPassword(plaintext string) error {
 
 func (u *User) FullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+}
+
+func (u *User) GetWorkTimeModel(date time.Time) (*WorkTimeModel, error) {
+	idx := slices.IndexFunc(u.WorkTimeModels, func(i UserWorktime) bool {
+		return i.ValidFrom.Before(date) && (i.ValidTill == nil || i.ValidTill.After(date))
+	})
+
+	if idx == -1 {
+		return nil, ErrUserWorkTimeModelNotFoundForTimestamp
+	}
+
+	return &u.WorkTimeModels[idx].WorkTimeModel, nil
+}
+
+type UserWorktime struct {
+	gorm.Model
+	UserID          uint
+	User            User
+	WorkTimeModelID uint
+	WorkTimeModel   WorkTimeModel
+	ValidFrom       time.Time
+	ValidTill       *time.Time
+}
+
+type UserWorktimeCreateRequest struct {
+	WorktimeModelID uint      `binding:"required"`
+	ValidFrom       time.Time `binding:"required"`
+	ValidTill       *time.Time
+}
+
+type UserWorktimeUpdateRequest struct {
+	ValidFrom time.Time
+	ValidTill *time.Time
 }

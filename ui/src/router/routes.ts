@@ -111,6 +111,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('pages/administration/AdministrationTeamDetailPage.vue')
           },
           {
+            name: 'AdministrationWorktimeModelOverview',
+            path: 'worktime-model',
+            component: () => import('pages/administration/AdministrationWorktimeModelOverviewPage.vue')
+          },
+          {
             path: 'settings',
             children: [
               {

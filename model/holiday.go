@@ -62,7 +62,7 @@ func (h Holidays) Contains(date time.Time) bool {
 	return false
 }
 
-func GetNeededHoursForMonth(holidays Holidays, year int, month int) float64 {
+func GetNeededHoursForMonth(workTimeModel *WorkTimeModel, holidays Holidays, year int, month int) float64 {
 	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
@@ -82,10 +82,10 @@ func GetNeededHoursForMonth(holidays Holidays, year int, month int) float64 {
 		}
 
 		if !skip {
-			if worktime, exists := DefaultWorkTimeModel().HoursPerWeekdayException[currentDay.Weekday()]; exists {
+			if worktime, exists := workTimeModel.HoursPerWeekdayException[currentDay.Weekday()]; exists {
 				hours += worktime
 			} else {
-				hours += DefaultWorkTimeModel().DefaultHoursPerWeekday
+				hours += workTimeModel.WorkingHoursPerWeekday
 			}
 		}
 		currentDay = currentDay.AddDate(0, 0, 1)

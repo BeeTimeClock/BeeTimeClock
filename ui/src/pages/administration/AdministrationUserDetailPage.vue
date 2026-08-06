@@ -22,6 +22,10 @@ import { formatIndustryHourMinutes } from 'src/helper/formatter';
 import { type MissingDay } from 'src/models/MissingDays';
 import formatDate = date.formatDate;
 import OvertimeTableComponent from 'components/overtime/OvertimeTableComponent.vue';
+import {
+  UserWorkTime,
+  WorkTimeModel,
+} from 'src/models/WorkTimeModel';
 
 const { t } = useI18n();
 
@@ -42,6 +46,14 @@ const selectedAbsenceYear = ref<number>(new Date().getFullYear());
 const overtimeTotal = ref<number>();
 const q = useQuasar();
 const missingDays = ref<MissingDay[]>([]);
+const userWorkTimes = ref<UserWorkTime[]>([]);
+const workTimeModels = ref<WorkTimeModel[]>([]);
+const showUserWorkTimeDialog = ref(false);
+const newUserWorkTime = ref({
+  WorkTimeModelID: null as number | null,
+  ValidFrom: '',
+  ValidTill: null as string | null,
+});
 
 const accessLevelOptions = [
   {
@@ -51,17 +63,6 @@ const accessLevelOptions = [
   {
     value: 'user',
     label: t('LABEL_USER'),
-  },
-];
-
-const overtimeSubtractions = [
-  {
-    value: 'percentage',
-    label: t('LABEL_PERCENTAGE'),
-  },
-  {
-    value: 'hours',
-    label: t('LABEL_HOUR', 2),
   },
 ];
 
@@ -252,6 +253,123 @@ function deleteTimestamp(timestamp: Timestamp) {
     });
 }
 
+function loadUserWorkTimes() {
+  BeeTimeClock.administrationGetUserWorkTimes(userId.value)
+    .then((result) => {
+      if (result.status === 200) {
+        userWorkTimes.value = result.data.Data.map((s) =>
+          UserWorkTime.fromApi(s),
+        );
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
+function loadWorkTimeModels() {
+  BeeTimeClock.administrationGetWorkTimeModels()
+    .then((result) => {
+      if (result.status === 200) {
+        workTimeModels.value = result.data.Data.map((s) =>
+          WorkTimeModel.fromApi(s),
+        );
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
+function openUserWorkTimeDialog() {
+  newUserWorkTime.value = {
+    WorkTimeModelID: null,
+    ValidFrom: '',
+    ValidTill: null,
+  };
+  showUserWorkTimeDialog.value = true;
+}
+
+function createUserWorktime() {
+  if (
+    !newUserWorkTime.value.WorkTimeModelID ||
+    !newUserWorkTime.value.ValidFrom
+  ) {
+    return;
+  }
+
+  BeeTimeClock.administrationCreateUserWorkTime(userId.value, {
+    WorkTimeModelID: newUserWorkTime.value.WorkTimeModelID,
+    ValidFrom: new Date(newUserWorkTime.value.ValidFrom),
+    ValidTill: newUserWorkTime.value.ValidTill
+      ? new Date(newUserWorkTime.value.ValidTill)
+      : null,
+  })
+    .then((result) => {
+      if (result.status === 201) {
+        showUserWorkTimeDialog.value = false;
+        loadUserWorkTimes();
+        showInfoMessage(
+          t('MSG_CREATE_SUCCESS', { item: t('LABEL_USER_WORKTIME') }),
+        );
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
+function deleteUserWorkTime(userWorktime: UserWorkTime) {
+  q.dialog({
+    message: t('MSG_DELETE', {
+      item: t('LABEL_USER_WORKTIME'),
+      identifier: userWorktime.WorkTimeModel.Name,
+    }),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    BeeTimeClock.administrationDeleteUserWorkTime(userId.value, userWorktime.ID)
+      .then((result) => {
+        if (result.status === 204) {
+          loadUserWorkTimes();
+          showInfoMessage(
+            t('MSG_DELETE_SUCCESS', {
+              item: t('LABEL_USER_WORKTIME'),
+              identifier: '',
+            }),
+          );
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
+  });
+}
+
+const userWorktimeColumns = ref<QTableColumn[]>([
+  {
+    name: 'workTimeModel',
+    label: t('LABEL_WORKTIME_MODEL'),
+    field: (row: UserWorkTime) => row.WorkTimeModel?.Name,
+    align: 'left',
+  },
+  {
+    name: 'validFrom',
+    label: t('LABEL_VALID_FROM'),
+    field: 'ValidFrom',
+    format: (val: Date) => formatDate(val, 'DD.MM.YYYY'),
+    align: 'left',
+  },
+  {
+    name: 'validTill',
+    label: t('LABEL_VALID_TILL'),
+    field: 'ValidTill',
+    format: (val: Date | null) =>
+      val ? formatDate(val, 'DD.MM.YYYY') : t('LABEL_NO_END_DATE'),
+    align: 'left',
+  },
+]);
+
 onMounted(async () => {
   loadUser();
   loadAbsenceYears();
@@ -261,6 +379,8 @@ onMounted(async () => {
   loadOvertimeTotal();
   loadOvertimeQuotas();
   loadMissingDays();
+  loadUserWorkTimes();
+  loadWorkTimeModels();
 });
 
 watch(selectedYear, () => {
@@ -390,18 +510,6 @@ function deleteUserAbsence(absence: Absence) {
                 map-options
                 emit-value
               />
-              <q-select
-                :label="t('LABEL_OVERTIME_SUBTRACTION_MODEL')"
-                :options="overtimeSubtractions"
-                v-model="user.OvertimeSubtractionModel"
-                map-options
-                emit-value
-              />
-              <q-input
-                :label="t('LABEL_OVERTIME_SUBTRACTION_AMOUNT')"
-                v-model.number="user.OvertimeSubtractionAmount"
-                type="number"
-              />
               <q-input
                 :label="t('LABEL_STAFF_NUMBER')"
                 v-model.number="user.StaffNumber"
@@ -411,6 +519,46 @@ function deleteUserAbsence(absence: Absence) {
             <q-card-actions>
               <q-btn :label="t('BTN_SAVE')" color="primary" @click="saveUser" />
             </q-card-actions>
+          </q-card>
+          <q-card class="q-mt-md">
+            <q-card-section class="bg-primary text-white text-h6">
+              <div class="row">
+                {{ t('LABEL_WORKTIME_ASSIGNMENTS') }}
+                <q-space />
+                <q-btn
+                  icon="add"
+                  color="secondary"
+                  @click="openUserWorkTimeDialog"
+                />
+              </div>
+            </q-card-section>
+            <q-card-section>
+              <q-table
+                :rows="userWorkTimes"
+                :columns="userWorktimeColumns"
+                flat
+              >
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                      :align="col.align || 'left'"
+                    >
+                      {{ col.value }}
+                    </q-td>
+                    <q-td auto-width>
+                      <q-btn
+                        icon="delete"
+                        color="negative"
+                        @click="deleteUserWorkTime(props.row)"
+                      />
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card-section>
           </q-card>
         </q-tab-panel>
         <q-tab-panel name="worktime">
@@ -530,6 +678,55 @@ function deleteUserAbsence(absence: Absence) {
         </q-tab-panel>
       </q-tab-panels>
     </div>
+    <q-dialog v-model="showUserWorkTimeDialog">
+      <q-card>
+        <q-card-section class="bg-primary text-white text-h6">
+          {{ t('LABEL_CREATE', { item: t('LABEL_USER_WORKTIME') }) }}
+        </q-card-section>
+        <q-form @submit="createUserWorktime">
+          <q-card-section>
+            <q-select
+              v-model="newUserWorkTime.WorkTimeModelID"
+              :options="
+                workTimeModels.map((s) => ({
+                  label: s.Name,
+                  value: s.ID,
+                }))
+              "
+              :label="t('LABEL_WORKTIME_MODEL')"
+              class="full-width"
+              map-options
+              emit-value
+            />
+            <q-input
+              v-model="newUserWorkTime.ValidFrom"
+              :label="t('LABEL_VALID_FROM')"
+              type="date"
+            />
+            <q-input
+              v-model="newUserWorkTime.ValidTill"
+              :label="t('LABEL_VALID_TILL')"
+              type="date"
+            />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              :label="t('BTN_CANCEL')"
+              color="primary"
+              v-close-popup
+              type="reset"
+            />
+            <q-btn
+              flat
+              :label="t('BTN_CREATE')"
+              color="primary"
+              type="submit"
+            />
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 

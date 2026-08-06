@@ -50,6 +50,13 @@ import type {
 } from 'src/models/ExternalWork';
 import type { ApiOvertimeMonthQuota } from 'src/models/Overtime';
 import type { ApiHoliday, ApiHolidayCustom } from 'src/models/Holiday';
+import type {
+  ApiUserWorkTime,
+  ApiUserWorkTimeCreateRequest,
+  ApiWorkTimeModel,
+  ApiWorkTimeModelCreateRequest,
+  ApiWorkTimeModelUpdateRequest,
+} from 'src/models/WorkTimeModel';
 
 class BeeTimeClock {
   login(
@@ -705,6 +712,58 @@ class BeeTimeClock {
   ): Promise<AxiosResponse<BaseResponse<never>>> {
     return api.delete(
       `/api/v1/administration/user/${userId}/timestamp/${timestampId}`,
+    );
+  }
+
+  administrationGetWorkTimeModels(): Promise<
+    AxiosResponse<BaseResponse<ApiWorkTimeModel[]>>
+  > {
+    return api.get('/api/v1/administration/worktime');
+  }
+
+  administrationCreateWorkTimeModel(
+    request: ApiWorkTimeModelCreateRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiWorkTimeModel>>> {
+    return api.post('/api/v1/administration/worktime', request);
+  }
+
+  administrationUpdateWorkTimeModel(
+    workTimeModelId: number,
+    request: ApiWorkTimeModelUpdateRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiWorkTimeModel>>> {
+    return api.put(`/api/v1/administration/worktime/${workTimeModelId}`, request);
+  }
+
+  administrationGetUserWorkTimes(
+    userId: number,
+  ): Promise<AxiosResponse<BaseResponse<ApiUserWorkTime[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/worktime`);
+  }
+
+  administrationCreateUserWorkTime(
+    userId: number,
+    request: ApiUserWorkTimeCreateRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiUserWorkTime>>> {
+    return api.post(`/api/v1/administration/user/${userId}/worktime`, request);
+  }
+
+  administrationUpdateUserWorkTime(
+    userId: number,
+    userWorktimeId: number,
+    request: ApiWorkTimeModelUpdateRequest,
+  ): Promise<AxiosResponse<BaseResponse<ApiUserWorkTime>>> {
+    return api.put(
+      `/api/v1/administration/user/${userId}/worktime/${userWorktimeId}`,
+      request,
+    );
+  }
+
+  administrationDeleteUserWorkTime(
+    userId: number,
+    userWorktimeId: number,
+  ): Promise<AxiosResponse<BaseResponse<never>>> {
+    return api.delete(
+      `/api/v1/administration/user/${userId}/worktime/${userWorktimeId}`,
     );
   }
 }

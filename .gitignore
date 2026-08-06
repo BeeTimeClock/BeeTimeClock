@@ -1,6 +1,7 @@
 tmp/
 *.db
-ui/dist
+ui/dist/
+!ui/dist/spa/.gitempty
 beetimeclock
 .idea/
 btc.exe
@@ -9,3 +10,4 @@ images/
 output/
 /upload/
 /.env.local
+/BeeTimeClock-Server
