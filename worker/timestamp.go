@@ -82,9 +82,7 @@ func (w *Timestamp) CalculateMonth(userID uint, year int, month int) (model.Time
 		group.WorkingHours += workingHours
 		group.SubtractedHours += subtractedHours
 
-		workTimeModel := model.DefaultWorkTimeModel()
-
-		neededHours := workTimeModel.GetWorkingHoursForDay(timestamp_date, holidays)
+		neededHours := model.GetNeededHoursForTimespan(worktimeModel, holidays, timestamp_date, timestamp_date)
 
 		group.OvertimeHours = group.WorkingHours - neededHours
 

@@ -66,11 +66,15 @@ func GetNeededHoursForMonth(workTimeModel *WorkTimeModel, holidays Holidays, yea
 	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
+	return GetNeededHoursForTimespan(workTimeModel, holidays, firstOfMonth, lastOfMonth)
+}
+
+func GetNeededHoursForTimespan(workTimeModel *WorkTimeModel, holidays Holidays, start time.Time, end time.Time) float64 {
 	hours := 0.0
 
-	currentDay := firstOfMonth
+	currentDay := start
 
-	for !currentDay.After(lastOfMonth) {
+	for !currentDay.After(end) {
 		skip := false
 
 		if currentDay.Weekday() == time.Saturday || currentDay.Weekday() == time.Sunday {

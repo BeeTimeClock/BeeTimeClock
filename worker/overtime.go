@@ -45,6 +45,17 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 
 	firstOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Now().Location())
 	lastOfMonth := firstOfMonth.AddDate(0, 1, 0).Add(-1 * time.Second)
+
+	user, err := w.user.FindByID(userID)
+	if err != nil {
+		return model.OvertimeMonthQuota{}, false, err
+	}
+
+	worktimeModel, err := user.GetWorkTimeModel(firstOfMonth)
+	if err != nil {
+		return model.OvertimeMonthQuota{}, false, err
+	}
+
 	holidays, err := w.holiday.HolidayFindByDateRange(firstOfMonth, lastOfMonth)
 	if err != nil {
 		return model.OvertimeMonthQuota{}, false, err
@@ -73,12 +84,17 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 		return model.OvertimeMonthQuota{}, false, err
 	}
 	for _, absence := range absences {
+		if absence.AbsenceFrom.After(time.Now()) || absence.AbsenceTill.After(time.Now()) {
+			continue
+		}
+
 		switch absence.AbsenceReason.OvertimeImpact {
 		case model.ABESENCE_REASON_OVERTIME_IMPACT_DURATION:
 			duration := absence.AbsenceTill.Sub(absence.AbsenceFrom).Hours()
-
-			result.InsertSummary("absence", &absence.ID, duration, 1.0)
-			break
+			result.InsertSummary("absence", &absence.ID, duration*-1, 1.0)
+		case model.ABESENCE_REASON_OVERTIME_IMPACT_DAYS:
+			hours := model.GetNeededHoursForTimespan(worktimeModel, holidays, absence.AbsenceFrom, absence.AbsenceTill)
+			result.InsertSummary("absence", &absence.ID, hours*-1, 1.0)
 		}
 	}
 
