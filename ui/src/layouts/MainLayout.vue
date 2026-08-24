@@ -1,30 +1,32 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
-import { useAuthStore } from 'stores/microsoft-auth';
-import { useI18n } from 'vue-i18n';
-import type { User } from 'src/models/Authentication';
+import {computed, onMounted, ref, watch} from 'vue';
+import {useAuthStore} from 'stores/microsoft-auth';
+import {useI18n} from 'vue-i18n';
+import type {User} from 'src/models/Authentication';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import type { BackendStatus } from 'src/models/Base';
-import { type ErrorResponse } from 'src/models/Base';
-import { showErrorMessage } from 'src/helper/message';
-import { useRouter } from 'vue-router';
-import { msalProvider } from 'boot/microsoft-msal';
+import type {BackendStatus} from 'src/models/Base';
+import {type ErrorResponse} from 'src/models/Base';
+import {showErrorMessage} from 'src/helper/message';
+import {useRouter} from 'vue-router';
+import {msalProvider} from 'boot/microsoft-msal';
+import {useSettingsStore} from 'stores/settings';
 
-const { t } = useI18n();
+const {t} = useI18n();
 
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 const session = ref(null as User | null);
 const status = ref(null as BackendStatus | null);
 const router = useRouter();
 const leftDrawerOpen = ref(false);
-const { locale } = useI18n({ useScope: 'global' });
+const {locale} = useI18n({useScope: 'global'});
 const isAdministrator = ref(false);
 const missingDaysCount = ref(0);
 const suspiciousCount = ref(0);
 
 const localeOptions = [
-  { value: 'en-US', label: 'English' },
-  { value: 'de', label: 'Deutsch' },
+  {value: 'en-US', label: 'English'},
+  {value: 'de', label: 'Deutsch'},
 ];
 
 const commit = computed(() => {
@@ -33,7 +35,7 @@ const commit = computed(() => {
 
 function logout() {
   authStore.logout();
-  void router.push({ name: 'Login' });
+  void router.push({name: 'Login'});
 }
 
 function toggleLeftDrawer() {
@@ -64,7 +66,18 @@ function loadSuspiciousCount() {
     });
 }
 
+watch(locale, () => {
+  settingsStore.setLanguage(locale.value);
+})
+
+
 onMounted(async () => {
+  settingsStore.load();
+  const lang = settingsStore.language
+  if (lang != null) {
+    locale.value = lang
+  }
+
   await refresh();
   loadMissingDaysCount();
   loadSuspiciousCount();
@@ -110,7 +123,7 @@ async function refresh() {
 
         <q-toolbar-title>
           <q-avatar square>
-            <img src="logo.svg" alt="btc-logo" />
+            <img src="logo.svg" alt="btc-logo"/>
           </q-avatar>
           Bee Time Clock
         </q-toolbar-title>
@@ -286,14 +299,14 @@ async function refresh() {
       <div class="absolute-bottom">
         <q-list>
           <q-item-label header>
-            <div>Version: {{ commit }}<br /></div>
+            <div>Version: {{ commit }}<br/></div>
           </q-item-label>
         </q-list>
       </div>
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view/>
     </q-page-container>
   </q-layout>
 </template>
