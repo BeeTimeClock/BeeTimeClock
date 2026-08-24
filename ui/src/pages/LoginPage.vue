@@ -154,7 +154,10 @@ function loginWithMicrosoft() {
 }
 
 function gotoDashboard() {
-  void router.push({ name: 'Dashboard' });
+  console.log('going to dashboard')
+  router.push({ name: 'Dashboard' }).catch((error) => {
+    console.log(error);
+  });
 }
 
 onMounted(async () => {
