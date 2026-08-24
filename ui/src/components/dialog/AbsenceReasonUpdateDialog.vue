@@ -10,6 +10,7 @@ const {t} = useI18n();
 
 const show = defineModel('show', { default: false });
 const value = defineModel<AbsenceReason>({ required: true });
+const emits = defineEmits(['created', 'updated'])
 const overtimeImpactOptions = [
   {
     label: t('LABEL_OVERTIME_IMPACT_NONE'),
@@ -43,6 +44,7 @@ function saveAbsenceReason() {
         if (result.status === 201) {
           showInfoMessage(t('MSG_CREATE_SUCCESS', { item: t('LABEL_REASON') }));
           show.value = false;
+          emits('created')
         }
       })
       .catch((error: ErrorResponse) => {
@@ -57,6 +59,7 @@ function saveAbsenceReason() {
         if (result.status === 200) {
           showInfoMessage(t('MSG_UPDATE_SUCCESS'));
           show.value = false;
+          emits('updated', value.value.ID)
         }
       })
       .catch((error: ErrorResponse) => {

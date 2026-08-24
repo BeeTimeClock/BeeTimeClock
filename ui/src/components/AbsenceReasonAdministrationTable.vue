@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { AbsenceReason, AbsenceReasonImpact } from 'src/models/Absence';
-import { useI18n } from 'vue-i18n';
+import {onMounted, ref} from 'vue';
+import {AbsenceReason, AbsenceReasonImpact} from 'src/models/Absence';
+import {useI18n} from 'vue-i18n';
 import BeeTimeClock from 'src/service/BeeTimeClock';
-import { showErrorMessage } from 'src/helper/message';
-import type { ErrorResponse } from 'src/models/Base';
+import {showErrorMessage} from 'src/helper/message';
+import type {ErrorResponse} from 'src/models/Base';
 import AbsenceReasonUpdateDialog from 'components/dialog/AbsenceReasonUpdateDialog.vue';
 
-const { t } = useI18n();
+const {t} = useI18n();
 const absenceReasons = ref<AbsenceReason[]>([]);
 const selectedAbsenceReason = ref<AbsenceReason>();
 const showDialog = ref(false);
@@ -48,13 +48,16 @@ onMounted(() => {
       <q-item-section>
         <q-item-label>{{ absenceReason.Description }}</q-item-label>
         <q-item-label caption v-if="absenceReason.Impact">{{
-          absenceReason.Impact
-        }}</q-item-label>
+            absenceReason.Impact
+          }}
+        </q-item-label>
         <q-item-label
           caption
           v-if="absenceReason.Impact == AbsenceReasonImpact.Hours"
-          >{{ absenceReason.ImpactHours
-          }}{{ t('LABEL_HOUR', absenceReason.ImpactHours) }}</q-item-label
+        >{{
+            absenceReason.ImpactHours
+          }}{{ t('LABEL_HOUR', absenceReason.ImpactHours) }}
+        </q-item-label
         >
       </q-item-section>
       <q-item-section side>
@@ -77,7 +80,8 @@ onMounted(() => {
       </q-item-section>
     </q-item>
   </q-list>
-  <AbsenceReasonUpdateDialog v-if="selectedAbsenceReason" v-model="selectedAbsenceReason" v-model:show="showDialog"/>
+  <AbsenceReasonUpdateDialog v-if="selectedAbsenceReason" v-model="selectedAbsenceReason" v-model:show="showDialog"
+                             @created="() => loadAbsenceReasons()" @updated="() =>loadAbsenceReasons()"/>
 </template>
 
 <style scoped></style>
