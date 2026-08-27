@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -20,14 +21,16 @@ type AuthHeader struct {
 }
 
 type AuthProvider struct {
-	env  *core.Environment
-	user *repository.User
+	env      *core.Environment
+	user     *repository.User
+	terminal *repository.Terminal
 }
 
-func NewAuthProvider(env *core.Environment, user *repository.User) AuthProvider {
+func NewAuthProvider(env *core.Environment, user *repository.User, terminal *repository.Terminal) AuthProvider {
 	return AuthProvider{
-		env:  env,
-		user: user,
+		env:      env,
+		user:     user,
+		terminal: terminal,
 	}
 }
 
@@ -68,6 +71,48 @@ func (a *AuthProvider) AuthRequired(c *gin.Context) {
 		return
 	}
 
+}
+
+func (a *AuthProvider) TerminalAuthRequired(c *gin.Context) {
+	authorizationHeader := c.GetHeader("Authorization")
+
+	if !strings.HasPrefix(authorizationHeader, "Basic ") {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("wrong header")))
+		return
+	}
+
+	encodedAuth := strings.Replace(authorizationHeader, "Basic ", "", 1)
+
+	decodedBytes, err := base64.StdEncoding.DecodeString(encodedAuth)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("cant decode base64 ")))
+		return
+	}
+
+	decoded := string(decodedBytes)
+	parts := strings.Split(decoded, ":")
+
+	clientId := parts[0]
+	apikey := parts[1]
+
+	terminal, err := a.terminal.TerminalFindByClientId(clientId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	valid, err := terminal.CheckApikey(apikey)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	if !valid {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(fmt.Errorf("credentials not valid")))
+		return
+	}
+
+	c.Next()
 }
 
 func AdministratorAccessRequired(c *gin.Context) {

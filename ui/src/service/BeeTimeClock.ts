@@ -57,6 +57,12 @@ import type {
   ApiWorkTimeModelCreateRequest,
   ApiWorkTimeModelUpdateRequest,
 } from 'src/models/WorkTimeModel';
+import type {
+  ApiTerminal,
+  ApiTerminalCreateRequest,
+  ApiUserToken,
+  ApiUserTokenCreateRequest,
+} from 'src/models/Terminal';
 
 class BeeTimeClock {
   login(
@@ -766,6 +772,39 @@ class BeeTimeClock {
       `/api/v1/administration/user/${userId}/worktime/${userWorktimeId}`,
     );
   }
+
+  administrationTerminalList() :Promise<AxiosResponse<BaseResponse<ApiTerminal[]>>> {
+    return api.get('/api/v1/administration/terminal')
+  }
+
+  administrationTerminalGet(terminalId: number) :Promise<AxiosResponse<BaseResponse<ApiTerminal>>> {
+    return api.get(`/api/v1/administration/terminal/${terminalId}`)
+  }
+
+  administrationTerminalCreate(terminalCreateRequest: ApiTerminalCreateRequest) :Promise<AxiosResponse<BaseResponse<ApiTerminal>>> {
+    return api.post(`/api/v1/administration/terminal`, terminalCreateRequest)
+  }
+
+  administrationTerminalRegenerate(terminalId: number) :Promise<AxiosResponse<BaseResponse<ApiTerminal>>> {
+    return api.post(`/api/v1/administration/terminal/${terminalId}/regenerate`)
+  }
+
+  administrationTerminalDelete(terminalId: number) :Promise<AxiosResponse<BaseResponse<undefined>>> {
+    return api.delete(`/api/v1/administration/terminal/${terminalId}`)
+  }
+
+  administrationUserTokenList(userId: number) :Promise<AxiosResponse<BaseResponse<ApiUserToken[]>>> {
+    return api.get(`/api/v1/administration/user/${userId}/token`)
+  }
+
+  administrationUserTokenCreate(userId: number, userTokenCreateRequest: ApiUserTokenCreateRequest) :Promise<AxiosResponse<BaseResponse<ApiUserToken>>> {
+    return api.post(`/api/v1/administration/user/${userId}/token`, userTokenCreateRequest)
+  }
+
+  administrationUserTokenDelete(userId: number, tokenId: number) :Promise<AxiosResponse<BaseResponse<undefined>>> {
+    return api.delete(`/api/v1/administration/user/${userId}/token/${tokenId}`)
+  }
+
 }
 
 export default new BeeTimeClock();

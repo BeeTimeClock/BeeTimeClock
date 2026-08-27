@@ -149,7 +149,7 @@ async function refresh() {
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-scroll-area
         style="
-          height: calc(100% - 80px);
+          height: calc(100% - 80px - 50px);
           margin-top: 80px;
           border-right: 1px solid #ddd;
         "
@@ -280,6 +280,13 @@ async function refresh() {
                 >
                   {{ t('MENU_HOLIDAYS') }}
                 </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  :to="{ name: 'AdministrationSettingsTerminal' }"
+                >
+                  {{ t('MENU_TERMINAL') }}
+                </q-item>
               </q-list>
             </q-expansion-item>
           </div>
@@ -296,12 +303,13 @@ async function refresh() {
           <div>{{ session.Username }}</div>
         </div>
       </div>
-      <div class="absolute-bottom">
-        <q-list>
-          <q-item-label header>
-            <div>Version: {{ commit }}<br/></div>
-          </q-item-label>
-        </q-list>
+      <div
+        class="absolute-bottom row items-center"
+        style="height: 50px; border-top: 1px solid #ddd"
+      >
+        <q-item-label header>
+          <div>Version: {{ commit }}</div>
+        </q-item-label>
       </div>
     </q-drawer>
 

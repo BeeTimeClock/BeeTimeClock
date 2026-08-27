@@ -13,10 +13,12 @@ import (
 var ErrUserWorkTimeModelNotFoundForTimestamp = errors.New("no worktime model found for this timestamp")
 
 type UserAccessLevel string
+type UserTokenType string
 
 const (
 	USER_ACCESS_LEVEL_ADMIN UserAccessLevel = "admin"
 	USER_ACCESS_LEVEL_USER  UserAccessLevel = "user"
+	USER_TOKEN_TYPE_CHIP    UserTokenType   = "chip"
 )
 
 type User struct {
@@ -82,9 +84,22 @@ type UserApikey struct {
 	ValidTill   time.Time
 }
 
+type UserToken struct {
+	gorm.Model
+	UserID          uint
+	User            User
+	TokenType       UserTokenType
+	TokenIdentifier string `gorm:"unique"`
+}
+
 type UserApikeyCreateRequest struct {
 	Description string `binding:"required"`
 	ValidTill   time.Time
+}
+
+type UserTokenCreateRequest struct {
+	TokenType       UserTokenType
+	TokenIdentifier string `binding:"required"`
 }
 
 type UserApikeyResponse struct {

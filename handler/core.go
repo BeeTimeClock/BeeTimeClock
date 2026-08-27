@@ -54,6 +54,13 @@ func getTimestampFromParam(c *gin.Context, timestampRepo *repository.Timestamp, 
 	return timestamp, true
 }
 
+func getIdFromParam(c *gin.Context, paramName string) (uint, error) {
+	idParam := c.Param(paramName)
+	id, err := strconv.ParseUint(idParam, 10, 64)
+
+	return uint(id), err
+}
+
 func getUserFromParam(c *gin.Context, userRepo *repository.User) (model.User, bool) {
 	userIdParam := c.Param("userID")
 	userId, err := strconv.Atoi(userIdParam)

@@ -109,6 +109,12 @@ func main() {
 		panic(err)
 	}
 
+	terminalRepo := repository.NewTerminal(env)
+	err = terminalRepo.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	timestampWorker := worker.NewTimestamp(env, userRepo, externalWorkRepo, timestampRepo, holidayRepo, absenceRepo)
 	overtimeWorker := worker.NewOvertime(env, userRepo, externalWorkRepo, timestampRepo, holidayRepo, overtimeRepo, timestampWorker, absenceRepo)
 
@@ -122,8 +128,9 @@ func main() {
 	overtimeHandler := handler.NewOvertime(env, userRepo, overtimeRepo, overtimeWorker, teamRepo)
 	holidayHandler := handler.NewHoliday(env, holidayRepo)
 	workTimeModelHandler := handler.NewWorkTimeModel(env, userRepo, workTimeModelRepo)
+	terminalHandler := handler.NewTerminal(env, userRepo, terminalRepo, timestampRepo)
 
-	authProvider := auth.NewAuthProvider(env, userRepo)
+	authProvider := auth.NewAuthProvider(env, userRepo, terminalRepo)
 
 	go importHolidays(holidayRepo)
 	go overtimeWorker.CalculateMissingMonths()
@@ -274,6 +281,10 @@ func main() {
 					administrationUser.POST(":userID/worktime", workTimeModelHandler.AdministrationUserWorktimeCreate)
 					administrationUser.PUT(":userID/worktime/:userWorktimeID", workTimeModelHandler.AdministrationUserWorktimeUpdate)
 					administrationUser.DELETE(":userID/worktime/:userWorktimeID", workTimeModelHandler.AdministrationUserWorktimeDelete)
+
+					administrationUser.GET(":userID/token", terminalHandler.AdministrationUserList)
+					administrationUser.POST(":userID/token", terminalHandler.AdministrationUserCreate)
+					administrationUser.DELETE(":userID/token/:tokenId", terminalHandler.AdministrationUserTokenDelete)
 				}
 				administrationAbsence := administration.Group("absence")
 				{
@@ -318,6 +329,16 @@ func main() {
 					administrationWorktime.GET("", workTimeModelHandler.AdministrationWorkTimeModelGet)
 					administrationWorktime.POST("", workTimeModelHandler.AdministrationWorkTimeModelCreate)
 					administrationWorktime.PUT(":workTimeModelID", workTimeModelHandler.AdministrationWorkTimeModelUpdate)
+				}
+
+				administrationTerminal := administration.Group("terminal")
+				{
+					administrationTerminal.GET("", terminalHandler.AdministrationTerminalList)
+					administrationTerminal.POST("", terminalHandler.AdministrationTerminalCreate)
+
+					administrationTerminal.GET(":terminalId", terminalHandler.AdministrationTerminalGet)
+					administrationTerminal.DELETE(":terminalId", terminalHandler.AdministrationTerminalDelete)
+					administrationTerminal.POST(":terminalId/regenerate", terminalHandler.AdministrationTerminalRegenerate)
 				}
 			}
 
@@ -419,6 +440,15 @@ func main() {
 			holiday := v1.Group("holidays")
 			{
 				holiday.GET("year/:year", holidayHandler.HolidayYearGet)
+			}
+		}
+
+		v1.Use(authProvider.TerminalAuthRequired)
+		{
+			terminal := v1.Group("terminal")
+			{
+				terminal.POST("checkin", terminalHandler.TerminalCheckin)
+				terminal.POST("checkout", terminalHandler.TerminalCheckout)
 			}
 		}
 	}

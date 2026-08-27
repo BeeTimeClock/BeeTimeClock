@@ -147,6 +147,11 @@ const routes: RouteRecordRaw[] = [
                 path: 'holidays',
                 component: () => import('pages/administration/settings/AdministrationSettingsHolidaysPage.vue')
               },
+              {
+                name: 'AdministrationSettingsTerminal',
+                path: 'terminal',
+                component: () => import('pages/administration/settings/AdministrationSettingsTerminalPage.vue')
+              },
             ],
           },
           {

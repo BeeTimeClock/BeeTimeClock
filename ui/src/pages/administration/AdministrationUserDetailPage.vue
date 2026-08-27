@@ -26,6 +26,7 @@ import {
   UserWorkTime,
   WorkTimeModel,
 } from 'src/models/WorkTimeModel';
+import { UserToken } from 'src/models/Terminal';
 
 const { t } = useI18n();
 
@@ -54,6 +55,19 @@ const newUserWorkTime = ref({
   ValidFrom: '',
   ValidTill: null as string | null,
 });
+const userTokens = ref<UserToken[]>([]);
+const showUserTokenDialog = ref(false);
+const newUserToken = ref({
+  TokenType: 'chip',
+  TokenIdentifier: '',
+});
+
+const tokenTypeOptions = [
+  {
+    value: 'chip',
+    label: 'Chip',
+  },
+];
 
 const accessLevelOptions = [
   {
@@ -346,6 +360,89 @@ function deleteUserWorkTime(userWorktime: UserWorkTime) {
   });
 }
 
+function loadUserTokens() {
+  BeeTimeClock.administrationUserTokenList(userId.value)
+    .then((result) => {
+      if (result.status === 200) {
+        userTokens.value = result.data.Data.map((s) => UserToken.fromApi(s));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
+function openUserTokenDialog() {
+  newUserToken.value = {
+    TokenType: 'chip',
+    TokenIdentifier: '',
+  };
+  showUserTokenDialog.value = true;
+}
+
+function createUserToken() {
+  if (!newUserToken.value.TokenIdentifier) {
+    return;
+  }
+
+  BeeTimeClock.administrationUserTokenCreate(userId.value, {
+    TokenType: newUserToken.value.TokenType,
+    TokenIdentifier: newUserToken.value.TokenIdentifier,
+  })
+    .then((result) => {
+      if (result.status === 201) {
+        showUserTokenDialog.value = false;
+        loadUserTokens();
+        showInfoMessage(t('MSG_CREATE_SUCCESS', { item: t('LABEL_TOKEN') }));
+      }
+    })
+    .catch((error: ErrorResponse) => {
+      showErrorMessage(error.message);
+    });
+}
+
+function deleteUserToken(userToken: UserToken) {
+  q.dialog({
+    message: t('MSG_DELETE', {
+      item: t('LABEL_TOKEN'),
+      identifier: userToken.TokenIdentifier,
+    }),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    BeeTimeClock.administrationUserTokenDelete(userId.value, userToken.ID)
+      .then((result) => {
+        if (result.status === 204) {
+          loadUserTokens();
+          showInfoMessage(
+            t('MSG_DELETE_SUCCESS', {
+              item: t('LABEL_TOKEN'),
+              identifier: '',
+            }),
+          );
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.message);
+      });
+  });
+}
+
+const userTokenColumns = ref<QTableColumn[]>([
+  {
+    name: 'tokenType',
+    label: t('LABEL_TOKEN_TYPE'),
+    field: 'TokenType',
+    align: 'left',
+  },
+  {
+    name: 'tokenIdentifier',
+    label: t('LABEL_TOKEN_IDENTIFIER'),
+    field: 'TokenIdentifier',
+    align: 'left',
+  },
+]);
+
 const userWorktimeColumns = ref<QTableColumn[]>([
   {
     name: 'workTimeModel',
@@ -381,6 +478,7 @@ onMounted(async () => {
   loadMissingDays();
   loadUserWorkTimes();
   loadWorkTimeModels();
+  loadUserTokens();
 });
 
 watch(selectedYear, () => {
@@ -488,6 +586,7 @@ function deleteUserAbsence(absence: Absence) {
           icon="event_busy"
           :label="t('LABEL_MISSING_DAY', 2)"
         />
+        <q-tab name="tokens" icon="key" :label="t('LABEL_TOKEN', 2)" />
       </q-tabs>
       <q-tab-panels v-model="selectedTab">
         <q-tab-panel name="common">
@@ -676,6 +775,51 @@ function deleteUserAbsence(absence: Absence) {
             </template>
           </q-table>
         </q-tab-panel>
+        <q-tab-panel name="tokens">
+          <q-card>
+            <q-card-section class="bg-primary text-white text-h6">
+              <div class="row items-center">
+                {{ t('LABEL_TOKEN', 2) }}
+                <q-space />
+                <q-btn
+                  icon="add"
+                  color="secondary"
+                  @click="openUserTokenDialog"
+                />
+              </div>
+            </q-card-section>
+            <q-card-section>
+              <q-table
+                :rows="userTokens"
+                :columns="userTokenColumns"
+                row-key="ID"
+                flat
+              >
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                      :align="col.align || 'left'"
+                    >
+                      {{ col.value }}
+                    </q-td>
+                    <q-td auto-width>
+                      <q-btn
+                        icon="delete"
+                        color="negative"
+                        flat
+                        dense
+                        @click="deleteUserToken(props.row)"
+                      />
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card-section>
+          </q-card>
+        </q-tab-panel>
       </q-tab-panels>
     </div>
     <q-dialog v-model="showUserWorkTimeDialog">
@@ -707,6 +851,45 @@ function deleteUserAbsence(absence: Absence) {
               v-model="newUserWorkTime.ValidTill"
               :label="t('LABEL_VALID_TILL')"
               type="date"
+            />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              :label="t('BTN_CANCEL')"
+              color="primary"
+              v-close-popup
+              type="reset"
+            />
+            <q-btn
+              flat
+              :label="t('BTN_CREATE')"
+              color="primary"
+              type="submit"
+            />
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="showUserTokenDialog">
+      <q-card>
+        <q-card-section class="bg-primary text-white text-h6">
+          {{ t('LABEL_CREATE', { item: t('LABEL_TOKEN') }) }}
+        </q-card-section>
+        <q-form @submit="createUserToken">
+          <q-card-section>
+            <q-select
+              v-model="newUserToken.TokenType"
+              :options="tokenTypeOptions"
+              :label="t('LABEL_TOKEN_TYPE')"
+              class="full-width"
+              map-options
+              emit-value
+            />
+            <q-input
+              v-model="newUserToken.TokenIdentifier"
+              :label="t('LABEL_TOKEN_IDENTIFIER')"
+              :rules="[(val) => !!val || t('LABEL_TOKEN_IDENTIFIER')]"
             />
           </q-card-section>
           <q-card-actions align="right">

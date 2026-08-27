@@ -29,12 +29,7 @@ func (r *User) Migrate() error {
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		return err
-	}
-
-	err = db.AutoMigrate(&model.UserApikey{})
+	err = db.AutoMigrate(&model.User{}, &model.UserApikey{}, &model.UserToken{})
 	if err != nil {
 		return err
 	}
@@ -252,4 +247,107 @@ func (r *User) UserApikeyFindAllByUserID(userID uint) ([]model.UserApikey, error
 		return items, result.Error
 	}
 	return items, result.Error
+}
+
+var ErrUserTokenNotFound = errors.New("UserToken not found")
+
+func (r *User) UserTokenFindAllByUserID(userID uint) ([]model.UserToken, error) {
+	var items []model.UserToken
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Find(&items, "user_id = ?", userID)
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
+func (r *User) UserTokenFindAll() ([]model.UserToken, error) {
+	var items []model.UserToken
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return items, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Find(&items)
+	if result.Error != nil {
+		return items, result.Error
+	}
+	return items, result.Error
+}
+
+func (r *User) UserTokenFindById(id uint) (model.UserToken, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return model.UserToken{}, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var item model.UserToken
+	result := db.Find(&item, "id = ?", id)
+	if result.Error != nil {
+		return model.UserToken{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return model.UserToken{}, ErrUserTokenNotFound
+	}
+	return item, result.Error
+}
+
+func (r *User) UserTokenInsert(item *model.UserToken) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Create(item)
+	return result.Error
+}
+
+func (r *User) UserTokenUpdate(item *model.UserToken) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Updates(item)
+	return result.Error
+}
+
+func (r *User) UserTokenDelete(item *model.UserToken) error {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	result := db.Delete(item)
+	return result.Error
+}
+
+func (r *User) UserTokenFindByTokenIdentifier(identifier string) (model.UserToken, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return model.UserToken{}, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var item model.UserToken
+	result := db.Preload(clause.Associations).Find(&item, "token_identifier = ?", identifier)
+	if result.Error != nil {
+		return model.UserToken{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return model.UserToken{}, ErrUserTokenNotFound
+	}
+	return item, result.Error
 }
