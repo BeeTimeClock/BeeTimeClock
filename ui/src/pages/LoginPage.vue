@@ -17,29 +17,31 @@
             <div class="text-center text-weight-thin q-mb-sm">
               {{ t('LABEL_LOCAL_SIGN_IN') }}
             </div>
-            <q-input
-              dense
-              outlined
-              v-model="email"
-              :label="t('LABEL_USERNAME')"
-            ></q-input>
-            <q-input
-              dense
-              outlined
-              class="q-mt-md"
-              v-model="password"
-              type="password"
-              :label="t('LABEL_PASSWORD')"
-            ></q-input>
-            <q-btn
-              color="primary"
-              size="md"
-              :label="t('LABEL_SIGN_IN')"
-              no-caps
-              class="full-width q-mt-lg"
-              @click="loginLocal"
-            >
-            </q-btn>
+            <q-form @submit.prevent="loginLocal">
+              <q-input
+                dense
+                outlined
+                v-model="email"
+                :label="t('LABEL_USERNAME')"
+              ></q-input>
+              <q-input
+                dense
+                outlined
+                class="q-mt-md"
+                v-model="password"
+                type="password"
+                :label="t('LABEL_PASSWORD')"
+              ></q-input>
+              <q-btn
+                type="submit"
+                color="primary"
+                size="md"
+                :label="t('LABEL_SIGN_IN')"
+                no-caps
+                class="full-width q-mt-lg"
+              >
+              </q-btn>
+            </q-form>
           </q-card-section>
           <q-separator />
           <q-card-section>

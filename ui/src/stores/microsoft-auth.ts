@@ -10,6 +10,8 @@ const SESSION_STORE_KEY = 'session';
 export const useAuthStore = defineStore('auth', {
   state: () => {
     return {
+      accessToken: localStorage.getItem(ACCESS_TOKEN_STORE_KEY) ?? '',
+      authProvider: localStorage.getItem(AUTH_PROVIDER_STORE_KEY) ?? '',
       msalConfig: {
         auth: {
           clientId: '',
@@ -29,15 +31,14 @@ export const useAuthStore = defineStore('auth', {
     getMsalConfig(state) {
       return state.msalConfig;
     },
-    getAccessToken(): undefined | string {
-      return localStorage.getItem(ACCESS_TOKEN_STORE_KEY) ?? undefined;
+    getAccessToken(state): undefined | string {
+      return state.accessToken !== '' ? state.accessToken : undefined;
     },
-    getAuthProvider(): string {
-      return localStorage.getItem(AUTH_PROVIDER_STORE_KEY) ?? '';
+    getAuthProvider(state): string {
+      return state.authProvider;
     },
-    loggedIn(): boolean {
-      const accessToken = this.getAccessToken;
-      return accessToken != undefined && accessToken != '';
+    loggedIn(state): boolean {
+      return state.accessToken != '';
     },
   },
 
@@ -54,15 +55,17 @@ export const useAuthStore = defineStore('auth', {
       return session.AccessLevel == 'admin';
     },
     logout() {
-      this.setAccessToken('');
-      this.setAuthProvider('');
       localStorage.clear();
       sessionStorage.clear();
+      this.accessToken = '';
+      this.authProvider = '';
     },
     setAccessToken(token: string) {
+      this.accessToken = token;
       localStorage.setItem(ACCESS_TOKEN_STORE_KEY, token);
     },
     setAuthProvider(provider: string) {
+      this.authProvider = provider;
       localStorage.setItem(AUTH_PROVIDER_STORE_KEY, provider);
     },
     setMicrosoftAuthority(tenantId: string) {
