@@ -143,6 +143,32 @@ func (r *Absence) FindByUserID(userID uint) ([]model.Absence, error) {
 	return items, result.Error
 }
 
+func (r *Absence) FindByUserIDAndSigningIsOpen(userID uint) ([]model.Absence, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.Absence
+	result := db.Debug().Find(&items, "user_id = ? and signed_status is NULL", userID)
+
+	return items, result.Error
+}
+
+func (r *Absence) FindByUserIDAndSigningStatus(userID uint, signingStatus model.AbsenceSignedStatus) ([]model.Absence, error) {
+	db, err := r.env.DatabaseManager.GetConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer r.env.DatabaseManager.CloseConnection(db)
+
+	var items []model.Absence
+	result := db.Debug().Find(&items, "user_id = ? and signed_status = ?", userID, signingStatus)
+
+	return items, result.Error
+}
+
 func (r *Absence) FindByUserIDAndYear(userID uint, year int) ([]model.Absence, error) {
 	db, err := r.env.DatabaseManager.GetConnection()
 	if err != nil {

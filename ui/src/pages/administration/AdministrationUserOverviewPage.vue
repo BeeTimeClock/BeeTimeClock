@@ -15,9 +15,15 @@ import { showErrorMessage, showInfoMessage } from 'src/helper/message';
 import type { ErrorResponse } from 'src/models/Base';
 import { emptyPagination } from 'src/helper/objects';
 import { formatIndustryHourMinutes } from 'src/helper/formatter';
+import { useAuthStore } from 'stores/microsoft-auth';
+import UserCreateDialog from 'components/dialog/UserCreateDialog.vue';
 
 const q = useQuasar();
 const { t } = useI18n();
+const auth = useAuthStore();
+
+const showCreateDialog = ref(false);
+const isMicrosoftAuth = auth.getAuthProvider === 'microsoft';
 
 const users = ref([] as UserWithAbsenceSummaryAndOvertime[]);
 const absenceReasons = ref([] as AbsenceReason[]);
@@ -160,18 +166,20 @@ onMounted(() => {
 
 <template>
   <q-page padding>
-    <q-select
-      filled
-      v-model="selectedAbsenceReasons"
-      :options="absenceReasons"
-      :label="t('LABEL_ABSENCE_REASON', 2)"
-      multiple
-      emit-value
-      map-options
-      option-value="ID"
-      option-label="Description"
-      use-chips
-    >
+    <div class="row items-center q-gutter-md">
+      <div class="col">
+        <q-select
+          filled
+          v-model="selectedAbsenceReasons"
+          :options="absenceReasons"
+          :label="t('LABEL_ABSENCE_REASON', 2)"
+          multiple
+          emit-value
+          map-options
+          option-value="ID"
+          option-label="Description"
+          use-chips
+        >
       <template v-slot:option="{ itemProps, opt, selected, toggleOption }">
         <q-item v-bind="itemProps">
           <q-item-section>
@@ -185,7 +193,10 @@ onMounted(() => {
           </q-item-section>
         </q-item>
       </template>
-    </q-select>
+        </q-select>
+      </div>
+      <q-btn v-if="!isMicrosoftAuth" color="primary" icon="person_add" :label="t('BTN_CREATE', { item: t('LABEL_USER', 1) })" @click="showCreateDialog = true" />
+    </div>
     <q-input
       :label="t('LABEL_SEARCH')"
       v-model="needle"
@@ -233,6 +244,7 @@ onMounted(() => {
         </q-tr>
       </template>
     </q-table>
+    <UserCreateDialog v-model:show="showCreateDialog" @created="loadUsers" />
   </q-page>
 </template>
 

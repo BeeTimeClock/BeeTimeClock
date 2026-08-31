@@ -32,6 +32,14 @@ export class User extends autoImplement<ApiUser>() {
   }
 }
 
+export interface UserCreateRequest {
+  Username: string;
+  Password: string;
+  AccessLevel: string;
+  FirstName: string;
+  LastName: string;
+}
+
 export class UserWithAbsenceSummaryAndOvertime extends User {
   public absenceSummary?: AbsenceUserSummary;
   public overtime?: number;

@@ -3,6 +3,7 @@ import type {
   AuthRequest,
   AuthResponse,
   User,
+  UserCreateRequest,
 } from 'src/models/Authentication';
 import type {
   ApiCountResult,
@@ -197,6 +198,10 @@ class BeeTimeClock {
     return api.get('/api/v1/absence');
   }
 
+  getOpenAbsences(): Promise<AxiosResponse<BaseResponse<ApiAbsence[]>>> {
+    return api.get('/api/v1/absence/query/me/open');
+  }
+
   getMeUser(): Promise<AxiosResponse<BaseResponse<User>>> {
     return api.get('/api/v1/user/me');
   }
@@ -280,6 +285,10 @@ class BeeTimeClock {
     };
 
     return api.get('/api/v1/administration/user', { params: params });
+  }
+
+  administrationCreateUser(request: UserCreateRequest): Promise<AxiosResponse<BaseResponse<ApiUser>>> {
+    return api.post('/api/v1/administration/user', request);
   }
 
   administrationGetTeams(

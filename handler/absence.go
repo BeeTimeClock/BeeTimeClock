@@ -138,6 +138,24 @@ func (h *Absence) AbsenceGetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
 }
 
+func (h *Absence) AbsenceGetAllOpen(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
+	absences, err := h.absence.FindByUserIDAndSigningIsOpen(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	result := model.AbsenceReturns(absences, &user, false, false, true)
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}
+
 func (h *Absence) AbsenceReasonsGetAll(c *gin.Context) {
 	absenceReasons, err := h.absence.FindAllAbsenceReasons()
 	if err != nil {
@@ -220,7 +238,8 @@ func (h *Absence) absenceCreate(c *gin.Context, user *model.User, absenceCreateR
 		return nil, false
 	}
 
-	if microsoft.IsMicrosoftConnected() {
+	acceptedStatus := model.SIGNED_STATUS_ACCEPTED
+	if microsoft.IsMicrosoftConnected() && absence.SignedStatus == &acceptedStatus {
 		eventId, err := microsoft.CreateCalendarEntryFromAbsence(user.Username, &absence)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -694,6 +713,26 @@ func (h *Absence) AbsenceSign(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
 		return
+	}
+
+	if microsoft.IsMicrosoftConnected() && absenceSignRequest.Status == model.SIGNED_STATUS_ACCEPTED {
+		eventId, err := microsoft.CreateCalendarEntryFromAbsence(absence.User.Username, &absence)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+
+		absenceExternalEvent := model.AbsenceExternalEvent{
+			Absence:               absence,
+			ExternalEventID:       eventId,
+			ExternalEventProvider: model.EXTERNAL_EVENT_PROVIDER_MICROSOFT,
+		}
+
+		err = h.absence.AbsenceExternalEventInsert(&absenceExternalEvent)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(absence))

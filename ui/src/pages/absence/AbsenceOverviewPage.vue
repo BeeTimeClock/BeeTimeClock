@@ -1,15 +1,13 @@
-/** eslint-disable @typescript-eslint/consistent-type-imports */
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import {
   AbsenceSummaryItem,
+  AbsenceSignedStatus,
+  AbsenceReason,
+  Absence,
   type AbsenceUserSummary,
-  type AbsenceUserSummaryYear} from 'src/models/Absence';
-import  {
-  AbsenceSignedStatus
+  type AbsenceUserSummaryYear,
 } from 'src/models/Absence';
-import { AbsenceReason } from 'src/models/Absence';
-import { Absence } from 'src/models/Absence';
 import BeeTimeClock from 'src/service/BeeTimeClock';
 import type { QTableColumn } from 'quasar';
 import { date, useQuasar } from 'quasar';
@@ -60,8 +58,7 @@ const myAbsencesColumns = [
   },
   {
     name: 'absenceSigningStatus',
-    label: t('LABEL_SIGN'),
-    field: 'SignedStatus'
+    label: t('LABEL_STATUS'),
   },
   {
     name: 'absenceActions',
@@ -158,8 +155,32 @@ function getCurrentYearSummary(): AbsenceUserSummaryYear | null {
 function getAbsenceReasonDescriptionById(id: number): string {
   const res = absenceReasons.value.filter((s: AbsenceReason) => s.ID == id);
   if (res.length == 0) return '';
-
   return res[0]!.Description;
+}
+
+function absenceReasonNeedsApproval(id: number): boolean {
+  return absenceReasons.value.find(r => r.ID === id)?.NeedsApproval ?? false;
+}
+
+function absenceStatusColor(absence: Absence): string {
+  if (absence.SignedStatus === AbsenceSignedStatus.Accepted) return 'positive';
+  if (absence.SignedStatus === AbsenceSignedStatus.Declined) return 'negative';
+  if (absenceReasonNeedsApproval(absence.AbsenceReasonID)) return 'warning';
+  return 'grey-5';
+}
+
+function absenceStatusLabel(absence: Absence): string {
+  if (absence.SignedStatus === AbsenceSignedStatus.Accepted) return t('LABEL_ACCEPTED');
+  if (absence.SignedStatus === AbsenceSignedStatus.Declined) return t('LABEL_ABGELEHNT');
+  if (absenceReasonNeedsApproval(absence.AbsenceReasonID)) return t('LABEL_PENDING');
+  return t('LABEL_NO_APPROVAL_NEEDED');
+}
+
+function absenceStatusIcon(absence: Absence): string {
+  if (absence.SignedStatus === AbsenceSignedStatus.Accepted) return 'check_circle';
+  if (absence.SignedStatus === AbsenceSignedStatus.Declined) return 'cancel';
+  if (absenceReasonNeedsApproval(absence.AbsenceReasonID)) return 'hourglass_empty';
+  return 'check';
 }
 
 function deleteAbsence(absence: Absence) {
@@ -246,8 +267,13 @@ onMounted(() => {
         <q-tr :props="props" :key="`m_${props.row.index}`">
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <div v-if="col.name == 'absenceSigningStatus'">
-              <q-icon v-if="props.row.SignedStatus == AbsenceSignedStatus.Accepted" name="check" color="positive" size="sm"/>
-              <q-icon v-else-if="props.row.SignedStatus == AbsenceSignedStatus.Declined" name="cancel" color="negative" size="sm"/>
+              <q-chip
+                :color="absenceStatusColor(props.row)"
+                :icon="absenceStatusIcon(props.row)"
+                text-color="white"
+                dense
+                :label="absenceStatusLabel(props.row)"
+              />
             </div>
             <div v-else-if="col.name == 'absenceActions'">
               <q-btn
