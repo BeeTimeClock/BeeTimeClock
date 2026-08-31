@@ -47,13 +47,13 @@ onMounted(() => {
     <q-item v-for="absenceReason in absenceReasons" :key="absenceReason.ID">
       <q-item-section>
         <q-item-label>{{ absenceReason.Description }}</q-item-label>
-        <q-item-label caption v-if="absenceReason.Impact">{{
-            absenceReason.Impact
+        <q-item-label caption v-if="absenceReason.OvertimeImpact">{{
+            absenceReason.OvertimeImpact
           }}
         </q-item-label>
         <q-item-label
           caption
-          v-if="absenceReason.Impact == AbsenceReasonImpact.Hours"
+          v-if="absenceReason.OvertimeImpact == AbsenceReasonImpact.Hours"
         >{{
             absenceReason.ImpactHours
           }}{{ t('LABEL_HOUR', absenceReason.ImpactHours) }}

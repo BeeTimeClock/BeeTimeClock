@@ -90,7 +90,7 @@ function saveAbsenceReason() {
             v-model="value.NeedsApproval"
             :label="t('LABEL_NEEDS_APPROVAL')"
           />
-          <q-select v-model="value.Impact" :options="overtimeImpactOptions" map-options emit-value :label="t('LABEL_OVERTIME_IMPACT')"/>
+          <q-select v-model="value.OvertimeImpact" :options="overtimeImpactOptions" map-options emit-value :label="t('LABEL_OVERTIME_IMPACT')"/>
           <q-input type="number" v-model.number="value.ImpactHours" :label="t('LABEL_HOUR', 2)"/>
           <q-input type="number" v-model.number="value.ImpactDays" :label="t('LABEL_DAY', 2)"/>
         </q-card-section>

@@ -19,14 +19,16 @@ export interface AbsenceCreateRequest {
 }
 
 export enum AbsenceReasonImpact {
+  None = 'none',
   Duration = 'duration',
   Hours = 'hours',
+  Days = 'days',
 }
 
 export interface ApiAbsenceReason {
   ID: number;
   Description: string;
-  Impact?: AbsenceReasonImpact;
+  OvertimeImpact?: AbsenceReasonImpact;
   ImpactHours: number;
   ImpactDays: number;
   NeedsApproval: boolean;
