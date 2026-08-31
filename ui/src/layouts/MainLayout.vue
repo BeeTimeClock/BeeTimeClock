@@ -19,7 +19,8 @@ const settingsStore = useSettingsStore();
 const session = ref(null as User | null);
 const status = ref(null as BackendStatus | null);
 const router = useRouter();
-const leftDrawerOpen = ref(false);
+const leftDrawerOpen = ref(true);
+const miniMode = ref(false);
 const {locale} = useI18n({useScope: 'global'});
 const isAdministrator = ref(false);
 const missingDaysCount = ref(0);
@@ -40,7 +41,7 @@ function logout() {
 }
 
 function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+  miniMode.value = !miniMode.value;
 }
 
 function loadMissingDaysCount() {
@@ -171,70 +172,80 @@ async function refresh() {
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="280">
-      <q-scroll-area
-        style="
-          height: calc(100% - 50px);
-          border-right: 1px solid #ddd;
-        "
-      >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="280" :mini="miniMode" :mini-width="57">
+      <q-scroll-area style="height: calc(100% - 50px); border-right: 1px solid #ddd">
         <q-list>
-          <!-- Daily work -->
-          <q-item-label header>{{ t('LABEL_MENU') }}</q-item-label>
+          <q-item-label v-if="!miniMode" header>{{ t('LABEL_MENU') }}</q-item-label>
+          <q-separator v-else class="q-mt-sm q-mb-xs" />
+
           <q-item clickable v-ripple :to="{ name: 'Dashboard' }">
             <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
             <q-item-section>{{ t('MENU_DASHBOARD') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_DASHBOARD') }}</q-tooltip>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'WorktimeOverview' }">
             <q-item-section avatar><q-icon name="schedule" /></q-item-section>
             <q-item-section>{{ t('MENU_WORKTIME') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_WORKTIME') }}</q-tooltip>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'AbsenceOverview' }">
             <q-item-section avatar><q-icon name="event_busy" /></q-item-section>
             <q-item-section>{{ t('MENU_ABSENCE') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_ABSENCE') }}</q-tooltip>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'ExternalWorkOverview' }">
             <q-item-section avatar><q-icon name="work_outline" /></q-item-section>
             <q-item-section>{{ t('MENU_EXTERNAL_WORK') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_EXTERNAL_WORK') }}</q-tooltip>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'OvertimeOverview' }">
             <q-item-section avatar><q-icon name="timer" /></q-item-section>
             <q-item-section>{{ t('MENU_OVERTIME') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_OVERTIME') }}</q-tooltip>
           </q-item>
 
-          <!-- Monitoring -->
-          <q-item-label header>{{ t('LABEL_MONITORING') }}</q-item-label>
+          <q-item-label v-if="!miniMode" header>{{ t('LABEL_MONITORING') }}</q-item-label>
+          <q-separator v-else class="q-mt-sm q-mb-xs" />
+
           <q-item clickable v-ripple :to="{ name: 'SuspiciousTimestampsOverview' }">
-            <q-item-section avatar><q-icon name="warning_amber" /></q-item-section>
+            <q-item-section avatar>
+              <q-icon name="warning_amber">
+                <q-badge v-if="miniMode && suspiciousCount > 0" color="negative" floating :label="suspiciousCount" />
+              </q-icon>
+            </q-item-section>
             <q-item-section>{{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}</q-item-section>
-            <q-item-section side>
+            <q-item-section v-if="!miniMode" side>
               <q-chip v-if="suspiciousCount > 0" :label="suspiciousCount" dense color="negative" />
             </q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}</q-tooltip>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'MissingDaysOverview' }">
-            <q-item-section avatar><q-icon name="event_available" /></q-item-section>
+            <q-item-section avatar>
+              <q-icon name="event_available">
+                <q-badge v-if="miniMode && missingDaysCount > 0" color="negative" floating :label="missingDaysCount" />
+              </q-icon>
+            </q-item-section>
             <q-item-section>{{ t('MENU_MISSING_DAYS') }}</q-item-section>
-            <q-item-section side>
+            <q-item-section v-if="!miniMode" side>
               <q-chip v-if="missingDaysCount > 0" :label="missingDaysCount" dense color="negative" />
             </q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_MISSING_DAYS') }}</q-tooltip>
           </q-item>
 
-          <!-- Teams -->
-          <q-item-label header>{{ t('LABEL_TEAM', 2) }}</q-item-label>
+          <q-item-label v-if="!miniMode" header>{{ t('LABEL_TEAM', 2) }}</q-item-label>
+          <q-separator v-else class="q-mt-sm q-mb-xs" />
+
           <q-item clickable v-ripple :to="{ name: 'TeamOverview' }">
             <q-item-section avatar><q-icon name="groups" /></q-item-section>
             <q-item-section>{{ t('MENU_OVERVIEW') }}</q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('LABEL_TEAM', 2) }}</q-tooltip>
           </q-item>
 
-          <!-- Administration -->
           <template v-if="isAdministrator">
-            <q-item-label header>{{ t('LABEL_ADMINISTRATION') }}</q-item-label>
+            <q-item-label v-if="!miniMode" header>{{ t('LABEL_ADMINISTRATION') }}</q-item-label>
+            <q-separator v-else class="q-mt-sm q-mb-xs" />
 
-            <q-expansion-item
-              icon="people"
-              :label="t('LABEL_PEOPLE')"
-              :content-inset-level="0.5"
-            >
+            <q-expansion-item v-if="!miniMode" icon="people" :label="t('LABEL_PEOPLE')" :content-inset-level="0.5">
               <q-list>
                 <q-item clickable v-ripple :to="{ name: 'AdministrationUserOverview' }">
                   <q-item-section avatar><q-icon name="person" /></q-item-section>
@@ -246,47 +257,68 @@ async function refresh() {
                 </q-item>
               </q-list>
             </q-expansion-item>
+            <q-item v-else clickable v-ripple>
+              <q-item-section avatar><q-icon name="people" /></q-item-section>
+              <q-menu anchor="top end" self="top start" auto-close>
+                <q-list style="min-width: 160px">
+                  <q-item-label header class="text-grey-7 q-py-xs">{{ t('LABEL_PEOPLE') }}</q-item-label>
+                  <q-separator />
+                  <q-item clickable v-ripple :to="{ name: 'AdministrationUserOverview' }">
+                    <q-item-section avatar><q-icon name="person" /></q-item-section>
+                    <q-item-section>{{ t('MENU_USERS') }}</q-item-section>
+                  </q-item>
+                  <q-item clickable v-ripple :to="{ name: 'AdministrationTeamOverview' }">
+                    <q-item-section avatar><q-icon name="groups" /></q-item-section>
+                    <q-item-section>{{ t('MENU_TEAMS') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-item>
 
             <q-item clickable v-ripple :to="{ name: 'AdministrationWorktimeModelOverview' }">
               <q-item-section avatar><q-icon name="access_time" /></q-item-section>
               <q-item-section>{{ t('MENU_WORKTIME_MODELS') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_WORKTIME_MODELS') }}</q-tooltip>
             </q-item>
-
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsCommon' }">
               <q-item-section avatar><q-icon name="settings" /></q-item-section>
               <q-item-section>{{ t('MENU_COMMON') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_COMMON') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsHolidays' }">
               <q-item-section avatar><q-icon name="celebration" /></q-item-section>
               <q-item-section>{{ t('MENU_HOLIDAYS') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_HOLIDAYS') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsTimestamp' }">
               <q-item-section avatar><q-icon name="fingerprint" /></q-item-section>
               <q-item-section>{{ t('MENU_TIMESTAMP') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_TIMESTAMP') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsAbsence' }">
               <q-item-section avatar><q-icon name="event_busy" /></q-item-section>
               <q-item-section>{{ t('MENU_ABSENCE') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_ABSENCE') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsExternalWork' }">
               <q-item-section avatar><q-icon name="work_outline" /></q-item-section>
               <q-item-section>{{ t('MENU_EXTERNAL_WORK') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_EXTERNAL_WORK') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsNotify' }">
               <q-item-section avatar><q-icon name="notifications" /></q-item-section>
               <q-item-section>{{ t('MENU_NOTIFY') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_NOTIFY') }}</q-tooltip>
             </q-item>
             <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsTerminal' }">
               <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
               <q-item-section>{{ t('MENU_TERMINAL') }}</q-item-section>
+              <q-tooltip v-if="miniMode" anchor="center right" self="center left">{{ t('MENU_TERMINAL') }}</q-tooltip>
             </q-item>
           </template>
         </q-list>
       </q-scroll-area>
-      <div
-        class="absolute-bottom row items-center"
-        style="height: 50px; border-top: 1px solid #ddd"
-      >
+      <div v-if="!miniMode" class="absolute-bottom row items-center" style="height: 50px; border-top: 1px solid #ddd">
         <q-item-label header>
           <div>Version: {{ commit }}</div>
         </q-item-label>
