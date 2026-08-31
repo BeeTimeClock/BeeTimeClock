@@ -205,6 +205,12 @@ func (h *Timestamp) TimestampActionCheckIn(c *gin.Context) {
 		return
 	}
 
+	device, err := auth.GetDeviceFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
 	var timestampActionCheckInRequest model.TimestampActionCheckInRequest
 	err = c.BindJSON(&timestampActionCheckInRequest)
 	if err != nil {
@@ -241,6 +247,7 @@ func (h *Timestamp) TimestampActionCheckIn(c *gin.Context) {
 		User:            &user,
 		ComingTimestamp: time.Now(),
 		IsHomeoffice:    isHomeoffice,
+		CominigDevice:   &device,
 	}
 
 	err = h.timestamp.Insert(&timestamp)
@@ -294,6 +301,12 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 		return
 	}
 
+	device, err := auth.GetDeviceFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
 	var timestampCheckoutActionRequest model.TimestampActionCheckoutRequest
 	err = c.BindJSON(&timestampCheckoutActionRequest)
 	if err != nil {
@@ -320,6 +333,7 @@ func (h *Timestamp) TimestampActionCheckOut(c *gin.Context) {
 
 	lastTimestamp.GoingTimestamp = time.Now()
 	lastTimestamp.IsHomeofficeGoing = isHomeoffice
+	lastTimestamp.GoingDevice = &device
 
 	err = h.timestamp.Update(&lastTimestamp)
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 
 const sessionVarUser = "user"
 const sessionVarIsAdministrator = "is_administrator"
+const sessionDevice = "device"
 
 type AuthHeader struct {
 	Authorization string `header:"Authorization" binding:"required"`
@@ -42,6 +43,7 @@ func (a *AuthProvider) AuthRequired(c *gin.Context) {
 	case strings.HasPrefix(authorizationHeader, "Bearer "):
 		tokenString := strings.Replace(authorizationHeader, "Bearer ", "", 1)
 		c.Set("token", tokenString)
+		c.Set(sessionDevice, "beetime")
 
 		switch strings.ToLower(authProvider) {
 		case "local", "":
@@ -64,6 +66,7 @@ func (a *AuthProvider) AuthRequired(c *gin.Context) {
 
 		c.Set(sessionVarUser, user)
 		c.Set(sessionVarIsAdministrator, user.AccessLevel == model.USER_ACCESS_LEVEL_ADMIN)
+		c.Set(sessionDevice, "api")
 		c.Next()
 		return
 	default:
@@ -112,6 +115,7 @@ func (a *AuthProvider) TerminalAuthRequired(c *gin.Context) {
 		return
 	}
 
+	c.Set(sessionDevice, terminal)
 	c.Next()
 }
 
@@ -137,6 +141,15 @@ func GetUserFromSession(c *gin.Context) (model.User, error) {
 	}
 
 	return user.(model.User), nil
+}
+
+func GetDeviceFromSession(c *gin.Context) (string, error) {
+	device, exists := c.Get(sessionDevice)
+	if !exists {
+		return "unknown", fmt.Errorf("no user in session")
+	}
+
+	return device.(string), nil
 }
 
 func IsAdministrator(c *gin.Context) bool {

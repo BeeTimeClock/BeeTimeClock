@@ -8,11 +8,12 @@ import (
 
 type Timestamp struct {
 	gorm.Model
-
 	UserID            uint  `gorm:"not null"`
 	User              *User `json:"-"`
 	ComingTimestamp   time.Time
+	CominigDevice     *string
 	GoingTimestamp    time.Time
+	GoingDevice       *string
 	IsHomeoffice      bool
 	IsHomeofficeGoing bool
 	Corrections       []TimestampCorrection

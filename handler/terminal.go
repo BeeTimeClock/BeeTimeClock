@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/BeeTimeClock/BeeTimeClock-Server/auth"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/helper"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
@@ -257,6 +258,12 @@ func (h *Terminal) TerminalCheckin(c *gin.Context) {
 		return
 	}
 
+	device, err := auth.GetDeviceFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
 	log.Printf("Looking for: %s", checkinRequest.TokenIdentifier)
 	userToken, err := h.user.UserTokenFindByTokenIdentifier(checkinRequest.TokenIdentifier)
 	if err != nil {
@@ -271,6 +278,7 @@ func (h *Terminal) TerminalCheckin(c *gin.Context) {
 	timestamp := model.Timestamp{
 		UserID:          userToken.UserID,
 		ComingTimestamp: time.Now(),
+		CominigDevice:   &device,
 		IsHomeoffice:    false,
 	}
 
@@ -297,6 +305,12 @@ func (h *Terminal) TerminalCheckout(c *gin.Context) {
 		return
 	}
 
+	device, err := auth.GetDeviceFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, model.NewErrorResponse(err))
+		return
+	}
+
 	userToken, err := h.user.UserTokenFindByTokenIdentifier(checkoutRequest.TokenIdentifier)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserTokenNotFound) {
@@ -319,6 +333,7 @@ func (h *Terminal) TerminalCheckout(c *gin.Context) {
 	}
 
 	lastTimestamp.GoingTimestamp = time.Now()
+	lastTimestamp.GoingDevice = &device
 	lastTimestamp.IsHomeofficeGoing = false
 
 	err = h.timestamp.Update(&lastTimestamp)
