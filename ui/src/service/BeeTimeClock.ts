@@ -83,6 +83,10 @@ class BeeTimeClock {
     return api.get('/api/v1/timestamp/query/current_month/grouped');
   }
 
+  timestampQueryLast(): Promise<AxiosResponse<BaseResponse<Timestamp>>> {
+    return api.get('/api/v1/timestamp/query/last');
+  }
+
   timestampQueryMonthGrouped(
     year: number,
     month: number,

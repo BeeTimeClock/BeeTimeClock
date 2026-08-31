@@ -206,6 +206,7 @@ func (h *User) CurrentUserUpdate(c *gin.Context) {
 	}
 
 	user.StaffNumber = userUpdateRequest.StaffNumber
+	user.AllowGravatar = userUpdateRequest.AllowGravatar
 
 	err = h.user.Update(&user)
 	if err != nil {

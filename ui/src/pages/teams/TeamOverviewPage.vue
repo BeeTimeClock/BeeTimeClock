@@ -16,6 +16,7 @@ import { date, type QTableColumn, useQuasar } from 'quasar';
 import { emptyPagination } from 'src/helper/objects';
 import { useAuthStore } from 'stores/microsoft-auth';
 import AbsenceCreateDialog from 'components/absence/AbsenceCreateDialog.vue';
+import UserAvatar from 'components/UserAvatar.vue';
 
 const { t } = useI18n();
 const $q = useQuasar();
@@ -26,131 +27,95 @@ const teamAbsenceSummaries = ref<AbsenceSummaryItem[]>([]);
 const neededApprovals = ref<Absence[]>([]);
 const isLoading = ref(true);
 
-const columns = [
-  {
-    name: 'user',
-    field: (row: TeamMember) => row.userMapped,
-    label: t('LABEL_USER'),
-    align: 'left',
-    format: (val: User) => (val ? val.displayName : '-'),
-  },
-  {
-    name: 'user',
-    field: 'Level',
-    label: t('LABEL_USER'),
-    align: 'left',
-  },
-  {
-    name: 'createdAt',
-    label: t('LABEL_CREATED_AT'),
-    field: 'CreatedAt',
-    format: (val: string) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
-  },
-  {
-    name: 'actions',
-    label: t('LABEL_ACTION', 2),
-    align: 'right',
-  },
-] as QTableColumn[];
-
 const approvalColumns = [
   {
     name: 'user',
-    field: (row: TeamMember) => row.userMapped,
+    field: (row: Absence) => row.userMapped,
     label: t('LABEL_USER'),
     align: 'left',
-    format: (val: User) => (val ? val.displayName : '-'),
+    format: (val: User) => val?.displayName ?? '-',
   },
   {
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
     field: 'AbsenceFrom',
+    align: 'left',
     format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
     field: 'AbsenceTill',
+    align: 'left',
     format: (val: Date) => date.formatDate(val, 'DD. MMM. YYYY'),
   },
   {
     name: 'absenceNettoDays',
     label: t('LABEL_NETTO_DAYS'),
     field: 'NettoDays',
-  },
-  {
-    name: 'reason',
-    field: 'Reason',
-    label: t('LABEL_REASON'),
     align: 'left',
   },
   {
     name: 'actions',
-    label: t('LABEL_ACTION', 2),
+    label: '',
     align: 'right',
   },
 ] as QTableColumn[];
 
-const isLead = computed(() => {
-  return (
-    selectedTeam.value?.Members.find(
-      (s) =>
-        s.UserID === auth.getSession()?.ID &&
-        (s.Level === TeamLevel.LeadSurrogate || s.Level === TeamLevel.Lead),
-    ) != null
-  );
-});
+const isLead = computed(() =>
+  selectedTeam.value?.Members.find(
+    (s) =>
+      s.UserID === auth.getSession()?.ID &&
+      (s.Level === TeamLevel.LeadSurrogate || s.Level === TeamLevel.Lead),
+  ) != null,
+);
 
 const selectedUser = ref<User>();
 const showAbsenceCreateDialog = ref(false);
+
+function levelColor(level: TeamLevel) {
+  if (level === TeamLevel.Lead) return 'primary';
+  if (level === TeamLevel.LeadSurrogate) return 'secondary';
+  return 'grey-5';
+}
+
+function levelLabel(level: TeamLevel) {
+  if (level === TeamLevel.Lead) return t('LABEL_TEAM_LEAD');
+  if (level === TeamLevel.LeadSurrogate) return t('LABEL_TEAM_LEAD_SURROGATE');
+  return t('LABEL_TEAM_MEMBER', 1);
+}
 
 function loadMyTeams() {
   BeeTimeClock.getTeams()
     .then((result) => {
       if (result.status === 200) {
         teams.value = result.data.Data.map((s) => Team.fromApi(s));
-        if (teams.value.length >= 1) {
-          selectedTeam.value = teams.value[0]!;
-        }
+        if (teams.value.length >= 1) selectedTeam.value = teams.value[0]!;
       }
     })
-    .catch((error) => {
-      showErrorMessage(error);
-    });
+    .catch((error) => showErrorMessage(error));
 }
 
 function loadTeamAbensces() {
   if (!selectedTeam.value) return;
-
   isLoading.value = true;
   BeeTimeClock.queryTeamAbsenceSummary(selectedTeam.value.ID)
     .then((result) => {
-      if (result.status === 200) {
-        teamAbsenceSummaries.value = result.data.Data.map((s) =>
-          AbsenceSummaryItem.fromApi(s),
-        );
-      }
+      if (result.status === 200)
+        teamAbsenceSummaries.value = result.data.Data.map((s) => AbsenceSummaryItem.fromApi(s));
     })
-    .catch((error) => {
-      showErrorMessage(error);
-    })
-    .finally(() => {
-      isLoading.value = false;
-    });
+    .catch((error) => showErrorMessage(error))
+    .finally(() => { isLoading.value = false; });
 }
 
 function loadNeededApprovals() {
-  if (!selectedTeam.value) return;
-  if (!isLead.value) return;
+  if (!selectedTeam.value || !isLead.value) return;
   BeeTimeClock.absenceTeamOpen(selectedTeam.value.ID)
     .then((result) => {
-      if (result.status === 200) {
+      if (result.status === 200)
         neededApprovals.value = result.data.Data.map((s) => Absence.fromApi(s));
-      }
     })
-    .catch((error) => {
-      showErrorMessage(error);
-    });
+    .catch((error) => showErrorMessage(error));
 }
 
 function createAbsenceForTeamMember(teamMember: TeamMember) {
@@ -158,19 +123,13 @@ function createAbsenceForTeamMember(teamMember: TeamMember) {
   showAbsenceCreateDialog.value = true;
 }
 
-function signAbsence(
-  absence: Absence,
-  status: AbsenceSignedStatus,
-  message?: string,
-) {
+function signAbsence(absence: Absence, status: AbsenceSignedStatus, message?: string) {
   if (!selectedTeam.value) return;
-
-  const payload = {
-    Status: status,
-    Messages: message,
-  } as AbsenceSignRequest;
-
-  BeeTimeClock.absenceTeamSign(selectedTeam.value.ID, absence.ID, payload)
+  BeeTimeClock.absenceTeamSign(
+    selectedTeam.value.ID,
+    absence.ID,
+    { Status: status, Messages: message } as AbsenceSignRequest,
+  )
     .then((result) => {
       if (result.status === 200) {
         showInfoMessage(t('MSG_CREATE_SUCCESS'));
@@ -178,24 +137,17 @@ function signAbsence(
         loadNeededApprovals();
       }
     })
-    .catch((error) => {
-      showErrorMessage(error);
-    });
+    .catch((error) => showErrorMessage(error));
 }
 
 function declineAbsence(absence: Absence) {
   $q.dialog({
     title: t('TITLE_DECLINE'),
     message: t('MSG_ABSENCE_DECLINE'),
-    prompt: {
-      model: '',
-      type: 'text', // optional
-    },
+    prompt: { model: '', type: 'text' },
     cancel: true,
     persistent: true,
-  }).onOk((data) => {
-    signAbsence(absence, AbsenceSignedStatus.Declined, data);
-  });
+  }).onOk((data) => signAbsence(absence, AbsenceSignedStatus.Declined, data));
 }
 
 function acceptAbsence(absence: Absence) {
@@ -204,9 +156,7 @@ function acceptAbsence(absence: Absence) {
     message: t('MSG_ARE_YOU_SURE'),
     cancel: true,
     persistent: true,
-  }).onOk(() => {
-    signAbsence(absence, AbsenceSignedStatus.Accepted);
-  });
+  }).onOk(() => signAbsence(absence, AbsenceSignedStatus.Accepted));
 }
 
 watch(selectedTeam, () => {
@@ -223,120 +173,127 @@ onMounted(() => {
 <template>
   <q-page padding>
     <q-select
-      :label="t('LABEL_TEAM')"
+      v-if="teams.length > 1"
       v-model="selectedTeam"
       :options="teams"
-      :readonly="teams.length == 1"
+      :label="t('LABEL_TEAM')"
+      option-label="Teamname"
       emit-value
       map-options
-      option-label="Teamname"
+      outlined
+      dense
       class="q-mb-lg"
     />
 
-    <div v-if="selectedTeam && !isLoading">
-      <q-table
-        class="q-mb-md"
-        :columns="columns"
-        :rows="selectedTeam.membersMapped"
-        :pagination="emptyPagination"
-        hide-pagination
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr :props="props" :key="`m_${props.row.index}`">
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
-              <template v-if="col.name == 'actions'">
-                <q-btn
-                  v-if="isLead"
-                  color="primary"
-                  icon="visibility"
-                  :to="{
-                    name: 'TeamUserDetail',
-                    params: {
-                      teamId: selectedTeam.ID,
-                      userId: props.row.UserID,
-                    },
-                  }"
-                  class="q-mr-sm"
-                />
-                <q-btn
-                  v-if="isLead"
-                  color="primary"
-                  icon="add"
-                  @click="createAbsenceForTeamMember(props.row)"
-                />
-              </template>
-              <template v-else>
-                {{ col.value }}
-              </template>
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
-
-      <q-table
-        v-if="isLead && neededApprovals.length > 0"
-        :columns="approvalColumns"
-        :rows="neededApprovals"
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr :props="props" :key="`m_${props.row.index}`">
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
-              <template v-if="col.name == 'actions'">
-                <q-btn
-                  color="positive"
-                  icon="check"
-                  @click="acceptAbsence(props.row)"
-                />
-                <q-btn
-                  class="q-ml-md"
-                  color="negative"
-                  icon="cancel"
-                  @click="declineAbsence(props.row)"
-                />
-              </template>
-              <template v-else>
-                {{ col.value }}
-              </template>
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
-
-      <AbsenceSummaryTableComponent
-        class="q-mt-lg"
-        v-model="teamAbsenceSummaries"
-        :show-reason="isLead"
-      />
-      <AbsenceCreateDialog
-        v-if="selectedUser"
-        v-model:user="selectedUser"
-        v-model:team="selectedTeam"
-        v-model:show="showAbsenceCreateDialog"
-        @create="
-          () => {
-            loadTeamAbensces();
-          }
-        "
-      />
-    </div>
     <q-inner-loading :showing="isLoading" />
+
+    <div v-if="selectedTeam && !isLoading" class="q-gutter-md">
+
+      <q-card v-if="isLead && neededApprovals.length > 0" flat bordered>
+        <q-card-section class="row items-center q-pb-none">
+          <q-icon name="pending_actions" color="warning" size="20px" class="q-mr-sm" />
+          <span class="text-subtitle2">{{ t('LABEL_ABSENCE') }} — {{ t('LABEL_IN_REVIEW') }}</span>
+          <q-badge color="warning" :label="neededApprovals.length" class="q-ml-sm" />
+        </q-card-section>
+        <q-table
+          :columns="approvalColumns"
+          :rows="neededApprovals"
+          :pagination="emptyPagination"
+          flat
+          hide-pagination
+          hide-header
+        >
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                <template v-if="col.name === 'actions'">
+                  <q-btn
+                    flat
+                    round
+                    color="positive"
+                    icon="check_circle"
+                    @click="acceptAbsence(props.row)"
+                  >
+                    <q-tooltip>{{ t('TITLE_ACCEPT') }}</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="cancel"
+                    @click="declineAbsence(props.row)"
+                  >
+                    <q-tooltip>{{ t('TITLE_DECLINE') }}</q-tooltip>
+                  </q-btn>
+                </template>
+                <template v-else>{{ col.value }}</template>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+
+      <q-card flat bordered>
+        <q-card-section class="row items-center q-pb-none">
+          <q-icon name="groups" color="primary" size="20px" class="q-mr-sm" />
+          <span class="text-subtitle2">{{ selectedTeam.Teamname }}</span>
+          <q-badge outline color="primary" :label="selectedTeam.membersMapped.length" class="q-ml-sm" />
+        </q-card-section>
+        <q-list separator>
+          <q-item v-for="member in selectedTeam.membersMapped" :key="member.ID">
+            <q-item-section avatar>
+              <UserAvatar :user="member.User" :size="36" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ member.userMapped?.displayName ?? '-' }}</q-item-label>
+              <q-item-label caption>
+                <q-chip
+                  dense
+                  :color="levelColor(member.Level)"
+                  text-color="white"
+                  :label="levelLabel(member.Level)"
+                  size="sm"
+                />
+              </q-item-label>
+            </q-item-section>
+            <q-item-section side v-if="isLead">
+              <div class="row q-gutter-xs">
+                <q-btn
+                  flat
+                  round
+                  icon="visibility"
+                  color="primary"
+                  :to="{ name: 'TeamUserDetail', params: { teamId: selectedTeam.ID, userId: member.UserID } }"
+                >
+                  <q-tooltip>{{ t('MENU_OVERVIEW') }}</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="event_busy"
+                  color="primary"
+                  @click="createAbsenceForTeamMember(member)"
+                >
+                  <q-tooltip>{{ t('MENU_ABSENCE') }}</q-tooltip>
+                </q-btn>
+              </div>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card>
+
+      <q-card flat bordered>
+        <AbsenceSummaryTableComponent v-model="teamAbsenceSummaries" :show-reason="isLead" />
+      </q-card>
+
+    </div>
+
+    <AbsenceCreateDialog
+      v-if="selectedUser && selectedTeam"
+      v-model:user="selectedUser"
+      v-model:team="selectedTeam"
+      v-model:show="showAbsenceCreateDialog"
+      @create="loadTeamAbensces"
+    />
   </q-page>
 </template>
-
-<style scoped></style>

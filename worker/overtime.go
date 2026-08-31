@@ -93,10 +93,6 @@ func (w *Overtime) CalculateMonth(userID uint, year int, month int) (model.Overt
 			duration := absence.AbsenceTill.Sub(absence.AbsenceFrom).Hours()
 			result.InsertSummary("absence", &absence.ID, duration*-1, 1.0)
 		case model.ABESENCE_REASON_OVERTIME_IMPACT_DAYS:
-			// For days WITH timestamps the timestamp calculation already shows the
-			// correct deficit (WorkingHours - neededHours), so the absence contributes
-			// nothing for those days. For days WITHOUT timestamps the absence deducts
-			// the full neededHours (employee used overtime balance for that day off).
 			absenceHours := 0.0
 			absenceStart := time.Date(absence.AbsenceFrom.Year(), absence.AbsenceFrom.Month(), absence.AbsenceFrom.Day(), 0, 0, 0, 0, time.UTC)
 			absenceEnd := time.Date(absence.AbsenceTill.Year(), absence.AbsenceTill.Month(), absence.AbsenceTill.Day(), 0, 0, 0, 0, time.UTC)

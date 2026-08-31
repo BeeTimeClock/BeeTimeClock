@@ -10,6 +10,7 @@ import {showErrorMessage} from 'src/helper/message';
 import {useRouter} from 'vue-router';
 import {msalProvider} from 'boot/microsoft-msal';
 import {useSettingsStore} from 'stores/settings';
+import UserAvatar from 'components/UserAvatar.vue';
 
 const {t} = useI18n();
 
@@ -137,172 +138,151 @@ async function refresh() {
           map-options
           options-dense
         />
-        <q-btn
-          class="q-ml-lg"
-          color="secondary"
-          :label="t('BTN_LOG_OUT')"
-          @click="logout"
-        />
+        <q-btn-dropdown
+          v-if="session"
+          flat
+          color="white"
+          class="q-ml-sm"
+        >
+          <template v-slot:label>
+            <UserAvatar :user="session" :size="24" class="q-mr-sm" />
+            {{ session.FirstName }} {{ session.LastName }}
+          </template>
+          <q-list>
+            <q-item-label header class="text-grey-7">
+              {{ session.Username }}
+            </q-item-label>
+            <q-separator />
+            <q-item clickable v-close-popup :to="{ name: 'UserSettings' }">
+              <q-item-section avatar><q-icon name="manage_accounts" /></q-item-section>
+              <q-item-section>{{ t('MENU_SETTINGS') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup :to="{ name: 'UserApikeyOverview' }">
+              <q-item-section avatar><q-icon name="key" /></q-item-section>
+              <q-item-section>{{ t('MENU_APIKEY') }}</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup @click="logout">
+              <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
+              <q-item-section class="text-negative">{{ t('BTN_LOG_OUT') }}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="280">
       <q-scroll-area
         style="
-          height: calc(100% - 80px - 50px);
-          margin-top: 80px;
+          height: calc(100% - 50px);
           border-right: 1px solid #ddd;
         "
       >
         <q-list>
-          <q-item-label header>
-            {{ t('LABEL_MENU') }}
-          </q-item-label>
+          <!-- Daily work -->
+          <q-item-label header>{{ t('LABEL_MENU') }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'Dashboard' }">
-            {{ t('MENU_DASHBOARD') }}
+            <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+            <q-item-section>{{ t('MENU_DASHBOARD') }}</q-item-section>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'WorktimeOverview' }">
-            {{ t('MENU_WORKTIME') }}
+            <q-item-section avatar><q-icon name="schedule" /></q-item-section>
+            <q-item-section>{{ t('MENU_WORKTIME') }}</q-item-section>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'AbsenceOverview' }">
-            {{ t('MENU_ABSENCE') }}
+            <q-item-section avatar><q-icon name="event_busy" /></q-item-section>
+            <q-item-section>{{ t('MENU_ABSENCE') }}</q-item-section>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'ExternalWorkOverview' }">
-            {{ t('MENU_EXTERNAL_WORK') }}
+            <q-item-section avatar><q-icon name="work_outline" /></q-item-section>
+            <q-item-section>{{ t('MENU_EXTERNAL_WORK') }}</q-item-section>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'OvertimeOverview' }">
-            {{ t('MENU_OVERTIME') }}
+            <q-item-section avatar><q-icon name="timer" /></q-item-section>
+            <q-item-section>{{ t('MENU_OVERTIME') }}</q-item-section>
           </q-item>
-          <q-item
-            clickable
-            v-ripple
-            :to="{ name: 'SuspiciousTimestampsOverview' }"
-          >
-            {{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}
-            <q-chip
-              class="q-ml-md"
-              v-if="suspiciousCount > 0"
-              :label="suspiciousCount"
-              dense
-              color="negative"
-            />
+
+          <!-- Monitoring -->
+          <q-item-label header>{{ t('LABEL_MONITORING') }}</q-item-label>
+          <q-item clickable v-ripple :to="{ name: 'SuspiciousTimestampsOverview' }">
+            <q-item-section avatar><q-icon name="warning_amber" /></q-item-section>
+            <q-item-section>{{ t('MENU_SUSPICIOUS_TIMESTAMPS') }}</q-item-section>
+            <q-item-section side>
+              <q-chip v-if="suspiciousCount > 0" :label="suspiciousCount" dense color="negative" />
+            </q-item-section>
           </q-item>
           <q-item clickable v-ripple :to="{ name: 'MissingDaysOverview' }">
-            {{ t('MENU_MISSING_DAYS') }}
-            <q-chip
-              class="q-ml-md"
-              v-if="missingDaysCount > 0"
-              :label="missingDaysCount"
-              dense
-              color="negative"
-            />
+            <q-item-section avatar><q-icon name="event_available" /></q-item-section>
+            <q-item-section>{{ t('MENU_MISSING_DAYS') }}</q-item-section>
+            <q-item-section side>
+              <q-chip v-if="missingDaysCount > 0" :label="missingDaysCount" dense color="negative" />
+            </q-item-section>
           </q-item>
-          <q-item-label header> {{ t('LABEL_TEAM', 2) }}</q-item-label>
+
+          <!-- Teams -->
+          <q-item-label header>{{ t('LABEL_TEAM', 2) }}</q-item-label>
           <q-item clickable v-ripple :to="{ name: 'TeamOverview' }">
-            {{ t('MENU_OVERVIEW') }}
+            <q-item-section avatar><q-icon name="groups" /></q-item-section>
+            <q-item-section>{{ t('MENU_OVERVIEW') }}</q-item-section>
           </q-item>
-          <q-item-label header> {{ t('LABEL_ME') }}</q-item-label>
-          <q-item clickable v-ripple :to="{ name: 'UserApikeyOverview' }">
-            {{ t('MENU_APIKEY') }}
-          </q-item>
-          <q-item clickable v-ripple :to="{ name: 'UserSettings' }">
-            {{ t('MENU_SETTINGS') }}
-          </q-item>
-          <div v-if="isAdministrator">
-            <q-item-label header>
-              {{ t('LABEL_ADMINISTRATION') }}
-            </q-item-label>
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'AdministrationUserOverview' }"
-            >
-              {{ t('MENU_USERS') }}
-            </q-item>
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'AdministrationTeamOverview' }"
-            >
-              {{ t('MENU_TEAMS') }}
-            </q-item>
-            <q-item
-              clickable
-              v-ripple
-              :to="{ name: 'AdministrationWorktimeModelOverview' }"
-            >
-              {{ t('MENU_WORKTIME_MODELS') }}
-            </q-item>
+
+          <!-- Administration -->
+          <template v-if="isAdministrator">
+            <q-item-label header>{{ t('LABEL_ADMINISTRATION') }}</q-item-label>
+
             <q-expansion-item
+              icon="people"
+              :label="t('LABEL_PEOPLE')"
               :content-inset-level="0.5"
-              :label="t('MENU_SETTINGS')"
             >
               <q-list>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsCommon' }"
-                >
-                  {{ t('MENU_COMMON') }}
+                <q-item clickable v-ripple :to="{ name: 'AdministrationUserOverview' }">
+                  <q-item-section avatar><q-icon name="person" /></q-item-section>
+                  <q-item-section>{{ t('MENU_USERS') }}</q-item-section>
                 </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsTimestamp' }"
-                >
-                  {{ t('MENU_TIMESTAMP') }}
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsAbsence' }"
-                >
-                  {{ t('MENU_ABSENCE') }}
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsNotify' }"
-                >
-                  {{ t('MENU_NOTIFY') }}
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsExternalWork' }"
-                >
-                  {{ t('MENU_EXTERNAL_WORK') }}
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsHolidays' }"
-                >
-                  {{ t('MENU_HOLIDAYS') }}
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  :to="{ name: 'AdministrationSettingsTerminal' }"
-                >
-                  {{ t('MENU_TERMINAL') }}
+                <q-item clickable v-ripple :to="{ name: 'AdministrationTeamOverview' }">
+                  <q-item-section avatar><q-icon name="groups" /></q-item-section>
+                  <q-item-section>{{ t('MENU_TEAMS') }}</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
-          </div>
+
+            <q-item clickable v-ripple :to="{ name: 'AdministrationWorktimeModelOverview' }">
+              <q-item-section avatar><q-icon name="access_time" /></q-item-section>
+              <q-item-section>{{ t('MENU_WORKTIME_MODELS') }}</q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsCommon' }">
+              <q-item-section avatar><q-icon name="settings" /></q-item-section>
+              <q-item-section>{{ t('MENU_COMMON') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsHolidays' }">
+              <q-item-section avatar><q-icon name="celebration" /></q-item-section>
+              <q-item-section>{{ t('MENU_HOLIDAYS') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsTimestamp' }">
+              <q-item-section avatar><q-icon name="fingerprint" /></q-item-section>
+              <q-item-section>{{ t('MENU_TIMESTAMP') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsAbsence' }">
+              <q-item-section avatar><q-icon name="event_busy" /></q-item-section>
+              <q-item-section>{{ t('MENU_ABSENCE') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsExternalWork' }">
+              <q-item-section avatar><q-icon name="work_outline" /></q-item-section>
+              <q-item-section>{{ t('MENU_EXTERNAL_WORK') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsNotify' }">
+              <q-item-section avatar><q-icon name="notifications" /></q-item-section>
+              <q-item-section>{{ t('MENU_NOTIFY') }}</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple :to="{ name: 'AdministrationSettingsTerminal' }">
+              <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
+              <q-item-section>{{ t('MENU_TERMINAL') }}</q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </q-scroll-area>
-      <div
-        class="absolute-top bg-primary q-pa-md text-white"
-        style="height: 80px"
-      >
-        <div v-if="session">
-          <div class="text-weight-bold">
-            {{ session.FirstName }} {{ session.LastName }}
-          </div>
-          <div>{{ session.Username }}</div>
-        </div>
-      </div>
       <div
         class="absolute-bottom row items-center"
         style="height: 50px; border-top: 1px solid #ddd"

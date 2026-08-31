@@ -19,6 +19,7 @@ export interface ApiUser {
   OvertimeSubtractionModel: string;
   OvertimeSubtractionAmount: number;
   StaffNumber: number;
+  AllowGravatar: boolean;
 }
 
 export class User extends autoImplement<ApiUser>() {

@@ -43,6 +43,11 @@ onMounted(() => {
         :label="t('LABEL_STAFF_NUMBER')"
         v-model.number="user.StaffNumber"
       />
+      <q-toggle
+        :label="t('LABEL_ALLOW_GRAVATAR')"
+        v-model="user.AllowGravatar"
+        class="q-mt-md"
+      />
       <q-btn
         class="full-width q-mt-lg"
         :label="t('LABEL_SAVE')"

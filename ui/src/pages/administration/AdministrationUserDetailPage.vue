@@ -681,6 +681,7 @@ function deleteUserAbsence(absence: Absence) {
           <div class="row q-mt-md">
             <div class="col">
               <OvertimeMonth
+                dense
                 v-if="user"
                 v-model:model-user-id="user.ID"
                 v-model:model-month="selectedMonth"

@@ -32,6 +32,7 @@ type User struct {
 	WorkingHoursPerWeek float64
 	StaffNumber         int64
 	WorkTimeModels      []UserWorktime
+	AllowGravatar       bool
 }
 
 func NewUser(username string) User {
@@ -64,15 +65,17 @@ type UserUpdateRequest struct {
 	HolidayDaysPerYear  uint
 	WorkingHoursPerWeek float64
 	StaffNumber         int64
+	AllowGravatar       bool
 }
 
 type UserResponse struct {
 	gorm.Model
-	Username    string
-	FirstName   string
-	LastName    string
-	AccessLevel string
-	StaffNumber int64
+	Username      string
+	FirstName     string
+	LastName      string
+	AccessLevel   string
+	StaffNumber   int64
+	AllowGravatar bool
 }
 
 type UserApikey struct {
@@ -110,12 +113,13 @@ type UserApikeyResponse struct {
 
 func (u *User) GetUserResponse() UserResponse {
 	return UserResponse{
-		Model:       u.Model,
-		Username:    u.Username,
-		FirstName:   u.FirstName,
-		LastName:    u.LastName,
-		AccessLevel: string(u.AccessLevel),
-		StaffNumber: u.StaffNumber,
+		Model:         u.Model,
+		Username:      u.Username,
+		FirstName:     u.FirstName,
+		LastName:      u.LastName,
+		AccessLevel:   string(u.AccessLevel),
+		StaffNumber:   u.StaffNumber,
+		AllowGravatar: u.AllowGravatar,
 	}
 }
 

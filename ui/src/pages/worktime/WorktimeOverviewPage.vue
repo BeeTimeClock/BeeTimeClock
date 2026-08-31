@@ -1,11 +1,17 @@
 <template>
   <q-page padding>
     <div v-if="!isLoading">
-      <div class="row">
-        <div class="col">
-          <OvertimeTotal class="full-height" />
-        </div>
-      </div>
+      <q-card flat bordered class="q-mb-sm">
+        <q-list>
+          <OvertimeTotal item />
+          <q-separator />
+          <OvertimeMonth
+            item
+            v-model:model-month="selectedMonth"
+            v-model:model-year="selectedYear"
+          />
+        </q-list>
+      </q-card>
       <div class="row">
         <div class="col q-pa-md">
           <q-btn
@@ -46,15 +52,6 @@
             v-model="selectedMonth"
             :options="timestampMonths"
             :label="t('LABEL_MONTH')"
-          />
-        </div>
-      </div>
-      <div class="row q-mt-md">
-        <div class="col">
-          <OvertimeMonth
-            v-model:model-month="selectedMonth"
-            v-model:model-year="selectedYear"
-            class="full-width"
           />
         </div>
       </div>
@@ -186,7 +183,6 @@ watch(selectedYear, () => {
 });
 
 watch(selectedMonth, () => {
-  console.log('month changed');
   loadTimestampGrouped();
 });
 </script>

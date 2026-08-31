@@ -259,6 +259,7 @@ onMounted(async () => {
             <div class="row q-mt-md">
               <div class="col">
                 <OvertimeMonth
+                  dense
                   v-if="user"
                   v-model:model-team-id="teamId"
                   v-model:model-user-id="user.ID"

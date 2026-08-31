@@ -68,7 +68,7 @@ func (h *Timestamp) TimestampQueryLast(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, lastTimestamp)
+	c.JSON(http.StatusOK, model.NewSuccessResponse(lastTimestamp))
 }
 
 func (h *Timestamp) TimestampMissingEntries(c *gin.Context) {
