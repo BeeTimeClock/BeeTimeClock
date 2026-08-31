@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -256,6 +257,7 @@ func (h *Terminal) TerminalCheckin(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Looking for: %s", checkinRequest.TokenIdentifier)
 	userToken, err := h.user.UserTokenFindByTokenIdentifier(checkinRequest.TokenIdentifier)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserTokenNotFound) {
@@ -278,7 +280,12 @@ func (h *Terminal) TerminalCheckin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.NewSuccessResponse(timestamp))
+	timestampResponse := model.TerminalTimestampResponse{
+		Timestamp: timestamp,
+		User:      userToken.User,
+	}
+
+	c.JSON(http.StatusCreated, model.NewSuccessResponse(timestampResponse))
 }
 
 func (h *Terminal) TerminalCheckout(c *gin.Context) {
@@ -320,5 +327,10 @@ func (h *Terminal) TerminalCheckout(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.NewSuccessResponse(lastTimestamp))
+	timestampResponse := model.TerminalTimestampResponse{
+		Timestamp: lastTimestamp,
+		User:      userToken.User,
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(timestampResponse))
 }

@@ -174,3 +174,8 @@ type TimestampSuspiciousResponse struct {
 type TimestampOvertimeReasonUpdateRequest struct {
 	OvertimeReason string `binding:"required"`
 }
+
+type TerminalTimestampResponse struct {
+	Timestamp
+	User User
+}

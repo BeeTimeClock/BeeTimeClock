@@ -238,6 +238,16 @@ func main() {
 			}))
 		})
 
+		terminal := v1.Group("terminal")
+		{
+			terminal.Use(authProvider.TerminalAuthRequired)
+			{
+
+				terminal.POST("checkin", terminalHandler.TerminalCheckin)
+				terminal.POST("checkout", terminalHandler.TerminalCheckout)
+			}
+		}
+
 		v1.Use(authProvider.AuthRequired)
 		{
 			administration := v1.Group("administration")
@@ -443,14 +453,6 @@ func main() {
 			}
 		}
 
-		v1.Use(authProvider.TerminalAuthRequired)
-		{
-			terminal := v1.Group("terminal")
-			{
-				terminal.POST("checkin", terminalHandler.TerminalCheckin)
-				terminal.POST("checkout", terminalHandler.TerminalCheckout)
-			}
-		}
 	}
 
 	notify(env, absenceRepo)

@@ -24,7 +24,7 @@ const (
 type User struct {
 	gorm.Model
 	Username            string `gorm:"unique"`
-	Password            string
+	Password            string `json:"-"`
 	FirstName           string
 	LastName            string
 	AccessLevel         UserAccessLevel
