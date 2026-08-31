@@ -512,13 +512,15 @@ const columns = [
   {
     name: 'absenceFrom',
     label: t('LABEL_FROM'),
-    field: 'formatFromFull',
+    field: 'AbsenceFrom',
+    format: (val: Date) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
     sortable: true,
   },
   {
     name: 'absenceTill',
     label: t('LABEL_TILL'),
-    field: 'formatTillFull',
+    field: 'AbsenceTill',
+    format: (val: Date) => date.formatDate(val, 'ddd DD. MMM. YYYY'),
     sortable: true,
   },
   {
