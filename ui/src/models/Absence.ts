@@ -57,6 +57,7 @@ export interface ApiAbsence {
   User: ApiUser;
   SignedStatus?: AbsenceSignedStatus;
   SignedUser?: User;
+  Reason?: string;
 }
 
 export interface ApiAbsenceSummaryItem {

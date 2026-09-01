@@ -8,7 +8,6 @@ import {
   type AbsenceSignRequest,
   AbsenceSummaryItem,
   type AbsenceReason,
-  type ApiAbsenceSummaryItem,
 } from 'src/models/Absence';
 import { Team, TeamLevel } from 'src/models/Team';
 import AbsenceSummaryTableComponent from 'components/AbsenceSummaryTableComponent.vue';
@@ -30,12 +29,12 @@ const user = ref(null as User | null);
 const absenceSummaryItems = ref([] as AbsenceSummaryItem[]);
 
 interface PendingApproval {
-  teamId: number;
   absence: Absence;
   conflicts: string[];
 }
 const pendingApprovals = ref<PendingApproval[]>([]);
 const isTeamLead = ref(false);
+const signTeamId = ref(0);
 const myPendingAbsences = ref<Absence[]>([]);
 const myUpcomingAbsences = ref<Absence[]>([]);
 const absenceReasons = ref<AbsenceReason[]>([]);
@@ -105,39 +104,20 @@ function loadPendingApprovals() {
         (m.Level === TeamLevel.Lead || m.Level === TeamLevel.LeadSurrogate)
       ));
     isTeamLead.value = leadTeams.length > 0;
+    signTeamId.value = leadTeams[0]?.ID ?? 0;
+  }).catch(() => {});
 
-    const promises = leadTeams.map(team =>
-      Promise.all([
-        BeeTimeClock.absenceTeamOpen(team.ID),
-        BeeTimeClock.queryTeamAbsenceSummary(team.ID),
-      ]).then(([openR, summaryR]) => {
-        const openAbsences = openR.status === 200 ? openR.data.Data.map(a => Absence.fromApi(a)) : [];
-        const teamSummary: ApiAbsenceSummaryItem[] = summaryR.status === 200 ? summaryR.data.Data : [];
-
-        return openAbsences.map(absence => {
-          const from = new Date(absence.AbsenceFrom).getTime();
-          const till = new Date(absence.AbsenceTill).getTime();
-          const conflicts = teamSummary
-            .filter(s => {
-              if (Number(s.User.ID) === Number(absence.User.ID)) return false;
-              const sFrom = new Date(s.AbsenceFrom).getTime();
-              const sTill = new Date(s.AbsenceTill).getTime();
-              return from <= sTill && sFrom <= till;
-            })
-            .map(s => `${s.User.FirstName} ${s.User.LastName}`);
-          return { teamId: team.ID, absence, conflicts };
-        });
-      }).catch(() => [])
-    );
-
-    void Promise.all(promises).then(results => {
-      pendingApprovals.value = results.flat();
-    });
+  BeeTimeClock.absenceQueryNeedsApproval().then(result => {
+    if (result.status !== 200) return;
+    pendingApprovals.value = result.data.Data.map(a => ({
+      absence: Absence.fromApi(a),
+      conflicts: [],
+    }));
   }).catch(() => {});
 }
 
-function signAbsence(teamId: number, absence: Absence, status: AbsenceSignedStatus, message?: string) {
-  BeeTimeClock.absenceTeamSign(teamId, absence.ID, { Status: status, Messages: message } as AbsenceSignRequest)
+function signAbsence(absence: Absence, status: AbsenceSignedStatus, message?: string) {
+  BeeTimeClock.absenceTeamSign(signTeamId.value, absence.ID, { Status: status, Messages: message } as AbsenceSignRequest)
     .then(result => {
       if (result.status === 200) {
         showInfoMessage(t('MSG_UPDATE_SUCCESS'));
@@ -153,7 +133,7 @@ function acceptAbsence(item: PendingApproval) {
     message: t('MSG_ARE_YOU_SURE'),
     cancel: true,
     persistent: true,
-  }).onOk(() => signAbsence(item.teamId, item.absence, AbsenceSignedStatus.Accepted));
+  }).onOk(() => signAbsence(item.absence, AbsenceSignedStatus.Accepted));
 }
 
 function declineAbsence(item: PendingApproval) {
@@ -163,7 +143,7 @@ function declineAbsence(item: PendingApproval) {
     prompt: { model: '', type: 'text' },
     cancel: true,
     persistent: true,
-  }).onOk((msg: string) => signAbsence(item.teamId, item.absence, AbsenceSignedStatus.Declined, msg));
+  }).onOk((msg: string) => signAbsence(item.absence, AbsenceSignedStatus.Declined, msg));
 }
 
 onMounted(() => {
@@ -264,7 +244,7 @@ onMounted(() => {
             <q-item-section>
               <q-item-label>{{ item.absence.userMapped.displayName }}</q-item-label>
               <q-item-label caption>
-                {{ absenceReasonLabel(item.absence.AbsenceReasonID) }} ·
+                {{ item.absence.Reason }} ·
                 {{ date.formatDate(item.absence.AbsenceFrom, 'DD. MMM') }} –
                 {{ date.formatDate(item.absence.AbsenceTill, 'DD. MMM YYYY') }}
                 ({{ item.absence.NettoDays }} {{ t('LABEL_DAY') }})

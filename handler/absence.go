@@ -738,3 +738,81 @@ func (h *Absence) AbsenceSign(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.NewSuccessResponse(absence))
 }
+
+func (h *Absence) AbsenceQueryUserAbsencesWhichNeedsMyApproval(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	teams, err := h.team.TeamsFindByUserId(user.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	abseneceReasons, err := h.absence.FindAllAbsenceReasons()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	absenceReasonIds := []uint{}
+	for _, absenceReason := range abseneceReasons {
+		if absenceReason.NeedsApproval != nil && *absenceReason.NeedsApproval {
+			absenceReasonIds = append(absenceReasonIds, absenceReason.ID)
+		}
+	}
+
+	result := []model.AbsenceReturn{}
+	groupedByUser := make(map[uint][]model.Absence)
+	absenceIds := make(map[uint]any)
+
+	if len(absenceReasonIds) == 0 {
+		c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+		return
+	}
+	for _, team := range teams {
+		isLead := slices.ContainsFunc(team.Members, func(member model.TeamMember) bool {
+			return member.UserID == user.ID && (member.Level == model.TeamLevel_Lead || member.Level == model.TeamLevel_LeadSurrogate)
+		})
+
+		if !isLead {
+			continue
+		}
+
+		userIds := []uint{}
+
+		for _, member := range team.Members {
+			userIds = append(userIds, member.UserID)
+		}
+
+		teamAbsences, err := h.absence.FindByQuery(true, "user_id in ? and absence_reason_id in ? and signed_user_id is null", userIds, absenceReasonIds)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+			return
+		}
+
+		for _, absence := range teamAbsences {
+			if _, exists := absenceIds[absence.ID]; exists {
+				continue
+			}
+
+			absenceIds[absence.ID] = nil
+
+			userId := *absence.UserID
+			if _, exists := groupedByUser[userId]; !exists {
+				groupedByUser[userId] = []model.Absence{}
+			}
+
+			groupedByUser[userId] = append(groupedByUser[userId], absence)
+		}
+	}
+
+	for _, absences := range groupedByUser {
+		result = append(result, model.AbsenceReturns(absences, absences[0].User, true, true, false)...)
+	}
+
+	c.JSON(http.StatusOK, model.NewSuccessResponse(result))
+}

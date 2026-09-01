@@ -395,6 +395,7 @@ func main() {
 				absence.DELETE(":id", absenceHandler.AbsenceDelete)
 				absence.GET("query/me/summary", absenceHandler.AbsenceQueryCurrentUserSummary)
 				absence.GET("query/me/open", absenceHandler.AbsenceGetAllOpen)
+				absence.GET("query/users/absence/needs_approval", absenceHandler.AbsenceQueryUserAbsencesWhichNeedsMyApproval)
 				absence.GET("query/users/summary", absenceHandler.AbsenceQueryUsersSummary)
 				absence.GET("query/users/summary/current_year", absenceHandler.AbsenceQueryUsersSummaryCurrentYear)
 				absence.GET("query/users/summary/current_week", absenceHandler.AbsenceQueryUsersSummaryCurrentWeek)

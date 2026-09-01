@@ -618,6 +618,12 @@ class BeeTimeClock {
     return api.get(`/api/v1/team/${teamId}/absence/open`);
   }
 
+  absenceQueryNeedsApproval(): Promise<
+    AxiosResponse<BaseResponse<ApiAbsence[]>>
+  > {
+    return api.get('/api/v1/absences/query/users/absence/needs_approval');
+  }
+
   absenceTeamSign(
     teamId: number,
     absenceId: number,
