@@ -115,7 +115,7 @@ func (a *AuthProvider) TerminalAuthRequired(c *gin.Context) {
 		return
 	}
 
-	c.Set(sessionDevice, terminal)
+	c.Set(sessionDevice, terminal.TerminalName)
 	c.Next()
 }
 
