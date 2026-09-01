@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"slices"
 	"strconv"
@@ -239,7 +240,7 @@ func (h *Absence) absenceCreate(c *gin.Context, user *model.User, absenceCreateR
 	}
 
 	acceptedStatus := model.SIGNED_STATUS_ACCEPTED
-	if microsoft.IsMicrosoftConnected() && absence.SignedStatus == &acceptedStatus {
+	if microsoft.IsMicrosoftConnected() && *absence.SignedStatus == acceptedStatus {
 		eventId, err := microsoft.CreateCalendarEntryFromAbsence(user.Username, &absence)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
