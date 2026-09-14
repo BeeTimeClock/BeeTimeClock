@@ -6,6 +6,7 @@ import BeeTimeClock from 'src/service/BeeTimeClock';
 import {showErrorMessage, showInfoMessage} from 'src/helper/message';
 import {useI18n} from 'vue-i18n';
 import type {ErrorResponse} from 'src/models/Base';
+import UserSelect from 'components/UserSelect.vue';
 
 const { t } = useI18n();
 const team = defineModel('team', { type: Team, required: true });
@@ -65,15 +66,7 @@ function loadUsers() {
       </q-card-section>
       <q-form @submit="createMember">
         <q-card-section>
-          <q-select
-            v-model="teamMemberCreateRequest.UserID"
-            :options="users"
-            map-options
-            emit-value
-            option-label="displayName"
-            option-value="ID"
-            :label="t('LABEL_USER')"
-          />
+          <UserSelect v-model="teamMemberCreateRequest.UserID" :users="users"/>
           <q-select
             v-model="teamMemberCreateRequest.Level"
             :options="teamLevels"
