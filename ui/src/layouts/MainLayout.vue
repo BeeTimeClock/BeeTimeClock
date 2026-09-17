@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {computed, onMounted, ref, watch} from 'vue';
+import {useQuasar} from 'quasar';
 import {useAuthStore} from 'stores/microsoft-auth';
 import {useI18n} from 'vue-i18n';
 import type {User} from 'src/models/Authentication';
@@ -14,6 +15,7 @@ import UserAvatar from 'components/UserAvatar.vue';
 
 const {t} = useI18n();
 
+const $q = useQuasar();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 const session = ref(null as User | null);
@@ -41,7 +43,15 @@ function logout() {
 }
 
 function toggleLeftDrawer() {
-  miniMode.value = !miniMode.value;
+  // Below the drawer breakpoint it collapses into a hidden overlay, so the
+  // button has to open/close it. Above the breakpoint the drawer is always
+  // visible (show-if-above), so the button toggles the mini (icons-only) mode.
+  if ($q.screen.lt.md) {
+    miniMode.value = false;
+    leftDrawerOpen.value = !leftDrawerOpen.value;
+  } else {
+    miniMode.value = !miniMode.value;
+  }
 }
 
 function loadMissingDaysCount() {
