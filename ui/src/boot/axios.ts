@@ -1,7 +1,7 @@
 import { boot } from 'quasar/wrappers';
-import type { AxiosInstance } from 'axios';
+import type { AxiosError, AxiosInstance } from 'axios';
 import axios from 'axios';
-import {ACCESS_TOKEN_STORE_KEY, AUTH_PROVIDER_STORE_KEY} from 'stores/microsoft-auth';
+import {ACCESS_TOKEN_STORE_KEY, AUTH_PROVIDER_STORE_KEY, useAuthStore} from 'stores/microsoft-auth';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -36,7 +36,20 @@ api.interceptors.request.use(request => {
   return request;
 });
 
-export default boot(({ app }) => {
+export default boot(({ app, router }) => {
+  api.interceptors.response.use(
+    response => response,
+    (error: AxiosError) => {
+      if (error.response?.status === 401) {
+        useAuthStore().logout();
+        if (router.currentRoute.value.name !== 'Login') {
+          void router.push({ name: 'Login' });
+        }
+      }
+      return Promise.reject(error);
+    },
+  );
+
   // for use inside Vue files (Options API) through this.$axios and this.$api
   app.config.globalProperties.$axios = axios;
   // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
