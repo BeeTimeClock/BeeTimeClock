@@ -199,6 +199,12 @@ func (h *User) CurrentUserUpdate(c *gin.Context) {
 		return
 	}
 
+	err = userUpdateRequest.Validate()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
 	user, err := h.user.FindByID(currentUser.ID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
@@ -207,6 +213,8 @@ func (h *User) CurrentUserUpdate(c *gin.Context) {
 
 	user.StaffNumber = userUpdateRequest.StaffNumber
 	user.AllowGravatar = userUpdateRequest.AllowGravatar
+	user.ComingRingtone = userUpdateRequest.ComingRingtone
+	user.GoingRingtone = userUpdateRequest.GoingRingtone
 
 	err = h.user.Update(&user)
 	if err != nil {

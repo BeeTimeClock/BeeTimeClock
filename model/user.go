@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -11,6 +12,42 @@ import (
 )
 
 var ErrUserWorkTimeModelNotFoundForTimestamp = errors.New("no worktime model found for this timestamp")
+
+// MaxRingtoneTones is the maximum number of tones a coming/going ringtone (RTTTL) may contain.
+const MaxRingtoneTones = 24
+
+var ErrRingtoneTooManyTones = fmt.Errorf("ringtone must not contain more than %d tones", MaxRingtoneTones)
+
+// RingtoneToneCount returns the number of tones in an RTTTL string. The tones
+// are the comma-separated entries of the last colon-separated section.
+func RingtoneToneCount(rtttl string) int {
+	rtttl = strings.TrimSpace(rtttl)
+	if rtttl == "" {
+		return 0
+	}
+
+	parts := strings.Split(rtttl, ":")
+	notes := parts[len(parts)-1]
+
+	count := 0
+	for _, note := range strings.Split(notes, ",") {
+		if strings.TrimSpace(note) != "" {
+			count++
+		}
+	}
+	return count
+}
+
+// Validate checks the update request for invalid values.
+func (r *UserUpdateRequest) Validate() error {
+	if RingtoneToneCount(r.ComingRingtone) > MaxRingtoneTones {
+		return ErrRingtoneTooManyTones
+	}
+	if RingtoneToneCount(r.GoingRingtone) > MaxRingtoneTones {
+		return ErrRingtoneTooManyTones
+	}
+	return nil
+}
 
 type UserAccessLevel string
 type UserTokenType string
@@ -33,6 +70,8 @@ type User struct {
 	StaffNumber         int64
 	WorkTimeModels      []UserWorktime
 	AllowGravatar       bool
+	ComingRingtone      string
+	GoingRingtone       string
 }
 
 func NewUser(username string) User {
@@ -66,16 +105,20 @@ type UserUpdateRequest struct {
 	WorkingHoursPerWeek float64
 	StaffNumber         int64
 	AllowGravatar       bool
+	ComingRingtone      string
+	GoingRingtone       string
 }
 
 type UserResponse struct {
 	gorm.Model
-	Username      string
-	FirstName     string
-	LastName      string
-	AccessLevel   string
-	StaffNumber   int64
-	AllowGravatar bool
+	Username       string
+	FirstName      string
+	LastName       string
+	AccessLevel    string
+	StaffNumber    int64
+	AllowGravatar  bool
+	ComingRingtone string
+	GoingRingtone  string
 }
 
 type UserApikey struct {
@@ -117,9 +160,11 @@ func (u *User) GetUserResponse() UserResponse {
 		Username:      u.Username,
 		FirstName:     u.FirstName,
 		LastName:      u.LastName,
-		AccessLevel:   string(u.AccessLevel),
-		StaffNumber:   u.StaffNumber,
-		AllowGravatar: u.AllowGravatar,
+		AccessLevel:    string(u.AccessLevel),
+		StaffNumber:    u.StaffNumber,
+		AllowGravatar:  u.AllowGravatar,
+		ComingRingtone: u.ComingRingtone,
+		GoingRingtone:  u.GoingRingtone,
 	}
 }
 

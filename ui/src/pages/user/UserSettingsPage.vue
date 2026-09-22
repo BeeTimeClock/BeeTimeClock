@@ -9,6 +9,18 @@ import { type ErrorResponse } from 'src/models/Base';
 const user = ref<User>();
 const { t } = useI18n();
 
+const MAX_RINGTONE_TONES = 24;
+
+function ringtoneRule(val: string) {
+  if (!val) return true;
+  const notes = val.split(':').pop() ?? '';
+  const count = notes.split(',').filter((n) => n.trim() !== '').length;
+  return (
+    count <= MAX_RINGTONE_TONES ||
+    t('MSG_RINGTONE_TOO_LONG', { max: MAX_RINGTONE_TONES })
+  );
+}
+
 function loadUser() {
   BeeTimeClock.getMeUser().then((result) => {
     if (result.status === 200) {
@@ -46,6 +58,20 @@ onMounted(() => {
       <q-toggle
         :label="t('LABEL_ALLOW_GRAVATAR')"
         v-model="user.AllowGravatar"
+        class="q-mt-md"
+      />
+      <q-input
+        :label="t('LABEL_COMING_RINGTONE')"
+        :hint="t('HINT_RINGTONE_RTTTL')"
+        v-model="user.ComingRingtone"
+        :rules="[ringtoneRule]"
+        class="q-mt-md"
+      />
+      <q-input
+        :label="t('LABEL_GOING_RINGTONE')"
+        :hint="t('HINT_RINGTONE_RTTTL')"
+        v-model="user.GoingRingtone"
+        :rules="[ringtoneRule]"
         class="q-mt-md"
       />
       <q-btn
