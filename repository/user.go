@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
@@ -115,7 +116,7 @@ func (r *User) FindUserByApikey(apikey string) (model.User, error) {
 	var item model.UserApikey
 	result := db.Preload("WorkTimeModels.WorkTimeModel").Preload(clause.Associations).Find(&item, "apikey = ?", apikey)
 
-	if result.RowsAffected == 0 {
+	if result.RowsAffected == 0 || (!item.ValidTill.IsZero() && item.ValidTill.Before(time.Now())) {
 		return model.User{}, ErrUserNotFound
 	}
 
