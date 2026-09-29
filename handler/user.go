@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -274,6 +275,43 @@ func (h *User) CurrentUserApikeyCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, model.NewSuccessResponse(userApikey))
+}
+
+func (h *User) CurrentUserApikeyDelete(c *gin.Context) {
+	user, err := auth.GetUserFromSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	apikeyID, err := getIdFromParam(c, "apikeyID")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, model.NewErrorResponse(err))
+		return
+	}
+
+	userApikey, err := h.user.UserApikeyFindById(apikeyID)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserApikeyNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, model.NewErrorResponse(err))
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	if userApikey.UserID != user.ID {
+		c.AbortWithStatusJSON(http.StatusNotFound, model.NewErrorResponse(repository.ErrUserApikeyNotFound))
+		return
+	}
+
+	err = h.user.UserApikeyDelete(&userApikey)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, model.NewErrorResponse(err))
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 func (h *User) AdministrationTeamGetAll(c *gin.Context) {

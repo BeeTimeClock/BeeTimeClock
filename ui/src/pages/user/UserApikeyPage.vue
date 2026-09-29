@@ -6,6 +6,7 @@ import type {
   UserApikeyCreateRequest,
 } from 'src/models/Base';
 import BeeTimeClock from 'src/service/BeeTimeClock';
+import { useQuasar } from 'quasar';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -16,6 +17,7 @@ const apikeyCreateRequest = ref(null as UserApikeyCreateRequest | null);
 const apikeySuccessResponse = ref(null as UserApikey | null);
 
 const { t } = useI18n();
+const q = useQuasar();
 
 function loadUserApikeys() {
   BeeTimeClock.getUserApikey().then((result) => {
@@ -58,6 +60,33 @@ function createApikey() {
     });
 }
 
+function deleteApikey(apikey: UserApikey) {
+  q.dialog({
+    message: t('MSG_DELETE', {
+      item: t('LABEL_APIKEY'),
+      identifier: apikey.Description,
+    }),
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    BeeTimeClock.deleteUserApikey(apikey.ID)
+      .then((result) => {
+        if (result.status === 204) {
+          showInfoMessage(
+            t('MSG_DELETE_SUCCESS', {
+              item: t('LABEL_APIKEY'),
+              identifier: apikey.Description,
+            }),
+          );
+          loadUserApikeys();
+        }
+      })
+      .catch((error: ErrorResponse) => {
+        showErrorMessage(error.response?.data.Message);
+      });
+  });
+}
+
 onMounted(() => {
   loadUserApikeys();
 });
@@ -79,7 +108,15 @@ onMounted(() => {
         <tr v-for="apikey in apikeys" :key="apikey.ID">
           <td>{{ apikey.Description }}</td>
           <td>{{ apikey.ValidTill }}</td>
-          <td></td>
+          <td>
+            <q-btn
+              icon="delete"
+              color="negative"
+              flat
+              dense
+              @click="deleteApikey(apikey)"
+            />
+          </td>
         </tr>
       </tbody>
     </q-markup-table>

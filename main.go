@@ -446,6 +446,7 @@ func main() {
 				user.PUT("me", userHandler.CurrentUserUpdate)
 				user.GET("me/apikey", userHandler.CurrentUserApikeyGet)
 				user.POST("me/apikey", userHandler.CurrentUserApikeyCreate)
+				user.DELETE("me/apikey/:apikeyID", userHandler.CurrentUserApikeyDelete)
 			}
 
 			holiday := v1.Group("holidays")

@@ -400,6 +400,12 @@ class BeeTimeClock {
     return api.post('/api/v1/user/me/apikey', userApikeyCreateRequest);
   }
 
+  deleteUserApikey(
+    apikeyId: number,
+  ): Promise<AxiosResponse<BaseResponse<undefined>>> {
+    return api.delete(`/api/v1/user/me/apikey/${apikeyId}`);
+  }
+
   timestampQueryMonths(): Promise<
     AxiosResponse<BaseResponse<TimestampYearMonthGrouped>>
   > {
