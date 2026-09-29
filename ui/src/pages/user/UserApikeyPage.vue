@@ -45,7 +45,13 @@ function closeApikey() {
 
 function createApikey() {
   if (apikeyCreateRequest.value == null) return;
-  BeeTimeClock.createUserApikey(apikeyCreateRequest.value)
+  const validTill = apikeyCreateRequest.value.ValidTill;
+  BeeTimeClock.createUserApikey({
+    Description: apikeyCreateRequest.value.Description,
+    ValidTill: validTill
+      ? new Date(`${validTill}T23:59:59.999`).toISOString()
+      : null,
+  })
     .then((result) => {
       if (result.status === 201) {
         showInfoMessage(t('MSG_CREATE_SUCCESS'));

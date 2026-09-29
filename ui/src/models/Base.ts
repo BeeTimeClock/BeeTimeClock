@@ -32,7 +32,7 @@ export interface UserApikey {
 
 export interface UserApikeyCreateRequest {
   Description: string;
-  ValidTill: string;
+  ValidTill: string | null;
 }
 
 export interface ApiCountResult {
