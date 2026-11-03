@@ -6,6 +6,7 @@ import (
 
 	"github.com/BeeTimeClock/BeeTimeClock-Server/core"
 	"github.com/BeeTimeClock/BeeTimeClock-Server/model"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -151,8 +152,57 @@ func (r *User) Delete(user *model.User) error {
 	}
 	defer r.env.DatabaseManager.CloseConnection(db)
 
-	result := db.Delete(&user)
-	return result.Error
+	return db.Transaction(func(tx *gorm.DB) error {
+		userID := user.ID
+
+		absenceIDs := tx.Model(&model.Absence{}).Select("id").Where("user_id = ?", userID)
+		if err := tx.Where("absence_id IN (?)", absenceIDs).Delete(&model.AbsenceExternalEvent{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", userID).Delete(&model.Absence{}).Error; err != nil {
+			return err
+		}
+
+		timestampIDs := tx.Model(&model.Timestamp{}).Select("id").Where("user_id = ?", userID)
+		if err := tx.Where("timestamp_id IN (?)", timestampIDs).Delete(&model.TimestampCorrection{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", userID).Delete(&model.Timestamp{}).Error; err != nil {
+			return err
+		}
+
+		externalWorkIDs := tx.Model(&model.ExternalWork{}).Select("id").Where("user_id = ?", userID)
+		if err := tx.Where("external_work_id IN (?)", externalWorkIDs).Delete(&model.ExternalWorkExpense{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("external_work_id IN (?)", externalWorkIDs).Delete(&model.ExternalWorkExternalEvent{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", userID).Delete(&model.ExternalWork{}).Error; err != nil {
+			return err
+		}
+
+		for _, item := range []interface{}{
+			&model.OvertimeMonthQuota{},
+			&model.Fuel{},
+			&model.TeamMember{},
+			&model.UserApikey{},
+			&model.UserToken{},
+		} {
+			if err := tx.Where("user_id = ?", userID).Delete(item).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Model(&model.Absence{}).Where("signed_user_id = ?", userID).Update("signed_user_id", nil).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.ExternalWork{}).Where("reviewed_by_id = ?", userID).Update("reviewed_by_id", nil).Error; err != nil {
+			return err
+		}
+
+		return tx.Select(clause.Associations).Delete(&user).Error
+	})
 }
 
 func (r *User) Count() (int64, error) {
